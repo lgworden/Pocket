@@ -10,10 +10,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "image and mediaType are required" }, { status: 400 });
   }
 
-  const [draft, photoUrl] = await Promise.all([
-    draftItemFromPhoto(image, mediaType),
-    saveBase64Photo(image, mediaType),
-  ]);
-
-  return NextResponse.json({ draft, photoUrl });
+  try {
+    const [draft, photoUrl] = await Promise.all([
+      draftItemFromPhoto(image, mediaType),
+      saveBase64Photo(image, mediaType),
+    ]);
+    return NextResponse.json({ draft, photoUrl });
+  } catch (err) {
+    console.error("POST /api/items/draft failed:", err);
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

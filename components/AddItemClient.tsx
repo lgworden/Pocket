@@ -50,7 +50,10 @@ export default function AddItemClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ image: payload.base64, mediaType: payload.mediaType }),
       });
-      if (!res.ok) throw new Error("Couldn't read that photo — try again?");
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || "Couldn't read that photo — try again?");
+      }
       const { draft, photoUrl } = await res.json();
       setDraft(draft);
       setPhotoUrl(photoUrl);
