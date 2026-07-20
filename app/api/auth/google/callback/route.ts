@@ -31,7 +31,8 @@ export async function GET(req: NextRequest) {
       const tokens = await exchangeCodeForTokens(code);
       await saveTokens(userId, tokens);
       return NextResponse.redirect(`${baseUrl}/?calendar=connected`);
-    } catch {
+    } catch (err) {
+      console.error("[auth/google/callback] calendar connect failed:", err);
       return NextResponse.redirect(`${baseUrl}/?calendar=error`);
     }
   }
@@ -58,7 +59,8 @@ export async function GET(req: NextRequest) {
     );
     const dest = rows[0]?.onboarding_completed ? "/" : "/onboarding";
     return NextResponse.redirect(`${baseUrl}${dest}`);
-  } catch {
+  } catch (err) {
+    console.error("[auth/google/callback] sign-in failed:", err);
     return NextResponse.redirect(`${baseUrl}/login?error=signin`);
   }
 }
