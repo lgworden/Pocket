@@ -6,7 +6,12 @@ import path from "path";
 export async function GET() {
   const cwd = process.cwd();
   const uploadDir = path.join(cwd, "public", "uploads");
-  const result: Record<string, unknown> = { cwd, uploadDir };
+  const result: Record<string, unknown> = {
+    cwd,
+    uploadDir,
+    pid: process.pid,
+    uptimeSeconds: process.uptime(),
+  };
 
   try {
     await mkdir(uploadDir, { recursive: true });
