@@ -3,6 +3,8 @@ import { mkdir, writeFile, readdir, readFile } from "fs/promises";
 import path from "path";
 
 // Temporary diagnostic route for the "photo doesn't save" bug — safe to delete once resolved.
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const cwd = process.cwd();
   const uploadDir = path.join(cwd, "public", "uploads");
