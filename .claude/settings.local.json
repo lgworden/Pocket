@@ -33,7 +33,12 @@
       "Bash(gh auth *)",
       "Bash(kill 66496 66484 56825 56813)",
       "Bash(PGPASSWORD=postgres /Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin/node -e ' *)",
-      "Bash(git log *)"
+      "Bash(git log *)",
+      "Bash(DATABASE_URL=postgres://postgres:postgres@127.0.0.1:15432/closet_stylist .tools/node-v20.16.0-darwin-arm64/bin/node -e ' *)",
+      "Bash(git -C Pocket log --oneline -20)",
+      "Bash(git -C Pocket status)",
+      "Bash(git -C Pocket remote -v)",
+      "Bash(git -C Pocket diff --stat)"
     ]
   }
 }
