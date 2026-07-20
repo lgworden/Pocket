@@ -14,13 +14,21 @@ import {
 // mosaic. Reactions update optimistically, then reconcile with the server.
 // The photo tile can flip to show the tagged items' brand/category/style —
 // only populated when the post was shared from a logged outfit (post.items).
-export default function FeedCard({ post }: { post: FeedPost }) {
+export default function FeedCard({
+  post,
+  onDeleted,
+}: {
+  post: FeedPost;
+  onDeleted?: (id: string) => void;
+}) {
   const style = VISIBILITY_STYLES[post.visibility];
   const [counts, setCounts] = useState(post.reaction_counts);
   const [mine, setMine] = useState<FeedReactionType[]>(post.my_reactions);
   const [pending, setPending] = useState<FeedReactionType | null>(null);
   const [photoFailed, setPhotoFailed] = useState(false);
   const [flipped, setFlipped] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
   // The browser starts fetching an SSR'd <img> before React hydrates, so a
@@ -63,6 +71,18 @@ export default function FeedCard({ post }: { post: FeedPost }) {
     }
   }
 
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/feed/${post.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("delete failed");
+      onDeleted?.(post.id);
+    } catch {
+      setDeleting(false);
+      setConfirmingDelete(false);
+    }
+  }
+
   return (
     <div className={`rounded-2xl border overflow-hidden shadow-soft-sm ${style.card}`}>
       <div className="relative w-full aspect-[4/5] [perspective:1000px]">
@@ -90,7 +110,11 @@ export default function FeedCard({ post }: { post: FeedPost }) {
           </div>
 
           {/* Back: tagged items' brand/category/style */}
-          <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-cream p-2 overflow-y-auto">
+          <div
+            className={`absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-cream p-2 overflow-y-auto ${
+              post.is_mine ? "pl-8" : ""
+            }`}
+          >
             {post.items.length > 0 ? (
               <ul className="space-y-1.5">
                 {post.items.map((item) => (
@@ -112,12 +136,63 @@ export default function FeedCard({ post }: { post: FeedPost }) {
 
         <button
           type="button"
-          onClick={() => setFlipped((f) => !f)}
+          onClick={() => {
+            setFlipped((f) => !f);
+            setConfirmingDelete(false);
+          }}
           aria-label={flipped ? "Show photo" : "Show outfit details"}
-          className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-ink/50 text-cream flex items-center justify-center text-[11px] font-ui font-semibold backdrop-blur-sm"
+          className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-ink/50 text-cream flex items-center justify-center backdrop-blur-sm"
         >
-          {flipped ? "×" : "i"}
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`transition-transform duration-500 ${flipped ? "rotate-180" : ""}`}
+          >
+            <path d="M5 12h14" />
+            <path d="M13 6l6 6-6 6" />
+          </svg>
         </button>
+
+        {post.is_mine && flipped && !confirmingDelete && (
+          <button
+            type="button"
+            onClick={() => setConfirmingDelete(true)}
+            aria-label="Delete post"
+            className="absolute top-1.5 left-1.5 w-6 h-6 rounded-full bg-ink/50 text-cream flex items-center justify-center text-[11px] backdrop-blur-sm"
+          >
+            🗑
+          </button>
+        )}
+
+        {confirmingDelete && flipped && (
+          <div className="absolute inset-0 bg-ink/70 backdrop-blur-sm flex flex-col items-center justify-center gap-2 p-3 text-center">
+            <p className="text-xs text-cream font-ui font-semibold">Delete this post?</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={handleDelete}
+                className="rounded-full bg-rose px-3 py-1 text-[11px] font-ui font-semibold text-cream disabled:opacity-60"
+              >
+                {deleting ? "Deleting…" : "Delete"}
+              </button>
+              <button
+                type="button"
+                disabled={deleting}
+                onClick={() => setConfirmingDelete(false)}
+                className="rounded-full bg-cream/20 px-3 py-1 text-[11px] font-ui font-semibold text-cream disabled:opacity-60"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="p-2 space-y-1.5">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import FeedCard from "./FeedCard";
 import FeedComposer from "./FeedComposer";
@@ -21,6 +21,11 @@ export default function FeedCollage({
   const router = useRouter();
   const [composerOpen, setComposerOpen] = useState(false);
   const [friendsOpen, setFriendsOpen] = useState(false);
+  const [livePosts, setLivePosts] = useState(posts);
+
+  useEffect(() => {
+    setLivePosts(posts);
+  }, [posts]);
 
   return (
     <div className="space-y-4">
@@ -57,15 +62,18 @@ export default function FeedCollage({
         ))}
       </div>
 
-      {posts.length === 0 ? (
+      {livePosts.length === 0 ? (
         <div className="card text-center text-sm text-ink/60 py-10">
           No looks yet — tap <span className="font-medium">+ Share</span> to post your first outfit.
         </div>
       ) : (
         <div className="columns-2 gap-2 [column-fill:_balance]">
-          {posts.map((post) => (
+          {livePosts.map((post) => (
             <div key={post.id} className="break-inside-avoid mb-2">
-              <FeedCard post={post} />
+              <FeedCard
+                post={post}
+                onDeleted={(id) => setLivePosts((ps) => ps.filter((p) => p.id !== id))}
+              />
             </div>
           ))}
         </div>
