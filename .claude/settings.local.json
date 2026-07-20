@@ -32,7 +32,8 @@
       "Bash(npx tsc *)",
       "Bash(gh auth *)",
       "Bash(kill 66496 66484 56825 56813)",
-      "Bash(PGPASSWORD=postgres /Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin/node -e ' *)"
+      "Bash(PGPASSWORD=postgres /Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin/node -e ' *)",
+      "Bash(git log *)"
     ]
   }
 }
