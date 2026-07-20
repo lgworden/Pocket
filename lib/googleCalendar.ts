@@ -65,6 +65,14 @@ export async function fetchGoogleUserInfo(
 }
 
 export async function exchangeCodeForTokens(code: string): Promise<TokenResponse> {
+  // Diagnostic only — never logs the actual secret, just whether it's present
+  // and its shape, to tell "unset" apart from "set but malformed" in Railway.
+  console.log(
+    `[googleCalendar] client_id=${CLIENT_ID ? `len ${CLIENT_ID.length}` : "MISSING"} ` +
+      `client_secret=${
+        CLIENT_SECRET ? `len ${CLIENT_SECRET.length}, trimmed len ${CLIENT_SECRET.trim().length}` : "MISSING"
+      } redirect_uri=${REDIRECT_URI ?? "MISSING"}`
+  );
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
