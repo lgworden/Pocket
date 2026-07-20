@@ -1,6 +1,6 @@
 "use client";
 
-import { NOTIFY_OPTIONS, NOTIFY_KEYS } from "@/lib/onboardingOptions";
+import { NOTIFY_GROUPS, NOTIFY_KEYS } from "@/lib/onboardingOptions";
 
 export default function NotificationPicker({
   value,
@@ -11,8 +11,15 @@ export default function NotificationPicker({
 }) {
   const allOn = NOTIFY_KEYS.every((k) => value.includes(k));
 
-  const toggle = (v: string) => {
-    onChange(value.includes(v) ? value.filter((n) => n !== v) : [...value, v]);
+  // Each group flips all of its underlying keys together; a group reads as
+  // "on" only once every key in it is on.
+  const toggleGroup = (keys: string[]) => {
+    const groupOn = keys.every((k) => value.includes(k));
+    onChange(
+      groupOn
+        ? value.filter((v) => !keys.includes(v))
+        : [...value.filter((v) => !keys.includes(v)), ...keys]
+    );
   };
 
   // "Whatever the chef recommends" — all on, or clear if already all on.
@@ -20,20 +27,23 @@ export default function NotificationPicker({
 
   return (
     <div className="space-y-2">
-      {NOTIFY_OPTIONS.map((opt) => (
-        <button
-          key={opt.value}
-          type="button"
-          onClick={() => toggle(opt.value)}
-          className={`w-full p-2.5 text-sm rounded-lg border text-left transition-colors ${
-            value.includes(opt.value)
-              ? "border-ink bg-ink text-cream font-medium"
-              : "border-slate/20 bg-transparent text-slate hover:border-slate/40"
-          }`}
-        >
-          {opt.label}
-        </button>
-      ))}
+      {NOTIFY_GROUPS.map((group) => {
+        const groupOn = group.keys.every((k) => value.includes(k));
+        return (
+          <button
+            key={group.id}
+            type="button"
+            onClick={() => toggleGroup(group.keys)}
+            className={`w-full p-2.5 text-sm rounded-lg border text-left transition-colors ${
+              groupOn
+                ? "border-ink bg-ink text-cream font-medium"
+                : "border-slate/20 bg-transparent text-slate hover:border-slate/40"
+            }`}
+          >
+            {group.label}
+          </button>
+        );
+      })}
       <button
         type="button"
         onClick={toggleChef}

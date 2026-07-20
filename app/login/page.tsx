@@ -18,11 +18,11 @@ export default async function LoginPage({
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
       <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
-        Welcome
+        Welcome to
       </p>
       <h1 className="text-3xl mt-2">Pocket</h1>
       <p className="text-sm text-ink/60 mt-3 max-w-xs">
-        Your closet, a personal stylist, and a feed to share fits with friends.
+        Snap your fit. Plan tomorrow's. Repeat.
       </p>
 
       {error && (

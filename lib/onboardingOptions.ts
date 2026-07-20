@@ -18,17 +18,28 @@ export const HELP_OPTIONS = [
   { value: "define_style", label: "Defining my personal style" },
 ];
 
-// The real notification toggles. "Whatever the chef recommends" is a
-// master switch over all of them, not a stored value of its own.
-export const NOTIFY_OPTIONS = [
-  { value: "sync_gcal", label: "Sync my gcal" },
-  { value: "friends_updates", label: "Give info on style and updates from my friends" },
-  { value: "daily_digest", label: "Send me a daily digest (includes recs based on weather and events)" },
-  { value: "weekly_style_analysis", label: "Weekly recap of what I wore, my outfit vibe, and my all-time style patterns" },
-  { value: "weekly_feed_summary", label: "Weekly summary of activity on my feed posts" },
-  { value: "ootd_reminder", label: "Remind me to post my outfit of the day (11am ET)" },
+// The real notification toggles, condensed into fewer checkboxes for the
+// picker UI — each group flips several underlying preference keys at once.
+// "Whatever the chef recommends" is a master switch over all of them, not a
+// stored value of its own.
+export const NOTIFY_GROUPS = [
+  {
+    id: "daily",
+    label: "Daily nudges — morning outfit digest + 11am reminder to post",
+    keys: ["daily_digest", "ootd_reminder"],
+  },
+  {
+    id: "weekly",
+    label: "Weekly recap — what I wore, my style patterns, and feed activity",
+    keys: ["weekly_style_analysis", "weekly_feed_summary"],
+  },
+  {
+    id: "sync",
+    label: "Calendar sync + friend style updates",
+    keys: ["sync_gcal", "friends_updates"],
+  },
 ];
-export const NOTIFY_KEYS = NOTIFY_OPTIONS.map((o) => o.value);
+export const NOTIFY_KEYS = NOTIFY_GROUPS.flatMap((g) => g.keys);
 
 // Default local time for the daily digest, in "HH:mm" 24h format — editable in
 // NotificationsModal, stored at notification_preferences.daily_digest_time.
