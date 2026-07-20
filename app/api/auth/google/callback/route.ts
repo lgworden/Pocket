@@ -15,7 +15,13 @@ export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
   const error = req.nextUrl.searchParams.get("error");
   const state = req.nextUrl.searchParams.get("state") ?? "signin";
-  const baseUrl = req.nextUrl.origin;
+
+  // req.nextUrl.origin reflects Railway's internal address, not the public
+  // domain — same issue lib/friends.ts already works around for invite links.
+  const host = req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? req.nextUrl.host;
+  const proto =
+    req.headers.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
+  const baseUrl = `${proto}://${host}`;
 
   if (state === "calendar") {
     if (error || !code) return NextResponse.redirect(`${baseUrl}/?calendar=error`);
