@@ -5,8 +5,8 @@ node_modules
 *.log
 .tools/
 tsconfig.tsbuildinfo
-public/uploads/*
-!public/uploads/.gitkeep
+data/uploads/*
+!data/uploads/.gitkeep
 
 # Local-only embedded-postgres dev helper (not a project dependency — install
 # ad hoc with `npm install --no-save embedded-postgres` before running).

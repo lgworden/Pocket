@@ -1,7 +1,7 @@
 import { readFile } from "fs/promises";
 import path from "path";
 import pool from "./db";
-import { saveBase64Photo } from "./photos";
+import { saveBase64Photo, UPLOAD_DIR } from "./photos";
 
 // The look we ask the image model for — a loose, hand-drawn fashion croquis
 // rather than a faithful product render. Kept as a constant so the aesthetic is
@@ -19,12 +19,13 @@ export type SketchItemMeta = {
   colors: string[];
 };
 
-// Reads a locally-stored photo (public/uploads/xxx) back into a Blob so it can
-// be posted to the image-edit endpoint. Photos live on disk in dev; when
-// PHOTO_STORAGE_URL points at a bucket this is the one spot to swap for a fetch.
+// Reads a locally-stored photo (/api/photos/xxx -> data/uploads/xxx on disk)
+// back into a Blob so it can be posted to the image-edit endpoint. Photos live
+// on disk in dev; when PHOTO_STORAGE_URL points at a bucket this is the one
+// spot to swap for a fetch.
 async function loadPhotoBlob(photoUrl: string): Promise<Blob> {
-  const rel = photoUrl.replace(/^\//, "");
-  const abs = path.join(process.cwd(), "public", rel);
+  const filename = path.basename(photoUrl);
+  const abs = path.join(UPLOAD_DIR, filename);
   const buf = await readFile(abs);
   const ext = path.extname(abs).toLowerCase();
   const type = ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg";
