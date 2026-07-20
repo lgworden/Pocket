@@ -137,7 +137,6 @@ export default function AddItemClient() {
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            capture="environment"
             className="hidden"
             id="photo-input"
             onChange={handleFile}
@@ -147,7 +146,7 @@ export default function AddItemClient() {
             onClick={() => fileInputRef.current?.click()}
             className="btn-primary w-full"
           >
-            📷 Take photo
+            📷 Add photo
           </button>
         </div>
       )}
