@@ -4,8 +4,18 @@ const fs = require("fs");
 const path = require("path");
 const { Pool } = require("pg");
 
+// Load .env.local
+require("dotenv").config({ path: path.join(__dirname, "..", ".env.local") });
+
 async function main() {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+  // Ensure plpgsql is available (required for functions)
+  try {
+    await pool.query('CREATE EXTENSION IF NOT EXISTS "plpgsql"');
+  } catch (err) {
+    console.log("⚠ plpgsql extension not available (expected on some embedded Postgres installations)");
+  }
 
   // Apply schema.sql only on a fresh database. schema.sql uses bare CREATE TABLE
   // (no IF NOT EXISTS), so re-running it against an existing DB throws — skip it
