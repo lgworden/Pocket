@@ -47,6 +47,7 @@ async function geocodeQuery(query: string) {
 // (it's a simple name search, not an address parser) — fall back to just the part
 // before the first comma if the full string doesn't match.
 async function geocode(location: string): Promise<{ lat: number; lon: number; label: string }> {
+  if (!location) throw new Error("No location set");
   const result = (await geocodeQuery(location)) ?? (await geocodeQuery(location.split(",")[0]));
   if (!result) throw new Error(`Couldn't find location: ${location}`);
   return {

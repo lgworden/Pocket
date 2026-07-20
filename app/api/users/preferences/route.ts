@@ -12,6 +12,7 @@ export async function PATCH(req: NextRequest) {
     const {
       display_name,
       bio,
+      location,
       home_address,
       scheduling_preferences,
       style_profile,
@@ -24,13 +25,14 @@ export async function PATCH(req: NextRequest) {
       SET
         display_name = COALESCE($1, display_name),
         bio = CASE WHEN $2::boolean THEN $3 ELSE bio END,
-        home_address = CASE WHEN $4::boolean THEN $5 ELSE home_address END,
-        scheduling_preferences = COALESCE($6, scheduling_preferences),
-        style_profile = COALESCE($7, style_profile),
-        notification_preferences = COALESCE($8, notification_preferences),
-        onboarding_completed = COALESCE($9, onboarding_completed)
-      WHERE id = $10
-      RETURNING id, display_name, bio, home_address, scheduling_preferences, style_profile,
+        location = CASE WHEN $4::boolean THEN $5 ELSE location END,
+        home_address = CASE WHEN $6::boolean THEN $7 ELSE home_address END,
+        scheduling_preferences = COALESCE($8, scheduling_preferences),
+        style_profile = COALESCE($9, style_profile),
+        notification_preferences = COALESCE($10, notification_preferences),
+        onboarding_completed = COALESCE($11, onboarding_completed)
+      WHERE id = $12
+      RETURNING id, display_name, bio, location, home_address, scheduling_preferences, style_profile,
                 notification_preferences, onboarding_completed
     `;
 
@@ -38,6 +40,8 @@ export async function PATCH(req: NextRequest) {
       display_name || null,
       bio !== undefined,
       bio ? bio.trim() || null : null,
+      location !== undefined,
+      location ? location.trim() || null : null,
       home_address !== undefined,
       home_address ? home_address.trim() || null : null,
       scheduling_preferences ? JSON.stringify(scheduling_preferences) : null,

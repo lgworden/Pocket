@@ -9,6 +9,7 @@ interface User {
   name: string;
   display_name?: string;
   bio?: string | null;
+  location?: string | null;
   home_address?: string | null;
   style_profile?: Record<string, any>;
 }
@@ -24,6 +25,7 @@ export default function ProfileModal({
 }) {
   const [displayName, setDisplayName] = useState(user.display_name || user.name);
   const [bio, setBio] = useState(user.bio || "");
+  const [location, setLocation] = useState(user.location || "");
   const [homeAddress, setHomeAddress] = useState(user.home_address || "");
   const [styleTypes, setStyleTypes] = useState<string[]>(user.style_profile?.style_types || []);
   const [goals, setGoals] = useState<string[]>(user.style_profile?.goals || []);
@@ -42,6 +44,7 @@ export default function ProfileModal({
         body: JSON.stringify({
           display_name: displayName,
           bio: bio.trim(),
+          location: location.trim(),
           home_address: homeAddress.trim(),
           style_profile: {
             style_types: styleTypes,
@@ -85,6 +88,22 @@ export default function ProfileModal({
             placeholder="a line about your style..."
             value={bio}
             onChange={(e) => setBio(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+            Location
+          </label>
+          <p className="text-xs text-slate/60 mt-1 mb-2">
+            City used for weather, e.g. "Washington, DC".
+          </p>
+          <input
+            type="text"
+            placeholder="City, State"
+            className="w-full bg-transparent border border-slate/20 rounded-lg p-2 text-sm"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
           />
         </div>
 
