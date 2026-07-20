@@ -6,6 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import ItemPhotoDisplay from "@/components/ItemPhotoDisplay";
 import ItemSketch from "@/components/ItemSketch";
 import ItemWearStats from "@/components/ItemWearStats";
+import RemoveItemButton from "@/components/closet/RemoveItemButton";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +107,8 @@ export default async function ItemDetailPage({ params }: { params: { id: string 
         lastWorn={item.last_worn ? item.last_worn.toISOString() : null}
         cost={item.cost}
       />
+
+      <RemoveItemButton itemId={item.id} itemName={item.name} />
 
       <BottomNav />
     </main>
