@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(artifact-design)",
+      "Skill(artifact-design:*)",
+      "Bash(npm run *)",
+      "Bash(PATH=__CMDSUB_OUTPUT__/.tools/node-v20.16.0-darwin-arm64/bin:__TRACKED_VAR__ npm run db:migrate)",
+      "Bash(xargs -I{} sh -c 'echo ==={}===; cat {}')",
+      "Bash(DATABASE_URL=postgres://postgres:postgres@localhost:15432/closet_stylist .tools/node-v20.16.0-darwin-arm64/bin/node -e ' *)",
+      "Bash(npm init *)",
+      "Bash(npm install *)",
+      "Bash(/Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin/npm init *)",
+      "Bash(/Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin/npm install *)",
+      "Bash(/Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin/node -e ' *)",
+      "Bash(grep -v \"^$\")",
+      "Bash(NODE=/Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin/node /Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin/npm init -y)",
+      "Bash(/Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin/node -e \"console.log\\(require.resolve\\('embedded-postgres'\\)\\)\")",
+      "Bash(/Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin/node node_modules/.bin/npm install embedded-postgres --save-dev)",
+      "Bash(./.tools/node-v20.16.0-darwin-arm64/bin/node -e ' *)",
+      "Bash(./.tools/node-v20.16.0-darwin-arm64/bin/node node_modules/typescript/bin/tsc --noEmit -p tsconfig.json)",
+      "Bash(lsof -iTCP:15432 -sTCP:LISTEN -n -P)"
+    ]
+  }
+}

@@ -1,0 +1,39 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cream text-ink font-ui font-normal;
+  }
+  h1, h2, h3 {
+    @apply font-ui text-ink lowercase;
+  }
+}
+
+@layer components {
+  /* Clean-girl system: rounded corners, soft diffused depth, warm-neutral panels. */
+  .card {
+    @apply bg-panel rounded-2xl border border-slate/10 p-4 shadow-soft-sm;
+  }
+  /* A photo mounted on a soft mat — rounded, gentle shadow instead of a hard pin. */
+  .polaroid {
+    @apply bg-panel rounded-2xl p-2.5 pb-6 shadow-soft;
+  }
+  .btn-primary {
+    @apply bg-ink text-cream font-ui font-medium lowercase rounded-full px-4 py-2 text-sm shadow-soft-sm;
+  }
+  .btn-secondary {
+    @apply bg-transparent text-ink font-ui font-medium lowercase rounded-full px-4 py-1.5 border border-slate/30 text-sm;
+  }
+  .tag {
+    @apply rounded-full px-3 py-1.5 text-xs font-ui font-medium lowercase;
+  }
+  .tag-blue { @apply bg-ink text-cream; }
+  .tag-brown { @apply bg-brown text-cream; }
+  .tag-pink { @apply bg-pink text-ink; }
+  .tag-rose { @apply bg-rose text-cream; }
+  .tag-outline { @apply bg-cream border border-slate/30 text-ink; }
+}

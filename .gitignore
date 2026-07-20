@@ -1,0 +1,12 @@
+node_modules
+.next
+.env
+.env.local
+*.log
+.tools/
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Local-only embedded-postgres dev helper (not a project dependency — install
+# ad hoc with `npm install --no-save embedded-postgres` before running).
+start-db.mjs

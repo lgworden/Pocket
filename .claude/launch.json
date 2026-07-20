@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "closet-stylist-dev",
+      "runtimeExecutable": "/Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin/node",
+      "runtimeArgs": ["node_modules/next/dist/bin/next", "dev"],
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}
