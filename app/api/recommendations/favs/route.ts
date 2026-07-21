@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/auth";
 import pool from "@/lib/db";
 import { pickFavoriteOutfit } from "@/lib/shuffleFavs";
-import { attachSketchesToOutfits } from "@/lib/sketch";
 
 // "Shuffle favs" — recommends an outfit pulled straight from outfit_logs
 // history (never a freshly generated combo), picked to fit today's weather
@@ -35,18 +34,18 @@ export async function POST(req: NextRequest) {
     today,
   };
 
-  const [outfitWithSketches] = await attachSketchesToOutfits(userId, [outfit]);
-
+  // The Today screen composes the mockup for this look lazily (cached by piece
+  // set) — a replayed favorite is very likely to hit an existing mockup for free.
   const { rows } = await pool.query(
     `INSERT INTO recommendations (user_id, context, options)
      VALUES ($1, $2, $3)
      RETURNING id`,
-    [userId, JSON.stringify(context), JSON.stringify({ outfits: [outfitWithSketches], gap_question: null })]
+    [userId, JSON.stringify(context), JSON.stringify({ outfits: [outfit], gap_question: null })]
   );
 
   return NextResponse.json({
     id: rows[0].id,
-    outfits: [outfitWithSketches],
+    outfits: [outfit],
     gap_question: null,
     logId: outfit.logId,
   });

@@ -3,9 +3,17 @@
 import { useEffect, useState } from "react";
 import { celebrate } from "@/lib/confetti";
 
-type OutfitItem = { display_id: string; name: string; sketch?: string | null };
+type OutfitItem = { display_id: string; name: string };
 type Outfit = { title: string; reasoning: string; items: OutfitItem[] };
 type InitialRecommendation = { id: string; outfits: Outfit[]; gapQuestion: string | null };
+
+// Per-outfit mockup state: a composed illustration is fetched automatically once
+// an outfit renders. Keyed by the outfit's set of pieces so the cache is shared
+// across cards and across "get outfits" / "shuffle favs" runs.
+type MockupState = { status: "loading" | "ready" | "none"; url?: string };
+function outfitKey(items: OutfitItem[]): string {
+  return Array.from(new Set(items.map((i) => i.display_id))).sort().join(",");
+}
 
 export default function TodayInteractive({
   calendarConnected,
@@ -31,6 +39,8 @@ export default function TodayInteractive({
   const [wornTitle, setWornTitle] = useState<string | null>(null);
   const [calendarEvents, setCalendarEvents] = useState<string[]>([]);
   const [shownLogIds, setShownLogIds] = useState<string[]>([]);
+  // Composed outfit mockups, keyed by the outfit's set of pieces (outfitKey).
+  const [mockups, setMockups] = useState<Record<string, MockupState>>({});
 
   useEffect(() => {
     if (!calendarConnected) return;
@@ -39,6 +49,31 @@ export default function TodayInteractive({
       .then((data) => setCalendarEvents(data.events ?? []))
       .catch(() => setCalendarEvents([]));
   }, [calendarConnected]);
+
+  // Auto-generate a mockup for every outfit as soon as it's on screen. Each key is
+  // requested at most once (a cache hit on the server returns instantly); failures
+  // fall back to "none" so a card just shows no illustration rather than an error.
+  useEffect(() => {
+    if (status !== "results") return;
+    for (const outfit of outfits) {
+      const key = outfitKey(outfit.items);
+      if (!key || mockups[key]) continue;
+      setMockups((m) => ({ ...m, [key]: { status: "loading" } }));
+      fetch("/api/recommendations/mockup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ display_ids: outfit.items.map((i) => i.display_id) }),
+      })
+        .then((res) => (res.ok ? res.json() : Promise.reject()))
+        .then((data) =>
+          setMockups((m) => ({
+            ...m,
+            [key]: data.mockup ? { status: "ready", url: data.mockup } : { status: "none" },
+          }))
+        )
+        .catch(() => setMockups((m) => ({ ...m, [key]: { status: "none" } })));
+    }
+  }, [status, outfits, mockups]);
 
   async function getOutfits() {
     setStatus("loading");
@@ -210,27 +245,24 @@ export default function TodayInteractive({
             </p>
             <h2 className="text-lg font-display mt-1">{outfit.title}</h2>
             <p className="font-display italic text-ink/80 mt-1">"{outfit.reasoning}"</p>
-            {outfit.items.some((item) => item.sketch) && (
-              <div className="flex flex-wrap gap-3 mt-3">
-                {outfit.items
-                  .filter((item) => item.sketch)
-                  .map((item) => (
-                    <figure key={item.display_id} className="w-20 text-center">
-                      <div className="aspect-square bg-blue/10 rounded-lg overflow-hidden">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={item.sketch as string}
-                          alt={`sketch of ${item.name}`}
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <figcaption className="text-[10px] text-slate/70 mt-1 truncate">
-                        {item.name}
-                      </figcaption>
-                    </figure>
-                  ))}
-              </div>
-            )}
+            {(() => {
+              const mockup = mockups[outfitKey(outfit.items)];
+              if (!mockup || mockup.status === "none") return null;
+              return (
+                <div className="mt-3 aspect-square bg-blue/10 rounded-lg overflow-hidden flex items-center justify-center">
+                  {mockup.status === "ready" ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={mockup.url}
+                      alt={`illustration of ${outfit.title}`}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <p className="text-xs text-slate/60 animate-pulse">sketching this look…</p>
+                  )}
+                </div>
+              );
+            })()}
             <div className="flex flex-wrap gap-2 mt-3">
               {outfit.items.map((item) => (
                 <span key={item.display_id} className="tag tag-outline">

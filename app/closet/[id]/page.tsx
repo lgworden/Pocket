@@ -4,7 +4,6 @@ import pool from "@/lib/db";
 import { requireOnboarded } from "@/lib/auth";
 import BottomNav from "@/components/BottomNav";
 import ItemPhotoDisplay from "@/components/ItemPhotoDisplay";
-import ItemSketch from "@/components/ItemSketch";
 import ItemWearStats from "@/components/ItemWearStats";
 import RemoveItemButton from "@/components/closet/RemoveItemButton";
 
@@ -27,7 +26,6 @@ type Item = {
   cost: string | null;
   status: string;
   photos: string[];
-  sketch: string | null;
   date_added: string;
   wear_count: string;
   last_worn: Date | null;
@@ -73,12 +71,6 @@ export default async function ItemDetailPage({ params }: { params: { id: string 
       </Link>
 
       <ItemPhotoDisplay itemId={item.id} photos={item.photos} itemName={item.name} />
-
-      <ItemSketch
-        itemId={item.id}
-        initialSketch={item.sketch}
-        hasPhoto={item.photos.length > 0}
-      />
 
       <header>
         <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">

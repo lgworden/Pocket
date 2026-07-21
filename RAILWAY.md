@@ -16,6 +16,7 @@ Navigate to your project's Variables tab and add:
 ### API Keys (from your .env.local):
 ```
 ANTHROPIC_API_KEY=<your-anthropic-api-key>
+OPENAI_API_KEY=<your-openai-api-key>
 GOOGLE_CLIENT_ID=<your-google-client-id>
 GOOGLE_CLIENT_SECRET=<your-google-client-secret>
 GOOGLE_MAPS_API_KEY=<your-google-maps-api-key>

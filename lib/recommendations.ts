@@ -2,7 +2,6 @@ import pool from "./db";
 import { getCurrentUser } from "./auth";
 import { buildRecommendationContext } from "./recommendationContext";
 import { getRecommendations } from "./anthropic";
-import { attachSketchesToOutfits } from "./sketch";
 import type { TodayWeather } from "./weather";
 
 // Shared by the interactive "Get outfits" button (app/api/recommendations/route.ts)
@@ -25,21 +24,20 @@ export async function generateAndSaveRecommendation(
 
   const result = await getRecommendations(context as unknown as Record<string, unknown>, displayName);
 
-  // Attach each item's stored sketch (null if none) so recommendation cards can
-  // show the croquis alongside the display_id/name.
-  const outfitsWithSketches = await attachSketchesToOutfits(userId, result.outfits ?? []);
-  const persisted = { ...result, outfits: outfitsWithSketches };
+  // Mockups are composed lazily by the Today screen (per outfit, cached by piece
+  // set) — the recommendation itself just carries the outfits' display_ids/names.
+  const outfits = result.outfits ?? [];
 
   const { rows } = await pool.query(
     `INSERT INTO recommendations (user_id, context, options)
      VALUES ($1, $2, $3)
      RETURNING id`,
-    [userId, JSON.stringify(context), JSON.stringify(persisted)]
+    [userId, JSON.stringify(context), JSON.stringify(result)]
   );
 
   return {
     id: rows[0].id,
-    outfits: outfitsWithSketches,
+    outfits,
     gap_question: result.gap_question ?? null,
     weather,
     calendarEvents,
