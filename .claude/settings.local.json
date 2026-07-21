@@ -38,7 +38,8 @@
       "Bash(git -C Pocket log --oneline -20)",
       "Bash(git -C Pocket status)",
       "Bash(git -C Pocket remote -v)",
-      "Bash(git -C Pocket diff --stat)"
+      "Bash(git -C Pocket diff --stat)",
+      "Bash(cd /Users/lilyworden/Claude/Projects/closet-stylist *)"
     ]
   }
 }
