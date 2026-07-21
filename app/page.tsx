@@ -67,6 +67,8 @@ export default async function TodayPage({
         </div>
       )}
 
+      <TodayInteractive calendarConnected={calendarConnected} initialRecommendation={initialRecommendation} />
+
       <Link
         href="/pack"
         className="card block bg-blue/10 border-blue/30 hover:bg-blue/20 transition-colors"
@@ -81,8 +83,6 @@ export default async function TodayPage({
           <span className="text-2xl">🧳</span>
         </div>
       </Link>
-
-      <TodayInteractive calendarConnected={calendarConnected} initialRecommendation={initialRecommendation} />
 
       <BottomNav />
     </main>

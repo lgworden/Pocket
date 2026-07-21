@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { getCurrentUserId } from "@/lib/auth";
 import { nextDisplayId } from "@/lib/displayId";
+import { saveBase64Photo } from "@/lib/photos";
 
 export async function GET(req: NextRequest) {
   const userId = await getCurrentUserId();
@@ -66,11 +67,19 @@ export async function POST(req: NextRequest) {
     provenance,
     cost,
     photos,
+    photoBase64,
+    photoMediaType,
   } = body;
 
   if (!name || !category) {
     return NextResponse.json({ error: "name and category are required" }, { status: 400 });
   }
+
+  // Some flows (e.g. "log my items" from a decomposed outfit photo) hand over
+  // a not-yet-uploaded crop instead of an already-saved photo URL.
+  const inlinePhotoUrl =
+    photoBase64 && photoMediaType ? await saveBase64Photo(photoBase64, photoMediaType) : null;
+  const finalPhotos = inlinePhotoUrl ? [inlinePhotoUrl, ...(photos ?? [])] : photos ?? [];
 
   const displayId = await nextDisplayId(category);
 
@@ -94,7 +103,7 @@ export async function POST(req: NextRequest) {
       seasons ?? [],
       provenance ?? null,
       cost ?? null,
-      photos ?? [],
+      finalPhotos,
     ]
   );
 

@@ -46,6 +46,46 @@ export async function draftItemFromPhoto(base64Image: string, mediaType: string)
   return parseJsonResponse(text);
 }
 
+// Used by the "log my items" flow: one full outfit photo -> Claude identifies
+// every distinct clothing/accessory piece worn, each with its own draft fields
+// (same shape as draftItemFromPhoto) plus an approximate bounding box so the
+// client can crop a per-item thumbnail out of the same photo.
+export async function draftItemsFromOutfitPhoto(base64Image: string, mediaType: string) {
+  const msg = await anthropic.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 1500,
+    messages: [
+      {
+        role: "user",
+        content: [
+          { type: "image", source: { type: "base64", media_type: mediaType as any, data: base64Image } },
+          {
+            type: "text",
+            text: `Look at this photo of a full outfit (someone wearing it, or the pieces laid out together). Identify each distinct clothing item, pair of shoes, bag, or accessory visible — skip skin, hair, and background. Respond ONLY with JSON, no preamble:
+{
+  "items": [
+    {
+      "name": string,
+      "category": "top"|"bottom"|"dress"|"outerwear"|"shoes"|"bag"|"accessory",
+      "subcategory": string,
+      "colors": string[],
+      "warmth": number (1-5),
+      "formality": number (1-5),
+      "occasions": string[],
+      "bounding_box": { "x": number, "y": number, "width": number, "height": number }
+    }
+  ]
+}
+bounding_box values are fractions of the full image (0 to 1, top-left origin) — your best approximate crop around that one piece, used only for a preview thumbnail, not anything precise. List at most 8 items, most prominent/central piece first.`,
+          },
+        ],
+      },
+    ],
+  });
+  const text = msg.content.find((b) => b.type === "text")?.text ?? "{}";
+  return parseJsonResponse(text);
+}
+
 // Used by the Today screen recommendation engine (Phase 2).
 // See closet-stylist-build-plan.md (or pocket-build-plan.md) → "The Recommendation Prompt" for the full prompt spec.
 export async function getRecommendations(

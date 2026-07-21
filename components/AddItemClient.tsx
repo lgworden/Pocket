@@ -5,10 +5,7 @@ import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import { compressImage } from "@/lib/compressImage";
 import { celebrate } from "@/lib/confetti";
-
-const CATEGORIES = ["top", "bottom", "dress", "outerwear", "shoes", "bag", "accessory"];
-const OCCASIONS = ["workwear", "casual", "going-out", "athletic", "lounge"];
-const PROVENANCES = ["thrifted", "retail", "gifted", "secondhand", "handmade"];
+import { CATEGORIES, OCCASIONS, PROVENANCES } from "@/lib/itemOptions";
 
 type Draft = {
   name: string;
