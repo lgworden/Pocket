@@ -77,7 +77,7 @@ export default async function InvitePage({
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-      <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+      <p className="text-xs font-ui font-semibold text-slate tracking-wide">
         Pocket
       </p>
       {children}

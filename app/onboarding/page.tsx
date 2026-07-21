@@ -13,7 +13,7 @@ export default async function OnboardingPage() {
   return (
     <main className="px-4 pt-6 pb-24 space-y-6">
       <header>
-        <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+        <p className="text-xs font-ui font-semibold text-slate tracking-wide">
           Welcome
         </p>
         <h1 className="text-2xl mt-1">It's so great to meet you!</h1>

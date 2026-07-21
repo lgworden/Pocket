@@ -5,24 +5,30 @@ import Modal from "@/components/Modal";
 import { compressImage } from "@/lib/compressImage";
 import { celebrate } from "@/lib/confetti";
 import { VISIBILITY_OPTIONS, type FeedVisibility } from "@/lib/feed";
+import type { Friend } from "@/lib/friends";
 
 // Compose flow for a new feed post: pick a photo → choose who sees it →
-// optional caption → share. Photo is compressed client-side and only uploaded
-// on "Share", matching the Add Item flow's budget-conscious approach.
+// optional caption, location, and friend tags → share. Photo is compressed
+// client-side and only uploaded on "Share", matching the Add Item flow's
+// budget-conscious approach.
 export default function FeedComposer({
   open,
   onClose,
   onPosted,
+  friends,
 }: {
   open: boolean;
   onClose: () => void;
   onPosted: () => void;
+  friends: Friend[];
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [payload, setPayload] = useState<{ base64: string; mediaType: string } | null>(null);
   const [visibility, setVisibility] = useState<FeedVisibility>("friends");
   const [caption, setCaption] = useState("");
+  const [location, setLocation] = useState("");
+  const [taggedFriendIds, setTaggedFriendIds] = useState<string[]>([]);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,8 +37,16 @@ export default function FeedComposer({
     setPayload(null);
     setVisibility("friends");
     setCaption("");
+    setLocation("");
+    setTaggedFriendIds([]);
     setError(null);
     if (fileRef.current) fileRef.current.value = "";
+  }
+
+  function toggleFriend(id: string) {
+    setTaggedFriendIds((ids) =>
+      ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]
+    );
   }
 
   function close() {
@@ -66,6 +80,8 @@ export default function FeedComposer({
           mediaType: payload.mediaType,
           caption,
           visibility,
+          location,
+          taggedFriendIds,
         }),
       });
       if (!res.ok) throw new Error("post failed");
@@ -117,7 +133,7 @@ export default function FeedComposer({
 
         {/* Visibility */}
         <div>
-          <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+          <label className="text-xs font-ui font-semibold text-slate tracking-wide">
             Who can see this?
           </label>
           <div className="mt-2 space-y-2">
@@ -146,7 +162,7 @@ export default function FeedComposer({
 
         {/* Caption */}
         <div>
-          <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+          <label className="text-xs font-ui font-semibold text-slate tracking-wide">
             Caption (optional)
           </label>
           <textarea
@@ -157,6 +173,50 @@ export default function FeedComposer({
             onChange={(e) => setCaption(e.target.value)}
           />
         </div>
+
+        {/* Location */}
+        <div>
+          <label className="text-xs font-ui font-semibold text-slate tracking-wide">
+            Location (optional)
+          </label>
+          <input
+            type="text"
+            className="w-full mt-2 bg-transparent border border-slate/20 rounded-lg p-2 text-sm"
+            placeholder="where was this?"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+          />
+        </div>
+
+        {/* Tag friends */}
+        {friends.length > 0 && (
+          <div>
+            <label className="text-xs font-ui font-semibold text-slate tracking-wide">
+              Tag friends (optional)
+            </label>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {friends.map((f) => {
+                const active = taggedFriendIds.includes(f.id);
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => toggleFriend(f.id)}
+                    className={`rounded-full px-3 py-1.5 text-xs font-medium border transition-colors ${
+                      active
+                        ? "bg-ink text-cream border-ink"
+                        : "bg-transparent text-ink border-slate/25 hover:border-slate/45"
+                    }`}
+                  >
+                    {active ? "✓ " : ""}
+                    {f.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="bg-rose/10 border border-rose/30 rounded-lg p-3 text-sm text-rose">

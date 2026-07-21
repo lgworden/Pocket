@@ -12,7 +12,7 @@ function Stat({ value, label }: { value: number; label: string }) {
   return (
     <div className="text-center">
       <p className="text-lg font-display">{value}</p>
-      <p className="text-[11px] font-ui text-slate uppercase tracking-wide">{label}</p>
+      <p className="text-[11px] font-ui text-slate tracking-wide">{label}</p>
     </div>
   );
 }
@@ -81,7 +81,7 @@ export default async function ProfilePage({ params }: { params: { id: string } }
       )}
 
       <div>
-        <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide mb-2">
+        <p className="text-xs font-ui font-semibold text-slate tracking-wide mb-2">
           Shared looks
         </p>
         {posts.length === 0 ? (

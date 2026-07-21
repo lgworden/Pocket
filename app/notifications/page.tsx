@@ -12,7 +12,7 @@ export default async function NotificationsPage() {
   return (
     <main className="px-4 pt-6 pb-24 space-y-6">
       <header>
-        <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">Alerts</p>
+        <p className="text-xs font-ui font-semibold text-slate tracking-wide">Alerts</p>
         <h1 className="text-2xl mt-1">Notifications</h1>
       </header>
 

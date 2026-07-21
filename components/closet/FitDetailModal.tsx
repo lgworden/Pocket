@@ -76,7 +76,7 @@ export default function FitDetailModal({
 
             {fit.tagged_items.length > 0 && (
               <div>
-                <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide mb-2">
+                <p className="text-xs font-ui font-semibold text-slate tracking-wide mb-2">
                   Wearing
                 </p>
                 <div className="flex flex-wrap gap-1.5">

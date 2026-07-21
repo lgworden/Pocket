@@ -159,7 +159,7 @@ export default async function ClosetPage({
     <main className="px-4 pt-6 space-y-4">
       <header className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+          <p className="text-xs font-ui font-semibold text-slate tracking-wide">
             Closet
           </p>
           <h1 className="text-2xl mt-1">{categoryLabel}</h1>

@@ -30,7 +30,7 @@ export default function FeedCollage({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+        <p className="text-xs font-ui font-semibold text-slate tracking-wide">
           Feed
         </p>
         <div className="flex items-center gap-2">
@@ -82,6 +82,7 @@ export default function FeedCollage({
       <FeedComposer
         open={composerOpen}
         onClose={() => setComposerOpen(false)}
+        friends={friends}
         onPosted={() => {
           setComposerOpen(false);
           router.refresh();

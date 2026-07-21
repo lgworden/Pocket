@@ -60,7 +60,7 @@ export default function NotificationsModal({
 
         {notify.includes("daily_digest") && (
           <div>
-            <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+            <label className="text-xs font-ui font-semibold text-slate tracking-wide">
               Daily digest time
             </label>
             <input

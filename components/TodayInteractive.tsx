@@ -191,7 +191,7 @@ export default function TodayInteractive({
 
       <div className="card">
 
-        <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+        <label className="text-xs font-ui font-semibold text-slate tracking-wide">
           What's your plan?
         </label>
         <p className="text-xs text-slate/70 mt-1 mb-2">
@@ -205,7 +205,7 @@ export default function TodayInteractive({
           onChange={(e) => setDayText(e.target.value)}
         />
 
-        <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide mt-3 block">
+        <label className="text-xs font-ui font-semibold text-slate tracking-wide mt-3 block">
           Mood (optional)
         </label>
         <input
@@ -240,7 +240,7 @@ export default function TodayInteractive({
       {status === "results" &&
         outfits.map((outfit, i) => (
           <div key={i} className="card">
-            <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+            <p className="text-xs font-ui font-semibold text-slate tracking-wide">
               Outfit {i + 1}
             </p>
             <h2 className="text-lg font-display mt-1">{outfit.title}</h2>

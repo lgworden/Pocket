@@ -130,7 +130,7 @@ export default function PreferencesInteractive({ user }: { user: User; userId: s
 
       {/* Weekly location schedule */}
       <div className="card">
-        <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+        <label className="text-xs font-ui font-semibold text-slate tracking-wide">
           Weekly schedule
         </label>
         <p className="text-xs text-slate/60 mt-1 mb-3">

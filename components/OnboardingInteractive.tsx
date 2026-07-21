@@ -63,7 +63,7 @@ export default function OnboardingInteractive({ user }: { user: User }) {
     <div className="space-y-4">
       {/* Name */}
       <div className="card">
-        <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+        <label className="text-xs font-ui font-semibold text-slate tracking-wide">
           What should we call you?
         </label>
         <input
@@ -77,7 +77,7 @@ export default function OnboardingInteractive({ user }: { user: User }) {
 
       {/* Your Style */}
       <div className="card">
-        <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+        <label className="text-xs font-ui font-semibold text-slate tracking-wide">
           What's your vibe?
         </label>
         <p className="text-xs text-slate/60 mt-1 mb-3">
@@ -88,7 +88,7 @@ export default function OnboardingInteractive({ user }: { user: User }) {
 
       {/* How can we help */}
       <div className="card">
-        <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+        <label className="text-xs font-ui font-semibold text-slate tracking-wide">
           How can we help?
         </label>
         <p className="text-xs text-slate/60 mt-1 mb-3">
@@ -106,7 +106,7 @@ export default function OnboardingInteractive({ user }: { user: User }) {
 
       {/* How often do you want to hear from us */}
       <div className="card">
-        <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+        <label className="text-xs font-ui font-semibold text-slate tracking-wide">
           How often do you want to hear from us?
         </label>
         <p className="text-xs text-slate/60 mt-1 mb-3">

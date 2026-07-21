@@ -109,13 +109,44 @@ export default function FeedCard({
             )}
           </div>
 
-          {/* Back: tagged items' brand/category/style */}
+          {/* Back: location, tagged friends, and the outfit's items */}
           <div
-            className={`absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-cream p-2 overflow-y-auto ${
+            className={`absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-cream p-2 overflow-y-auto space-y-2 ${
               post.is_mine ? "pl-8" : ""
             }`}
           >
-            {post.items.length > 0 ? (
+            {post.location && (
+              <div className="flex items-start gap-1 text-[11px] leading-snug text-ink">
+                {/* pin glyph */}
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-px shrink-0 text-ink/50">
+                  <path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0Z" />
+                  <circle cx="12" cy="10" r="3" />
+                </svg>
+                <span className="font-medium">{post.location}</span>
+              </div>
+            )}
+
+            {post.tagged_friends.length > 0 && (
+              <div className="flex items-start gap-1 text-[11px] leading-snug text-ink">
+                {/* people glyph */}
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-px shrink-0 text-ink/50">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                <span>
+                  with{" "}
+                  {post.tagged_friends.map((f, i) => (
+                    <span key={f.id}>
+                      {i > 0 && ", "}
+                      <span className="font-medium">{f.name}</span>
+                    </span>
+                  ))}
+                </span>
+              </div>
+            )}
+
+            {post.items.length > 0 && (
               <ul className="space-y-1.5">
                 {post.items.map((item) => (
                   <li key={item.id} className="text-[11px] leading-snug">
@@ -128,8 +159,10 @@ export default function FeedCard({
                   </li>
                 ))}
               </ul>
-            ) : (
-              <p className="text-[11px] text-ink/40 italic">No outfit details for this post.</p>
+            )}
+
+            {!post.location && post.tagged_friends.length === 0 && post.items.length === 0 && (
+              <p className="text-[11px] text-ink/40 italic">No details for this post.</p>
             )}
           </div>
         </div>

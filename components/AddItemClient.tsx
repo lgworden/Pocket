@@ -109,7 +109,7 @@ export default function AddItemClient() {
     <main className="px-4 pt-6 space-y-4">
       <header className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+          <p className="text-xs font-ui font-semibold text-slate tracking-wide">
             Add item
           </p>
           <h1 className="text-2xl mt-1">Snap a piece</h1>
@@ -182,7 +182,7 @@ export default function AddItemClient() {
 
           <div className="card space-y-3">
             <div>
-              <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+              <label className="text-xs font-ui font-semibold text-slate tracking-wide">
                 Name
               </label>
               <input
@@ -194,7 +194,7 @@ export default function AddItemClient() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+                <label className="text-xs font-ui font-semibold text-slate tracking-wide">
                   Category
                 </label>
                 <select
@@ -208,7 +208,7 @@ export default function AddItemClient() {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+                <label className="text-xs font-ui font-semibold text-slate tracking-wide">
                   Subcategory
                 </label>
                 <input
@@ -220,7 +220,7 @@ export default function AddItemClient() {
             </div>
 
             <div>
-              <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+              <label className="text-xs font-ui font-semibold text-slate tracking-wide">
                 Colors (comma separated)
               </label>
               <input
@@ -237,7 +237,7 @@ export default function AddItemClient() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+                <label className="text-xs font-ui font-semibold text-slate tracking-wide">
                   Warmth (1-5)
                 </label>
                 <input
@@ -250,7 +250,7 @@ export default function AddItemClient() {
                 />
               </div>
               <div>
-                <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+                <label className="text-xs font-ui font-semibold text-slate tracking-wide">
                   Formality (1-5)
                 </label>
                 <input
@@ -265,7 +265,7 @@ export default function AddItemClient() {
             </div>
 
             <div>
-              <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+              <label className="text-xs font-ui font-semibold text-slate tracking-wide">
                 Occasions
               </label>
               <div className="flex flex-wrap gap-2 mt-1">
@@ -293,7 +293,7 @@ export default function AddItemClient() {
             </div>
 
             <div>
-              <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+              <label className="text-xs font-ui font-semibold text-slate tracking-wide">
                 Provenance
               </label>
               <div className="flex flex-wrap gap-2 mt-1">
@@ -311,7 +311,7 @@ export default function AddItemClient() {
             </div>
 
             <div>
-              <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+              <label className="text-xs font-ui font-semibold text-slate tracking-wide">
                 Cost (optional, skip it for now)
               </label>
               <input
@@ -325,7 +325,7 @@ export default function AddItemClient() {
             </div>
 
             <div>
-              <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+              <label className="text-xs font-ui font-semibold text-slate tracking-wide">
                 Tags (optional, comma separated)
               </label>
               <input

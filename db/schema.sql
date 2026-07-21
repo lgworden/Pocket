@@ -102,13 +102,15 @@ CREATE TYPE feed_visibility AS ENUM ('friends', 'close_friends', 'private');
 CREATE TYPE feed_reaction AS ENUM ('cheers', 'fire', 'eyes');
 
 CREATE TABLE feed_posts (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  photo         TEXT NOT NULL,
-  caption       TEXT,
-  visibility    feed_visibility NOT NULL DEFAULT 'friends',
-  outfit_log_id UUID REFERENCES outfit_logs(id) ON DELETE SET NULL,
-  created_at    TIMESTAMPTZ DEFAULT now()
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  photo           TEXT NOT NULL,
+  caption         TEXT,
+  visibility      feed_visibility NOT NULL DEFAULT 'friends',
+  outfit_log_id   UUID REFERENCES outfit_logs(id) ON DELETE SET NULL,
+  location        TEXT,                            -- free-text place the photo was taken
+  tagged_user_ids UUID[] NOT NULL DEFAULT '{}',    -- friends tagged in the photo (see 015)
+  created_at      TIMESTAMPTZ DEFAULT now()
 );
 CREATE INDEX idx_feed_posts_user ON feed_posts(user_id);
 CREATE INDEX idx_feed_posts_created ON feed_posts(created_at DESC);

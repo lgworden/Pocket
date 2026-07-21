@@ -6,10 +6,23 @@
 
 @layer base {
   body {
-    @apply bg-cream text-ink font-ui font-normal;
+    /* Clean-girl typography: everything renders lowercase for a soft, uniform
+       voice. Purely visual (text-transform) — stored values keep their case. */
+    @apply bg-cream text-ink font-ui font-normal lowercase;
   }
   h1, h2, h3 {
     @apply font-ui text-ink lowercase;
+  }
+  /* Tailwind Preflight resets `button, select { text-transform: none }`, which
+     would otherwise keep button labels out of the lowercase treatment — opt
+     buttons back in. */
+  button {
+    @apply lowercase;
+  }
+  /* Don't force-transform what the user types or selects, or the visible value
+     would drift from what's actually stored/submitted. */
+  input, textarea, select {
+    @apply normal-case;
   }
 }
 

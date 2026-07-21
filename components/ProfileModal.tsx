@@ -66,7 +66,7 @@ export default function ProfileModal({
     <Modal open={open} onClose={onClose} title="Your info">
       <div className="space-y-5">
         <div>
-          <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+          <label className="text-xs font-ui font-semibold text-slate tracking-wide">
             What should we call you?
           </label>
           <input
@@ -78,7 +78,7 @@ export default function ProfileModal({
         </div>
 
         <div>
-          <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+          <label className="text-xs font-ui font-semibold text-slate tracking-wide">
             Bio (optional)
           </label>
           <p className="text-xs text-slate/60 mt-1 mb-2">Shown on your profile.</p>
@@ -92,7 +92,7 @@ export default function ProfileModal({
         </div>
 
         <div>
-          <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+          <label className="text-xs font-ui font-semibold text-slate tracking-wide">
             Location
           </label>
           <p className="text-xs text-slate/60 mt-1 mb-2">
@@ -108,7 +108,7 @@ export default function ProfileModal({
         </div>
 
         <div>
-          <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+          <label className="text-xs font-ui font-semibold text-slate tracking-wide">
             Home address (optional)
           </label>
           <p className="text-xs text-slate/60 mt-1 mb-2">
@@ -125,7 +125,7 @@ export default function ProfileModal({
         </div>
 
         <div>
-          <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+          <label className="text-xs font-ui font-semibold text-slate tracking-wide">
             What's your vibe?
           </label>
           <p className="text-xs text-slate/60 mt-1 mb-3">
@@ -135,7 +135,7 @@ export default function ProfileModal({
         </div>
 
         <div>
-          <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+          <label className="text-xs font-ui font-semibold text-slate tracking-wide">
             How can we help?
           </label>
           <p className="text-xs text-slate/60 mt-1 mb-3">

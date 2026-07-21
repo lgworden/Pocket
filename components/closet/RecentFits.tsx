@@ -27,7 +27,7 @@ export default function RecentFits({ initialFits }: { initialFits: LoggedFit[] }
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+        <p className="text-xs font-ui font-semibold text-slate tracking-wide">
           Recent fits
         </p>
         <button type="button" className="btn-primary" onClick={() => setComposerOpen(true)}>

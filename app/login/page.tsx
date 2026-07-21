@@ -17,7 +17,7 @@ export default async function LoginPage({
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-6 text-center">
-      <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+      <p className="text-xs font-ui font-semibold text-slate tracking-wide">
         Welcome to
       </p>
       <h1 className="text-3xl mt-2">Pocket</h1>

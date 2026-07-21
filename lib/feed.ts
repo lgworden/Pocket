@@ -68,6 +68,12 @@ export type FeedPostItem = {
   tags: string[];
 };
 
+// A friend tagged as appearing in a post's photo.
+export type FeedTaggedFriend = {
+  id: string;
+  name: string;
+};
+
 export type FeedPost = {
   id: string;
   photo: string;
@@ -77,6 +83,8 @@ export type FeedPost = {
   author_id: string;
   author_name: string;
   is_mine: boolean;
+  location: string | null;
+  tagged_friends: FeedTaggedFriend[];
   reaction_counts: Partial<Record<FeedReactionType, number>>;
   my_reactions: FeedReactionType[];
   items: FeedPostItem[];

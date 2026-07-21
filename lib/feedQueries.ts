@@ -3,7 +3,13 @@
 // would break the browser bundle.
 
 import pool from "./db";
-import type { FeedPost, FeedPostItem, FeedReactionType, FeedVisibility } from "./feed";
+import type {
+  FeedPost,
+  FeedPostItem,
+  FeedReactionType,
+  FeedTaggedFriend,
+  FeedVisibility,
+} from "./feed";
 
 type PostRow = {
   id: string;
@@ -13,6 +19,8 @@ type PostRow = {
   created_at: string;
   author_id: string;
   author_name: string;
+  location: string | null;
+  tagged_friends: FeedTaggedFriend[] | null;
   reaction_counts: Record<string, number> | null;
   my_reactions: FeedReactionType[] | null;
   items: FeedPostItem[] | null;
@@ -31,9 +39,16 @@ export async function getFeedPosts(
 ): Promise<FeedPost[]> {
   const { rows } = await pool.query<PostRow>(
     `SELECT
-       p.id, p.photo, p.caption, p.visibility, p.created_at,
+       p.id, p.photo, p.caption, p.visibility, p.created_at, p.location,
        COALESCE(u.display_name, u.name) AS author_name,
        p.user_id AS author_id,
+       (
+         SELECT COALESCE(jsonb_agg(jsonb_build_object(
+           'id', tu.id,
+           'name', COALESCE(tu.display_name, tu.name)
+         ) ORDER BY COALESCE(tu.display_name, tu.name)), '[]'::jsonb)
+         FROM users tu WHERE tu.id = ANY(p.tagged_user_ids)
+       ) AS tagged_friends,
        (
          SELECT COALESCE(jsonb_object_agg(t.reaction, t.cnt), '{}'::jsonb)
          FROM (
@@ -86,6 +101,8 @@ export async function getFeedPosts(
     author_id: r.author_id,
     author_name: r.author_name,
     is_mine: r.author_id === viewerId,
+    location: r.location,
+    tagged_friends: r.tagged_friends ?? [],
     reaction_counts: (r.reaction_counts ?? {}) as FeedPost["reaction_counts"],
     my_reactions: r.my_reactions ?? [],
     items: r.items ?? [],

@@ -46,7 +46,7 @@ function Field({ label, value }: { label: string; value: string }) {
   if (!value) return null;
   return (
     <div>
-      <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+      <p className="text-xs font-ui font-semibold text-slate tracking-wide">
         {label}
       </p>
       <p className="text-sm mt-0.5">{value}</p>
@@ -73,7 +73,7 @@ export default async function ItemDetailPage({ params }: { params: { id: string 
       <ItemPhotoDisplay itemId={item.id} photos={item.photos} itemName={item.name} />
 
       <header>
-        <p className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+        <p className="text-xs font-ui font-semibold text-slate tracking-wide">
           {item.display_id}
         </p>
         <h1 className="text-2xl mt-1">{item.name}</h1>

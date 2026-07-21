@@ -164,7 +164,7 @@ export default function LogFitComposer({
             )}
             {Object.entries(byCategory).map(([category, catItems]) => (
               <div key={category}>
-                <p className="text-[11px] font-ui font-semibold text-slate/70 uppercase tracking-wide mb-1.5">
+                <p className="text-[11px] font-ui font-semibold text-slate/70 tracking-wide mb-1.5">
                   {CATEGORY_LABELS[category] ?? category}
                 </p>
                 <div className="grid grid-cols-4 gap-2">
@@ -255,7 +255,7 @@ export default function LogFitComposer({
 
           {/* Item tagging */}
           <div>
-            <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+            <label className="text-xs font-ui font-semibold text-slate tracking-wide">
               What are you wearing? (optional)
             </label>
 
@@ -286,7 +286,7 @@ export default function LogFitComposer({
 
           {/* Notes */}
           <div>
-            <label className="text-xs font-ui font-semibold text-slate uppercase tracking-wide">
+            <label className="text-xs font-ui font-semibold text-slate tracking-wide">
               Notes (optional)
             </label>
             <textarea
