@@ -15,22 +15,42 @@ export default function FitDetailModal({
   fit,
   onClose,
   onShared,
+  onDeleted,
 }: {
   fit: LoggedFit | null;
   onClose: () => void;
   onShared: (id: string) => void;
+  onDeleted: (id: string) => void;
 }) {
   const [sharing, setSharing] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [visibility, setVisibility] = useState<FeedVisibility>("friends");
   const [caption, setCaption] = useState("");
   const [posting, setPosting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   function close() {
     setSharing(false);
+    setConfirmingDelete(false);
     setCaption("");
     setError(null);
     onClose();
+  }
+
+  async function deleteFit() {
+    if (!fit) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/outfit-logs/${fit.id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("delete failed");
+      onDeleted(fit.id);
+      close();
+    } catch {
+      setError("Couldn't delete that — try again?");
+      setDeleting(false);
+    }
   }
 
   async function share() {
@@ -98,6 +118,43 @@ export default function FitDetailModal({
             ) : (
               <button className="btn-secondary w-full" onClick={() => setSharing(true)}>
                 Share to feed
+              </button>
+            )}
+
+            {error && (
+              <div className="bg-rose/10 border border-rose/30 rounded-lg p-3 text-sm text-rose">
+                {error}
+              </div>
+            )}
+
+            {confirmingDelete ? (
+              <div className="space-y-2">
+                <p className="text-xs text-slate/70 text-center">
+                  Delete this fit? {fit.shared_to_feed && "The feed post you shared stays up."}
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    className="btn-secondary flex-1"
+                    onClick={() => setConfirmingDelete(false)}
+                    disabled={deleting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="flex-1 rounded-full px-4 py-2 text-sm font-ui font-medium lowercase bg-rose text-cream shadow-soft-sm disabled:opacity-50"
+                    onClick={deleteFit}
+                    disabled={deleting}
+                  >
+                    {deleting ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                className="w-full text-center text-sm text-rose/80 hover:text-rose py-1"
+                onClick={() => setConfirmingDelete(true)}
+              >
+                Delete fit
               </button>
             )}
           </>

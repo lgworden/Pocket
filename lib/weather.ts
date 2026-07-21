@@ -57,6 +57,53 @@ async function geocode(location: string): Promise<{ lat: number; lon: number; la
   };
 }
 
+export type TripWeather = {
+  tempHighF: number; // warmest daily high across the trip
+  tempLowF: number; // coldest daily low across the trip
+  precipitationDays: number; // number of days with measurable rain
+  windMaxMph: number;
+  conditions: string[]; // distinct conditions seen across the trip
+  label: string;
+  days: number;
+};
+
+// Multi-day forecast for a destination, aggregated into one packing-oriented
+// summary. Open-Meteo forecasts up to 16 days; anything longer falls back to the
+// 16-day window (you pack for the range you can see). Used by the Pack My Bags flow.
+export async function getTripWeather(location: string, days: number): Promise<TripWeather> {
+  const { lat, lon, label } = await geocode(location);
+  const forecastDays = Math.min(Math.max(days, 1), 16);
+  const params = new URLSearchParams({
+    latitude: String(lat),
+    longitude: String(lon),
+    daily: "temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,weathercode",
+    temperature_unit: "fahrenheit",
+    windspeed_unit: "mph",
+    precipitation_unit: "inch",
+    timezone: "auto",
+    forecast_days: String(forecastDays),
+  });
+
+  const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params.toString()}`);
+  if (!res.ok) throw new Error("Weather fetch failed");
+  const data = await res.json();
+  const d = data.daily;
+
+  const conditions = Array.from(
+    new Set((d.weathercode as number[]).map((c) => WEATHER_CODES[c] ?? "Unknown"))
+  );
+
+  return {
+    tempHighF: Math.round(Math.max(...(d.temperature_2m_max as number[]))),
+    tempLowF: Math.round(Math.min(...(d.temperature_2m_min as number[]))),
+    precipitationDays: (d.precipitation_sum as number[]).filter((p) => p >= 0.05).length,
+    windMaxMph: Math.round(Math.max(...(d.windspeed_10m_max as number[]))),
+    conditions,
+    label,
+    days: forecastDays,
+  };
+}
+
 export async function getTodayWeather(location: string): Promise<TodayWeather> {
   const { lat, lon, label } = await geocode(location);
   const params = new URLSearchParams({

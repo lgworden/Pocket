@@ -50,3 +50,32 @@
   .tag-rose { @apply bg-rose text-cream; }
   .tag-outline { @apply bg-cream border border-slate/30 text-ink; }
 }
+
+/* Pack My Bags: an airplane that banks across the screen while a trip's outfits
+   generate, trailing a little dashed vapor path. Purely decorative. */
+@keyframes fly-across {
+  0%   { transform: translateX(-20vw) translateY(6px) rotate(8deg); }
+  50%  { transform: translateX(40vw) translateY(-10px) rotate(-4deg); }
+  100% { transform: translateX(110vw) translateY(4px) rotate(6deg); }
+}
+@keyframes trail-dash {
+  from { stroke-dashoffset: 40; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes cloud-drift {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-24px); }
+}
+.plane-fly {
+  animation: fly-across 2.8s ease-in-out infinite;
+}
+.plane-trail {
+  stroke-dasharray: 4 6;
+  animation: trail-dash 0.6s linear infinite;
+}
+.cloud-drift {
+  animation: cloud-drift 3s ease-in-out infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) {
+  .plane-fly, .plane-trail, .cloud-drift { animation: none; }
+}

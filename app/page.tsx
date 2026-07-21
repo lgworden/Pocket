@@ -2,6 +2,7 @@ import { requireOnboarded, getCurrentUserId } from "@/lib/auth";
 import { getTodayWeather } from "@/lib/weather";
 import { isCalendarConnected } from "@/lib/googleCalendar";
 import pool from "@/lib/db";
+import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 import TodayInteractive from "@/components/TodayInteractive";
 import NotificationButton from "@/components/NotificationButton";
@@ -65,6 +66,21 @@ export default async function TodayPage({
           Couldn't connect Google Calendar — try again?
         </div>
       )}
+
+      <Link
+        href="/pack"
+        className="card block bg-blue/10 border-blue/30 hover:bg-blue/20 transition-colors"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-ui font-semibold text-ink">✈️ going somewhere?</p>
+            <p className="text-xs text-slate/70 mt-0.5">
+              pack my bags — a whole trip from one carry-on
+            </p>
+          </div>
+          <span className="text-2xl">🧳</span>
+        </div>
+      </Link>
 
       <TodayInteractive calendarConnected={calendarConnected} initialRecommendation={initialRecommendation} />
 

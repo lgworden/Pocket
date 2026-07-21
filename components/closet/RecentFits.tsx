@@ -24,6 +24,11 @@ export default function RecentFits({ initialFits }: { initialFits: LoggedFit[] }
     setFits((prev) => prev.map((f) => (f.id === id ? { ...f, shared_to_feed: true } : f)));
   }
 
+  function handleDeleted(id: string) {
+    setFits((prev) => prev.filter((f) => f.id !== id));
+    if (selectedId === id) setSelectedId(null);
+  }
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -64,7 +69,12 @@ export default function RecentFits({ initialFits }: { initialFits: LoggedFit[] }
         onClose={() => setComposerOpen(false)}
         onSaved={handleSaved}
       />
-      <FitDetailModal fit={selected} onClose={() => setSelectedId(null)} onShared={handleShared} />
+      <FitDetailModal
+        fit={selected}
+        onClose={() => setSelectedId(null)}
+        onShared={handleShared}
+        onDeleted={handleDeleted}
+      />
     </div>
   );
 }

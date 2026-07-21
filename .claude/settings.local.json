@@ -39,7 +39,10 @@
       "Bash(git -C Pocket status)",
       "Bash(git -C Pocket remote -v)",
       "Bash(git -C Pocket diff --stat)",
-      "Bash(cd /Users/lilyworden/Claude/Projects/closet-stylist *)"
+      "Bash(cd /Users/lilyworden/Claude/Projects/closet-stylist *)",
+      "Read(//Users/lilyworden/.local/**)",
+      "Read(//private/tmp/claude-501/**)",
+      "Bash(find / -name \"node\" -type f -path \"*bin*\")"
     ]
   }
 }

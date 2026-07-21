@@ -102,6 +102,68 @@ Respond ONLY with JSON, no preamble, in exactly this shape:
   return parseJsonResponse(text);
 }
 
+// Used by the Pack My Bags flow: builds a 3-3-3 capsule (3 tops, 3 bottoms, 3
+// pairs of shoes that all mix-and-match) scaled for the trip, then maps the
+// pieces into outfits for each activity. See the 3-3-3 packing method.
+export async function getPackingPlan(
+  promptContext: Record<string, unknown>,
+  userName: string = "friend"
+) {
+  const learned_profile = (promptContext as any).learned_profile;
+  const { learned_profile: _, ...contextForJson } = promptContext as any;
+
+  const personalizedMessage = learned_profile
+    ? formatLearnedProfileForClaude(learned_profile, userName)
+    : "";
+  const systemPrefix = personalizedMessage ? `${personalizedMessage}\n\n` : "";
+
+  const msg = await anthropic.messages.create({
+    model: "claude-sonnet-4-6",
+    max_tokens: 2000,
+    messages: [
+      {
+        role: "user",
+        content: `${systemPrefix}You are a personal stylist helping ${userName} pack a carry-on for a trip using the 3-3-3 packing method: pack 3 tops, 3 bottoms, and 3 pairs of shoes that ALL mix and match, so a tiny capsule multiplies into many outfits. Build the capsule ONLY from the user's actual closet.
+
+CONTEXT:
+${JSON.stringify(contextForJson, null, 2)}
+
+Rules:
+- Build a core capsule of ideally 3 tops, 3 bottoms, and 3 pairs of shoes from CONTEXT.closet, chosen so they mix-and-match freely (shared, cohesive color palette). For longer trips (CONTEXT.trip.days) you may scale up to 4-5 of a category; for very short trips 2 is fine. Prioritize versatile, under-worn, weather-appropriate pieces.
+- Every activity in CONTEXT.trip.activities MUST be covered. Add category-appropriate EXTRAS beyond the core capsule only where an activity needs something the capsule can't do: e.g. a swimsuit for "beach_pool", activewear for "gym_activewear" or "hiking", a formal/dressy outfit for "wedding" or "formal_dinner", going-out pieces for "nightlife".
+- Add outerwear and layers if CONTEXT.trip_weather warrants (cold lows, rain, wind). Dress for the coldest low, not the warmest high.
+- Reference items ONLY by display_id and name, and ONLY items that appear in CONTEXT.closet.
+- Produce a set of complete mix-and-match outfits (aim for one flexible outfit per day of the trip, up to ~7, each tied to an activity or a general day). Each outfit's items must all come from the packed capsule + extras you listed. Reuse capsule pieces across outfits — that is the whole point of 3-3-3.
+- "dont_forget" is a short list of practical things the user likely needs but does NOT appear to own in CONTEXT.closet (e.g. "a swimsuit", "a rain jacket", "dressy heels"). Keep it to genuine gaps for the chosen activities/weather; empty array if none.
+- Keep every string lowercase-friendly and warm; the packing_tip should be one upbeat, gen-z-friendly sentence.
+
+Respond ONLY with JSON, no preamble, in exactly this shape:
+{
+  "trip_title": string,
+  "packing_tip": string,
+  "capsule": {
+    "tops": [{ "display_id": string, "name": string }],
+    "bottoms": [{ "display_id": string, "name": string }],
+    "shoes": [{ "display_id": string, "name": string }],
+    "extras": [{ "display_id": string, "name": string, "reason": string }]
+  },
+  "outfits": [
+    {
+      "title": string,
+      "activity": string,
+      "reasoning": string,
+      "items": [{ "display_id": string, "name": string }]
+    }
+  ],
+  "dont_forget": string[]
+}`,
+      },
+    ],
+  });
+  const text = msg.content.find((b) => b.type === "text")?.text ?? "{}";
+  return parseJsonResponse(text);
+}
+
 // Used by the weekly style analysis notification: turns this week's worn items
 // plus the all-time learned/analyzed preference data into a short, personal recap.
 export async function getWeeklyStyleSummary(
