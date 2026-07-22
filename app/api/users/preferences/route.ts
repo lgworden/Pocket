@@ -11,6 +11,7 @@ export async function PATCH(req: NextRequest) {
 
     const {
       display_name,
+      username,
       bio,
       location,
       home_address,
@@ -20,24 +21,37 @@ export async function PATCH(req: NextRequest) {
       onboarding_completed,
     } = await req.json();
 
+    // Check username uniqueness if provided
+    if (username) {
+      const existing = await pool.query("SELECT id FROM users WHERE username = $1 AND id != $2", [
+        username,
+        userId,
+      ]);
+      if (existing.rows.length > 0) {
+        return NextResponse.json({ error: "Username already taken" }, { status: 409 });
+      }
+    }
+
     const query = `
       UPDATE users
       SET
         display_name = COALESCE($1, display_name),
-        bio = CASE WHEN $2::boolean THEN $3 ELSE bio END,
-        location = CASE WHEN $4::boolean THEN $5 ELSE location END,
-        home_address = CASE WHEN $6::boolean THEN $7 ELSE home_address END,
-        scheduling_preferences = COALESCE($8, scheduling_preferences),
-        style_profile = COALESCE($9, style_profile),
-        notification_preferences = COALESCE($10, notification_preferences),
-        onboarding_completed = COALESCE($11, onboarding_completed)
-      WHERE id = $12
-      RETURNING id, display_name, bio, location, home_address, scheduling_preferences, style_profile,
+        username = COALESCE($2, username),
+        bio = CASE WHEN $3::boolean THEN $4 ELSE bio END,
+        location = CASE WHEN $5::boolean THEN $6 ELSE location END,
+        home_address = CASE WHEN $7::boolean THEN $8 ELSE home_address END,
+        scheduling_preferences = COALESCE($9, scheduling_preferences),
+        style_profile = COALESCE($10, style_profile),
+        notification_preferences = COALESCE($11, notification_preferences),
+        onboarding_completed = COALESCE($12, onboarding_completed)
+      WHERE id = $13
+      RETURNING id, display_name, username, bio, location, home_address, scheduling_preferences, style_profile,
                 notification_preferences, onboarding_completed
     `;
 
     const result = await pool.query(query, [
       display_name || null,
+      username || null,
       bio !== undefined,
       bio ? bio.trim() || null : null,
       location !== undefined,

@@ -11,6 +11,7 @@ interface User {
   id: string;
   name: string;
   display_name?: string;
+  username?: string;
   style_profile?: Record<string, any>;
   notification_preferences?: Record<string, any>;
 }
@@ -18,6 +19,9 @@ interface User {
 export default function OnboardingInteractive({ user }: { user: User }) {
   const router = useRouter();
   const [displayName, setDisplayName] = useState(user.display_name || user.name || "");
+  const [username, setUsername] = useState(user.username || "");
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [checkingUsername, setCheckingUsername] = useState(false);
   const [styleTypes, setStyleTypes] = useState<string[]>(
     user.style_profile?.style_types || []
   );
@@ -30,7 +34,33 @@ export default function OnboardingInteractive({ user }: { user: User }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  async function checkUsername(value: string) {
+    if (!value) return;
+    setCheckingUsername(true);
+    try {
+      const res = await fetch(`/api/users/check-username?username=${encodeURIComponent(value)}`);
+      const data = await res.json();
+      if (data.available) {
+        setUsernameError(null);
+      } else {
+        setUsernameError("This username is taken");
+      }
+    } catch {
+      setUsernameError("Couldn't check availability");
+    } finally {
+      setCheckingUsername(false);
+    }
+  }
+
   async function finish() {
+    if (!username) {
+      setError("Please choose a username");
+      return;
+    }
+    if (usernameError) {
+      setError("Please choose an available username");
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -39,6 +69,7 @@ export default function OnboardingInteractive({ user }: { user: User }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           display_name: displayName,
+          username,
           style_profile: {
             style_types: styleTypes,
             goals,
@@ -73,6 +104,40 @@ export default function OnboardingInteractive({ user }: { user: User }) {
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
         />
+      </div>
+
+      {/* Username */}
+      <div className="card">
+        <label className="text-xs font-ui font-semibold text-slate tracking-wide">
+          Choose your username
+        </label>
+        <p className="text-xs text-slate/60 mt-1 mb-2">
+          This is how friends will find you. Must be unique.
+        </p>
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <input
+              type="text"
+              className={`w-full bg-transparent border rounded-lg p-2 text-sm ${
+                usernameError ? "border-rose/50" : "border-slate/20"
+              }`}
+              placeholder="username"
+              value={username}
+              onChange={(e) => {
+                setUsername(e.target.value);
+                if (e.target.value && e.target.value !== user.username) {
+                  checkUsername(e.target.value);
+                }
+              }}
+            />
+            {usernameError && (
+              <p className="text-xs text-rose mt-1">{usernameError}</p>
+            )}
+          </div>
+          {checkingUsername && (
+            <div className="flex items-center text-xs text-slate/60">checking...</div>
+          )}
+        </div>
       </div>
 
       {/* Your Style */}

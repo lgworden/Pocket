@@ -112,3 +112,12 @@ export async function removeFriend(userId: string, friendId: string): Promise<vo
     [userId, friendId]
   );
 }
+
+// Add a friend by user ID (used when searching by username)
+export async function addFriend(userId: string, friendId: string): Promise<void> {
+  await pool.query(
+    `INSERT INTO friendships (user_id, friend_id) VALUES ($1, $2), ($2, $1)
+     ON CONFLICT (user_id, friend_id) DO NOTHING`,
+    [userId, friendId]
+  );
+}

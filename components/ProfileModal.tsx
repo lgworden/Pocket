@@ -8,6 +8,7 @@ import GoalsPicker from "./GoalsPicker";
 interface User {
   name: string;
   display_name?: string;
+  username?: string;
   bio?: string | null;
   location?: string | null;
   home_address?: string | null;
@@ -24,6 +25,9 @@ export default function ProfileModal({
   onClose: () => void;
 }) {
   const [displayName, setDisplayName] = useState(user.display_name || user.name);
+  const [username, setUsername] = useState(user.username || "");
+  const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [checkingUsername, setCheckingUsername] = useState(false);
   const [bio, setBio] = useState(user.bio || "");
   const [location, setLocation] = useState(user.location || "");
   const [homeAddress, setHomeAddress] = useState(user.home_address || "");
@@ -34,7 +38,29 @@ export default function ProfileModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  async function checkUsername(value: string) {
+    if (!value) return;
+    setCheckingUsername(true);
+    try {
+      const res = await fetch(`/api/users/check-username?username=${encodeURIComponent(value)}`);
+      const data = await res.json();
+      if (data.available) {
+        setUsernameError(null);
+      } else {
+        setUsernameError("This username is taken");
+      }
+    } catch {
+      setUsernameError("Couldn't check availability");
+    } finally {
+      setCheckingUsername(false);
+    }
+  }
+
   async function save() {
+    if (username && usernameError) {
+      setError("Please fix your username");
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -43,6 +69,7 @@ export default function ProfileModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           display_name: displayName,
+          username: username || null,
           bio: bio.trim(),
           location: location.trim(),
           home_address: homeAddress.trim(),
@@ -75,6 +102,39 @@ export default function ProfileModal({
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
           />
+        </div>
+
+        <div>
+          <label className="text-xs font-ui font-semibold text-slate tracking-wide">
+            Username
+          </label>
+          <p className="text-xs text-slate/60 mt-1 mb-2">
+            How friends will find you. Leave blank if you prefer not to share.
+          </p>
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="username"
+                className={`w-full bg-transparent border rounded-lg p-2 text-sm ${
+                  usernameError ? "border-rose/50" : "border-slate/20"
+                }`}
+                value={username}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  if (e.target.value && e.target.value !== user.username) {
+                    checkUsername(e.target.value);
+                  }
+                }}
+              />
+              {usernameError && (
+                <p className="text-xs text-rose mt-1">{usernameError}</p>
+              )}
+            </div>
+            {checkingUsername && (
+              <div className="flex items-center text-xs text-slate/60">checking...</div>
+            )}
+          </div>
         </div>
 
         <div>
