@@ -7,7 +7,7 @@ type User = {
   id: string;
   username: string;
   display_name: string;
-  avatar_url?: string;
+  avatar?: string;
   is_friend: boolean;
 };
 
@@ -93,9 +93,9 @@ export default function FriendSearchClient() {
       <div className="space-y-2">
         {results.map((user) => (
           <div key={user.id} className="card flex items-center gap-3">
-            {user.avatar_url ? (
+            {user.avatar ? (
               <Image
-                src={user.avatar_url}
+                src={user.avatar}
                 alt={user.display_name}
                 width={40}
                 height={40}

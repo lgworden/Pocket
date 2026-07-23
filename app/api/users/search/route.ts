@@ -16,10 +16,10 @@ export async function GET(req: NextRequest) {
 
     const { rows } = await pool.query(
       `SELECT
-        u.id, u.username, u.display_name, u.avatar_url,
+        u.id, u.username, COALESCE(u.display_name, u.name) AS display_name, u.avatar,
         EXISTS(SELECT 1 FROM friendships WHERE user_id = $1 AND friend_id = u.id) as is_friend
       FROM users u
-      WHERE u.id != $1 AND (u.username ILIKE $2 OR u.display_name ILIKE $2)
+      WHERE u.id != $1 AND (u.username ILIKE $2 OR u.display_name ILIKE $2 OR u.name ILIKE $2)
       LIMIT 20`,
       [userId, `%${query}%`]
     );
