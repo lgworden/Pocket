@@ -164,9 +164,18 @@ export default async function ClosetPage({
         <h1 className="text-2xl mt-1">{categoryLabel}</h1>
       </header>
 
-      <ClosetHub initialFits={recentFits ?? []} showMoodBoard={!category}>
-        <div className="space-y-4">
-          {!category && (
+      <ClosetHub
+        initialFits={recentFits ?? []}
+        showMoodBoard={!category}
+        categoryNav={
+          <CategoryNavList
+            activeCategory={category}
+            counts={counts}
+            miscCount={miscCategories.length}
+          />
+        }
+        topBanner={
+          !category ? (
             <Link
               href="/add-item/from-outfit"
               className="card flex items-center justify-between gap-3 bg-blue/10 border-blue/30 hover:bg-blue/20 transition-colors"
@@ -178,23 +187,17 @@ export default async function ClosetPage({
                 </p>
               </div>
             </Link>
-          )}
-
-          <CategoryChipRow
-            activeCategory={category}
-            counts={counts}
-            miscCount={miscCategories.length}
+          ) : undefined
+        }
+      >
+        {category && (
+          <CategoryItemList
+            userId={userId}
+            category={category}
+            searchParams={searchParams}
+            miscCategories={miscCategories}
           />
-
-          {category && (
-            <CategoryItemList
-              userId={userId}
-              category={category}
-              searchParams={searchParams}
-              miscCategories={miscCategories}
-            />
-          )}
-        </div>
+        )}
       </ClosetHub>
 
       <BottomNav />
@@ -202,7 +205,7 @@ export default async function ClosetPage({
   );
 }
 
-function CategoryChipRow({
+function CategoryNavList({
   activeCategory,
   counts,
   miscCount,
@@ -212,12 +215,10 @@ function CategoryChipRow({
   miscCount: number;
 }) {
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <>
       <Link
         href="/closet"
-        className={`tag transition-colors ${
-          !activeCategory ? "bg-ink text-cream" : "tag-outline"
-        }`}
+        className={`nav-pill ${!activeCategory ? "nav-pill-active" : ""}`}
       >
         All
       </Link>
@@ -225,24 +226,22 @@ function CategoryChipRow({
         <Link
           key={c.value}
           href={`/closet?category=${c.value}`}
-          className={`tag transition-colors ${
-            activeCategory === c.value ? "bg-ink text-cream" : "tag-outline"
-          }`}
+          className={`nav-pill ${activeCategory === c.value ? "nav-pill-active" : ""}`}
         >
-          {c.label} <span className="opacity-60">· {counts[c.value]}</span>
+          {c.label}
+          <span className="block opacity-60">{counts[c.value]}</span>
         </Link>
       ))}
       {miscCount > 0 && (
         <Link
           href={`/closet?category=${MISC_CATEGORY}`}
-          className={`tag transition-colors ${
-            activeCategory === MISC_CATEGORY ? "bg-ink text-cream" : "tag-outline"
-          }`}
+          className={`nav-pill ${activeCategory === MISC_CATEGORY ? "nav-pill-active" : ""}`}
         >
-          Miscellaneous <span className="opacity-60">· {miscCount}</span>
+          Misc.
+          <span className="block opacity-60">{miscCount}</span>
         </Link>
       )}
-    </div>
+    </>
   );
 }
 

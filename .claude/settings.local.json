@@ -51,7 +51,8 @@
       "Read(//Users/lilyworden/.embedded-postgres-data/**)",
       "Bash(find / -maxdepth 4 -iname \"*embedded-postgres*\")",
       "Read(//Users/lilyworden/**)",
-      "Bash(find / -maxdepth 6 -path \"*embedded-postgres*\" -name \"postgres\" -type f)"
+      "Bash(find / -maxdepth 6 -path \"*embedded-postgres*\" -name \"postgres\" -type f)",
+      "Bash(.tools/node-v20.16.0-darwin-arm64/bin/node /private/tmp/claude-501/-Users-lilyworden-Claude-Projects-closet-stylist/687ece26-5e25-4dc0-9d1b-a8d2308493e2/scratchpad/start-pg.mjs)"
     ]
   }
 }
