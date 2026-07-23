@@ -49,16 +49,31 @@
   .tag-pink { @apply bg-pink text-ink; }
   .tag-rose { @apply bg-rose text-cream; }
   .tag-outline { @apply bg-cream border border-slate/30 text-ink; }
-  /* Vertical filter rail on Closet: stacked pill-cards instead of a wrapped chip row. */
-  .nav-pill {
-    @apply block w-full rounded-2xl px-2.5 py-2 text-[11px] leading-tight font-ui font-medium text-ink bg-panel border border-slate/10 text-center transition-colors;
+  /* Closet filter rail: soft floating circles, one per category. */
+  .filter-orb {
+    @apply w-[84px] h-[84px] rounded-full flex flex-col items-center justify-center text-center
+           bg-panel border border-slate/10 text-ink text-[11px] leading-tight font-ui font-medium
+           shadow-soft transition-colors;
   }
-  .nav-pill-active {
+  .filter-orb-active {
     @apply bg-ink text-cream border-ink;
   }
   .icon-btn {
     @apply w-10 h-10 rounded-full flex items-center justify-center shadow-soft-sm shrink-0;
   }
+}
+
+/* Gentle idle bob so the Closet filter circles read as floating. Each orb gets a
+   staggered animationDelay inline so they drift out of sync. */
+@keyframes orb-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-7px); }
+}
+.floaty {
+  animation: orb-float 4.5s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .floaty { animation: none; }
 }
 
 /* Pack My Bags: an airplane that banks across the screen while a trip's outfits

@@ -35,13 +35,11 @@ export default function ClosetHub({
   initialFits,
   showMoodBoard,
   categoryNav,
-  topBanner,
   children,
 }: {
   initialFits: LoggedFit[];
   showMoodBoard: boolean;
   categoryNav: ReactNode;
-  topBanner?: ReactNode;
   children: ReactNode;
 }) {
   const [fits, setFits] = useState<LoggedFit[]>(initialFits);
@@ -84,10 +82,8 @@ export default function ClosetHub({
         </button>
       </div>
 
-      {topBanner}
-
       <div className="flex gap-3 items-start">
-        <div className="w-[92px] shrink-0 sticky top-4 flex flex-col gap-1.5">
+        <div className="w-[92px] shrink-0 sticky top-4 flex flex-col gap-4 items-center">
           {categoryNav}
         </div>
 
@@ -98,15 +94,17 @@ export default function ClosetHub({
                 Recent fits
               </p>
               {fits.length === 0 ? (
+                // Empty state is a tall color field, not a bordered card — as fits
+                // get posted their photos fill it in from the top.
                 <button
                   type="button"
                   onClick={() => setComposerOpen(true)}
-                  className="card w-full aspect-[4/5] flex items-center justify-center text-sm text-slate/60 border border-dashed border-slate/30"
+                  className="w-full min-h-[70vh] rounded-3xl bg-pink flex items-end justify-center p-6 text-sm text-brown/70"
                 >
-                  Snap today's fit to start your log
+                  your fits show up here
                 </button>
               ) : (
-                <div className="max-h-[64vh] overflow-y-auto space-y-3 pr-0.5 -mr-0.5">
+                <div className="max-h-[72vh] overflow-y-auto space-y-3 pr-0.5 -mr-0.5">
                   {fits.map((fit) => (
                     <button
                       key={fit.id}

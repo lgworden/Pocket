@@ -174,21 +174,6 @@ export default async function ClosetPage({
             miscCount={miscCategories.length}
           />
         }
-        topBanner={
-          !category ? (
-            <Link
-              href="/add-item/from-outfit"
-              className="card flex items-center justify-between gap-3 bg-blue/10 border-blue/30 hover:bg-blue/20 transition-colors"
-            >
-              <div>
-                <p className="text-sm font-ui font-semibold text-ink">got an outfit photo?</p>
-                <p className="text-xs text-slate/70 mt-0.5">
-                  log my items — we'll spot each piece and add what's new
-                </p>
-              </div>
-            </Link>
-          ) : undefined
-        }
       >
         {category && (
           <CategoryItemList
@@ -214,33 +199,39 @@ function CategoryNavList({
   counts: Record<string, number>;
   miscCount: number;
 }) {
+  const orbs: { href: string; label: string; count?: number; active: boolean }[] = [
+    { href: "/closet", label: "all", active: !activeCategory },
+    ...CATEGORIES.filter((c) => (counts[c.value] ?? 0) >= 2).map((c) => ({
+      href: `/closet?category=${c.value}`,
+      label: `my ${c.label}`,
+      count: counts[c.value],
+      active: activeCategory === c.value,
+    })),
+    ...(miscCount > 0
+      ? [
+          {
+            href: `/closet?category=${MISC_CATEGORY}`,
+            label: "misc.",
+            count: miscCount,
+            active: activeCategory === MISC_CATEGORY,
+          },
+        ]
+      : []),
+  ];
+
   return (
     <>
-      <Link
-        href="/closet"
-        className={`nav-pill ${!activeCategory ? "nav-pill-active" : ""}`}
-      >
-        All
-      </Link>
-      {CATEGORIES.filter((c) => (counts[c.value] ?? 0) >= 2).map((c) => (
+      {orbs.map((orb, i) => (
         <Link
-          key={c.value}
-          href={`/closet?category=${c.value}`}
-          className={`nav-pill ${activeCategory === c.value ? "nav-pill-active" : ""}`}
+          key={orb.href}
+          href={orb.href}
+          className={`filter-orb floaty ${orb.active ? "filter-orb-active" : ""}`}
+          style={{ animationDelay: `${(i % 4) * 0.6}s` }}
         >
-          {c.label}
-          <span className="block opacity-60">{counts[c.value]}</span>
+          <span className="px-1">{orb.label}</span>
+          {orb.count != null && <span className="block opacity-60">{orb.count}</span>}
         </Link>
       ))}
-      {miscCount > 0 && (
-        <Link
-          href={`/closet?category=${MISC_CATEGORY}`}
-          className={`nav-pill ${activeCategory === MISC_CATEGORY ? "nav-pill-active" : ""}`}
-        >
-          Misc.
-          <span className="block opacity-60">{miscCount}</span>
-        </Link>
-      )}
     </>
   );
 }
