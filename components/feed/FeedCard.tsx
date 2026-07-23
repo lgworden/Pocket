@@ -186,7 +186,9 @@ export default function FeedCard({
                     {post.tagged_friends.map((f, i) => (
                       <span key={f.id}>
                         {i > 0 && ", "}
-                        <span className="font-medium">{f.name}</span>
+                        <Link href={`/profile/${f.id}`} className="font-medium hover:underline">
+                          {f.name}
+                        </Link>
                       </span>
                     ))}
                   </span>
@@ -219,7 +221,16 @@ export default function FeedCard({
                 <ul className="space-y-1.5 pt-0.5">
                   {comments.map((c) => (
                     <li key={c.id} className="text-[11px] leading-snug">
-                      <span className="font-medium text-ink">{c.author_name}</span>{" "}
+                      {/* Optimistic bubble has a placeholder author_id (not a real
+                          profile) until it reconciles with the server — plain text
+                          until then. */}
+                      {c.id.startsWith("temp-") ? (
+                        <span className="font-medium text-ink">{c.author_name}</span>
+                      ) : (
+                        <Link href={`/profile/${c.author_id}`} className="font-medium text-ink hover:underline">
+                          {c.author_name}
+                        </Link>
+                      )}{" "}
                       <span className="text-ink/70">{c.body}</span>
                     </li>
                   ))}
