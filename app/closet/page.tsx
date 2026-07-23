@@ -175,12 +175,11 @@ export default async function ClosetPage({
           className="card flex items-center justify-between gap-3 bg-blue/10 border-blue/30 hover:bg-blue/20 transition-colors"
         >
           <div>
-            <p className="text-sm font-ui font-semibold text-ink">📸 got an outfit photo?</p>
+            <p className="text-sm font-ui font-semibold text-ink">got an outfit photo?</p>
             <p className="text-xs text-slate/70 mt-0.5">
               log my items — we'll spot each piece and add what's new
             </p>
           </div>
-          <span className="text-2xl">🧵</span>
         </Link>
       )}
 

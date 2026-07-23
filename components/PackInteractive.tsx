@@ -117,7 +117,7 @@ export default function PackInteractive() {
       {status !== "results" && (
         <div className="card">
           <label className="text-xs font-ui font-semibold text-slate tracking-wide">
-            Where to? ✈️
+            Where to?
           </label>
           <input
             className="w-full mt-2 bg-transparent border border-slate/20 rounded-lg p-2 text-sm"
@@ -145,9 +145,6 @@ export default function PackInteractive() {
             >
               +
             </button>
-            <span className="text-xs text-slate/60">
-              packing light with the 3·3·3 method 🧳
-            </span>
           </div>
 
           <label className="text-xs font-ui font-semibold text-slate tracking-wide mt-4 block">
