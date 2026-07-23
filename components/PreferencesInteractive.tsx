@@ -118,13 +118,6 @@ export default function PreferencesInteractive({ user }: { user: User; userId: s
           <span className="text-sm font-medium">My profile</span>
           <span className="text-slate">→</span>
         </button>
-        <Link
-          href="/friends"
-          className="card w-full flex items-center justify-between"
-        >
-          <span className="text-sm font-medium">Find friends</span>
-          <span className="text-slate">→</span>
-        </Link>
         <button
           type="button"
           onClick={() => setNotifOpen(true)}

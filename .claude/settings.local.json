@@ -43,7 +43,8 @@
       "Read(//Users/lilyworden/.local/**)",
       "Read(//private/tmp/claude-501/**)",
       "Bash(find / -name \"node\" -type f -path \"*bin*\")",
-      "Bash(DATABASE_URL=postgres://postgres:postgres@127.0.0.1:15432/closet_stylist /Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin/node -e ' *)"
+      "Bash(DATABASE_URL=postgres://postgres:postgres@127.0.0.1:15432/closet_stylist /Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin/node -e ' *)",
+      "Bash(grep -rn \"\\\\\"/friends\\\\\"\\\\|'/friends'\\\\|href={\\\\`/friends\" /Users/lilyworden/Claude/Projects/closet-stylist/app /Users/lilyworden/Claude/Projects/closet-stylist/components)"
     ]
   }
 }
