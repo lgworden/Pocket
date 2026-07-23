@@ -75,9 +75,9 @@ export default async function TodayPage({
       >
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-ui font-semibold text-ink">going somewhere?</p>
+            <p className="text-sm font-ui font-semibold text-ink">where to next?</p>
             <p className="text-xs text-slate/70 mt-0.5">
-              pack my bags — a whole trip from one carry-on
+              help me plan my next trip
             </p>
           </div>
         </div>

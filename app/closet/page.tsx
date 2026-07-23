@@ -4,7 +4,7 @@ import { requireOnboarded } from "@/lib/auth";
 import ClosetFilters from "@/components/ClosetFilters";
 import BottomNav from "@/components/BottomNav";
 import AddPhotoButton from "@/components/AddPhotoButton";
-import RecentFits from "@/components/closet/RecentFits";
+import ClosetHub from "@/components/closet/ClosetHub";
 import type { LoggedFit } from "@/components/closet/LogFitComposer";
 
 export const dynamic = "force-dynamic";
@@ -157,48 +157,45 @@ export default async function ClosetPage({
 
   return (
     <main className="px-4 pt-6 space-y-4">
-      <header className="flex items-center justify-between">
-        <div>
-          <p className="text-xs font-ui font-semibold text-slate tracking-wide">
-            Closet
-          </p>
-          <h1 className="text-2xl mt-1">{categoryLabel}</h1>
-        </div>
-        <Link href="/add-item" className="btn-primary">
-          + Add item
-        </Link>
+      <header>
+        <p className="text-xs font-ui font-semibold text-slate tracking-wide">
+          Closet
+        </p>
+        <h1 className="text-2xl mt-1">{categoryLabel}</h1>
       </header>
 
-      {!category && (
-        <Link
-          href="/add-item/from-outfit"
-          className="card flex items-center justify-between gap-3 bg-blue/10 border-blue/30 hover:bg-blue/20 transition-colors"
-        >
-          <div>
-            <p className="text-sm font-ui font-semibold text-ink">got an outfit photo?</p>
-            <p className="text-xs text-slate/70 mt-0.5">
-              log my items — we'll spot each piece and add what's new
-            </p>
-          </div>
-        </Link>
-      )}
+      <ClosetHub initialFits={recentFits ?? []} showMoodBoard={!category}>
+        <div className="space-y-4">
+          {!category && (
+            <Link
+              href="/add-item/from-outfit"
+              className="card flex items-center justify-between gap-3 bg-blue/10 border-blue/30 hover:bg-blue/20 transition-colors"
+            >
+              <div>
+                <p className="text-sm font-ui font-semibold text-ink">got an outfit photo?</p>
+                <p className="text-xs text-slate/70 mt-0.5">
+                  log my items — we'll spot each piece and add what's new
+                </p>
+              </div>
+            </Link>
+          )}
 
-      <CategoryChipRow
-        activeCategory={category}
-        counts={counts}
-        miscCount={miscCategories.length}
-      />
+          <CategoryChipRow
+            activeCategory={category}
+            counts={counts}
+            miscCount={miscCategories.length}
+          />
 
-      {category ? (
-        <CategoryItemList
-          userId={userId}
-          category={category}
-          searchParams={searchParams}
-          miscCategories={miscCategories}
-        />
-      ) : (
-        recentFits && <RecentFits initialFits={recentFits} />
-      )}
+          {category && (
+            <CategoryItemList
+              userId={userId}
+              category={category}
+              searchParams={searchParams}
+              miscCategories={miscCategories}
+            />
+          )}
+        </div>
+      </ClosetHub>
 
       <BottomNav />
     </main>

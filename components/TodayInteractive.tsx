@@ -217,7 +217,7 @@ export default function TodayInteractive({
 
         <div className="flex gap-2 mt-3">
           <button className="btn-primary flex-1" onClick={getOutfits} disabled={status === "loading"}>
-            {status === "loading" && mode === "claude" ? "thinking..." : "get outfits"}
+            {status === "loading" && mode === "claude" ? "thinking..." : "curate"}
           </button>
           <button
             className="btn-secondary flex-1"

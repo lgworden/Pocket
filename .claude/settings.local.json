@@ -45,7 +45,13 @@
       "Bash(find / -name \"node\" -type f -path \"*bin*\")",
       "Bash(DATABASE_URL=postgres://postgres:postgres@127.0.0.1:15432/closet_stylist /Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin/node -e ' *)",
       "Bash(grep -rn \"\\\\\"/friends\\\\\"\\\\|'/friends'\\\\|href={\\\\`/friends\" /Users/lilyworden/Claude/Projects/closet-stylist/app /Users/lilyworden/Claude/Projects/closet-stylist/components)",
-      "Bash(git --no-pager diff --cached)"
+      "Bash(git --no-pager diff --cached)",
+      "Bash(lsof -i :15432 -sTCP:LISTEN)",
+      "Bash(find / -maxdepth 5 -iname \"embedded-postgres\" -type d)",
+      "Read(//Users/lilyworden/.embedded-postgres-data/**)",
+      "Bash(find / -maxdepth 4 -iname \"*embedded-postgres*\")",
+      "Read(//Users/lilyworden/**)",
+      "Bash(find / -maxdepth 6 -path \"*embedded-postgres*\" -name \"postgres\" -type f)"
     ]
   }
 }
