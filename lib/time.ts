@@ -22,6 +22,33 @@ export function getCurrentWeekdayInZone(tz: string = DEFAULT_TIMEZONE, date = ne
     .toLowerCase(); // "sun", "mon", ...
 }
 
+// Returns the [start, end) of "today" in `tz` as RFC3339 strings with an explicit
+// UTC offset — safe to hand straight to an API's timeMin/timeMax (e.g. Google
+// Calendar) regardless of what timezone the server process itself runs in.
+// Railway containers default to UTC, not the user's zone, so computing "today"
+// from the server's local clock (`new Date().getDate()` etc.) silently fetches
+// the wrong day's window — this is the zone-safe replacement for that.
+export function getZonedDayBoundsRFC3339(
+  tz: string = DEFAULT_TIMEZONE,
+  date = new Date()
+): { timeMin: string; timeMax: string } {
+  const dateStr = new Intl.DateTimeFormat("en-CA", { timeZone: tz }).format(date); // "YYYY-MM-DD"
+
+  const offsetName = new Intl.DateTimeFormat("en-US", { timeZone: tz, timeZoneName: "shortOffset" })
+    .formatToParts(date)
+    .find((p) => p.type === "timeZoneName")?.value; // e.g. "GMT-4"
+  const match = offsetName?.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
+  const sign = match?.[1] ?? "+";
+  const hh = (match?.[2] ?? "0").padStart(2, "0");
+  const mm = match?.[3] ?? "00";
+  const offset = `${sign}${hh}:${mm}`;
+
+  return {
+    timeMin: `${dateStr}T00:00:00${offset}`,
+    timeMax: `${dateStr}T23:59:59${offset}`,
+  };
+}
+
 // Cron fires every ~15 minutes; a preferred "HH:mm" is "due" if it falls in the
 // same windowMinutes-sized bucket as the current time, so each fire only
 // matches the one bucket it's responsible for.

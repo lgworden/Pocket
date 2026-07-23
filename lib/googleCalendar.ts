@@ -1,4 +1,5 @@
 import pool from "./db";
+import { getZonedDayBoundsRFC3339 } from "./time";
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -196,11 +197,9 @@ export async function getTodayEventsDetailed(userId: string): Promise<CalendarEv
   const accessToken = await getValidAccessToken(userId);
   if (!accessToken) return null;
 
-  const now = new Date();
-  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-  const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-  const timeMin = startOfDay.toISOString();
-  const timeMax = endOfDay.toISOString();
+  // Zone-safe "today" — the server process (Railway) runs in UTC, not the
+  // user's timezone, so this must not be derived from the server's local clock.
+  const { timeMin, timeMax } = getZonedDayBoundsRFC3339();
 
   const calendarIds = await getUserCalendarIds(accessToken);
   const eventLists = await Promise.all(
