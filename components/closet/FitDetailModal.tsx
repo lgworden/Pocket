@@ -121,6 +121,13 @@ export default function FitDetailModal({
               </button>
             )}
 
+            <Link
+              href={`/add-item/from-outfit?photo=${encodeURIComponent(fit.photo)}`}
+              className="btn-secondary w-full block text-center"
+            >
+              Scan items from this photo
+            </Link>
+
             {error && (
               <div className="bg-rose/10 border border-rose/30 rounded-lg p-3 text-sm text-rose">
                 {error}

@@ -1,7 +1,8 @@
 const MAX_DIMENSION = 1024;
 
 // Client-side compression before upload (budget matters for the photo storage volume).
-export function compressImage(file: File): Promise<{ base64: string; mediaType: string }> {
+// Accepts a Blob (a File, or a fetched existing photo) — only Blob's own interface is used.
+export function compressImage(file: Blob): Promise<{ base64: string; mediaType: string }> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const objectUrl = URL.createObjectURL(file);

@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import { compressImage } from "@/lib/compressImage";
 import { cropImage, type BoundingBox } from "@/lib/cropImage";
@@ -37,23 +37,22 @@ type RawDraft = {
 // closet organically from outfit photos instead of one item at a time.
 export default function AddFromOutfitClient() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [status, setStatus] = useState<"capture" | "analyzing" | "review" | "saving" | "done">(
-    "capture"
+    searchParams.get("photo") ? "analyzing" : "capture"
   );
   const [items, setItems] = useState<OutfitDraftItem[]>([]);
   const [outfitPhotoUrl, setOutfitPhotoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [savedCount, setSavedCount] = useState(0);
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function analyze(blob: Blob) {
     setError(null);
     setStatus("analyzing");
     try {
-      const payload = await compressImage(file);
+      const payload = await compressImage(blob);
       const dataUrl = `data:${payload.mediaType};base64,${payload.base64}`;
 
       const res = await fetch("/api/items/draft-outfit", {
@@ -108,6 +107,30 @@ export default function AddFromOutfitClient() {
       setStatus("capture");
     }
   }
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await analyze(file);
+  }
+
+  // "Scan items" from an already-logged fit (components/closet/FitDetailModal.tsx)
+  // links here with ?photo=<existing fit photo URL> — skip straight to analysis
+  // instead of asking the user to retake the same photo.
+  useEffect(() => {
+    const photo = searchParams.get("photo");
+    if (!photo) return;
+    setStatus("analyzing");
+    fetch(photo)
+      .then((res) => res.blob())
+      .then((blob) => analyze(blob))
+      .catch(() => {
+        setError("Couldn't load that fit's photo — try photographing it fresh?");
+        setStatus("capture");
+      });
+    // Only run once, off the initial `photo` param — not on every searchParams identity change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function updateItem<K extends keyof OutfitDraftItem>(index: number, key: K, value: OutfitDraftItem[K]) {
     setItems((prev) => prev.map((it, i) => (i === index ? { ...it, [key]: value } : it)));
