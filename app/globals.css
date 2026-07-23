@@ -51,9 +51,9 @@
   .tag-outline { @apply bg-cream border border-slate/30 text-ink; }
   /* Closet filter rail: soft floating circles, one per category. */
   .filter-orb {
-    @apply w-[84px] h-[84px] rounded-full flex flex-col items-center justify-center text-center
-           bg-panel border border-slate/10 text-ink text-[11px] leading-tight font-ui font-medium
-           shadow-soft transition-colors;
+    @apply w-[64px] h-[64px] rounded-full flex flex-col items-center justify-center text-center
+           bg-panel border border-slate/10 text-ink text-[10px] leading-tight font-ui font-medium
+           shadow-soft-sm transition-colors;
   }
   .filter-orb-active {
     @apply bg-ink text-cream border-ink;
