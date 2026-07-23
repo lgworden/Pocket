@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Modal from "@/components/Modal";
+import PhotoEditor from "@/components/feed/PhotoEditor";
 import { compressImage } from "@/lib/compressImage";
 import { celebrate } from "@/lib/confetti";
 import { VISIBILITY_OPTIONS, type FeedVisibility } from "@/lib/feed";
@@ -25,6 +26,10 @@ export default function FeedComposer({
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [payload, setPayload] = useState<{ base64: string; mediaType: string } | null>(null);
+  // Unfiltered source (data URL) kept around so re-editing starts from the original,
+  // not an already-baked frame. `editing` toggles the filter step.
+  const [origSrc, setOrigSrc] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
   const [visibility, setVisibility] = useState<FeedVisibility>("friends");
   const [caption, setCaption] = useState("");
   const [location, setLocation] = useState("");
@@ -35,6 +40,8 @@ export default function FeedComposer({
   function reset() {
     setPreview(null);
     setPayload(null);
+    setOrigSrc(null);
+    setEditing(false);
     setVisibility("friends");
     setCaption("");
     setLocation("");
@@ -60,11 +67,19 @@ export default function FeedComposer({
     setError(null);
     try {
       const compressed = await compressImage(file);
-      setPayload(compressed);
-      setPreview(`data:${compressed.mediaType};base64,${compressed.base64}`);
+      // Hand the compressed original to the filter step; the baked result becomes
+      // the actual upload payload once the user picks a look.
+      setOrigSrc(`data:${compressed.mediaType};base64,${compressed.base64}`);
+      setEditing(true);
     } catch {
       setError("Couldn't read that photo — try another?");
     }
+  }
+
+  function handleEdited(result: { base64: string; mediaType: string; previewUrl: string }) {
+    setPayload({ base64: result.base64, mediaType: result.mediaType });
+    setPreview(result.previewUrl);
+    setEditing(false);
   }
 
   async function share() {
@@ -95,6 +110,26 @@ export default function FeedComposer({
     }
   }
 
+  // Filter/edit step takes over the whole modal while active.
+  if (editing && origSrc) {
+    return (
+      <Modal open={open} onClose={close} title="Edit photo">
+        <PhotoEditor
+          src={origSrc}
+          onCancel={() => {
+            setEditing(false);
+            // No baked result yet → drop back to the empty picker.
+            if (!payload) {
+              setOrigSrc(null);
+              if (fileRef.current) fileRef.current.value = "";
+            }
+          }}
+          onDone={handleEdited}
+        />
+      </Modal>
+    );
+  }
+
   return (
     <Modal open={open} onClose={close} title="Share an outfit">
       <div className="space-y-4">
@@ -105,9 +140,18 @@ export default function FeedComposer({
             <img src={preview} alt="outfit preview" className="w-full rounded-xl object-cover" />
             <button
               type="button"
+              onClick={() => setEditing(true)}
+              className="absolute bottom-2 right-2 bg-ink/70 text-cream rounded-full px-3 h-8 flex items-center justify-center text-xs font-medium gap-1"
+              aria-label="Edit photo"
+            >
+              ✎ Edit
+            </button>
+            <button
+              type="button"
               onClick={() => {
                 setPreview(null);
                 setPayload(null);
+                setOrigSrc(null);
                 if (fileRef.current) fileRef.current.value = "";
               }}
               className="absolute top-2 right-2 bg-ink/70 text-cream rounded-full w-8 h-8 flex items-center justify-center text-lg leading-none"
