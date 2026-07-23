@@ -8,10 +8,13 @@ export type FilterPreset = {
   id: string;
   name: string;
   // A CSS/canvas `filter` string applied to the base image (the color grade).
+  // This is the filter's *identity* and is always applied at full strength; the
+  // "Retro" slider only scales the aging effects below (grain/vignette/tint).
   css: string;
-  // Default film-grain amount, 0–1. Doubles as the grain slider's starting value.
+  // Film-grain amount at full retro (0–1). Scaled by the Retro slider, then by
+  // GRAIN_OPACITY when painted.
   grain: number;
-  // Darkened-edge vignette strength, 0–1.
+  // Darkened-edge vignette strength at full retro, 0–1. Scaled by the Retro slider.
   vignette: number;
   // Optional color cast, blended soft-light over the image.
   tint: string | null;
@@ -153,7 +156,12 @@ export const FILTER_PRESETS: FilterPreset[] = [
   },
 ];
 
-export const DEFAULT_PRESET_ID = "digicam";
+// Editor opens on the unfiltered photo — filters are opt-in, not applied by default.
+export const DEFAULT_PRESET_ID = "original";
+
+// How opaque the noise tile is painted per unit of grain. Tuned down from 0.5 so the
+// grain reads as a soft filmic texture rather than heavy static.
+export const GRAIN_OPACITY = 0.38;
 
 // A single reusable tile of monochrome noise. Generated once and shared between the
 // live CSS preview (as a data URL) and the canvas bake (as a fill pattern) so the
@@ -198,8 +206,9 @@ export function dateStampText(d = new Date()): string {
 
 export type BakeOptions = {
   preset: FilterPreset;
-  // Overrides preset.grain (the slider). 0–1.
-  grain: number;
+  // The "Retro" slider, 0–1. Scales the whole vintage look — grain, vignette, and
+  // color cast — from clean (0) up to the preset's designed intensity (1).
+  retro: number;
   // Whether to burn the date stamp in, independent of the preset default.
   dateStamp: boolean;
 };
@@ -208,7 +217,7 @@ export type BakeOptions = {
 // prefix) plus its media type — the exact shape the feed upload/compress path uses.
 export function bakeFilter(
   source: HTMLImageElement,
-  { preset, grain, dateStamp }: BakeOptions
+  { preset, retro, dateStamp }: BakeOptions
 ): { base64: string; mediaType: string } {
   const w = source.naturalWidth || source.width;
   const h = source.naturalHeight || source.height;
@@ -217,15 +226,20 @@ export function bakeFilter(
   canvas.height = h;
   const ctx = canvas.getContext("2d")!;
 
+  // Retro scales the aging effects together; the color grade (css) stays at full.
+  const grain = preset.grain * retro;
+  const vignette = preset.vignette * retro;
+  const tintAlpha = preset.tintAlpha * retro;
+
   // 1. Color grade.
   ctx.filter = preset.css === "none" ? "none" : preset.css;
   ctx.drawImage(source, 0, 0, w, h);
   ctx.filter = "none";
 
   // 2. Color cast.
-  if (preset.tint && preset.tintAlpha > 0) {
+  if (preset.tint && tintAlpha > 0) {
     ctx.globalCompositeOperation = "soft-light";
-    ctx.globalAlpha = preset.tintAlpha;
+    ctx.globalAlpha = tintAlpha;
     ctx.fillStyle = `rgb(${preset.tint})`;
     ctx.fillRect(0, 0, w, h);
     ctx.globalAlpha = 1;
@@ -237,7 +251,7 @@ export function bakeFilter(
     const pattern = ctx.createPattern(getNoiseTile(), "repeat");
     if (pattern) {
       ctx.globalCompositeOperation = "overlay";
-      ctx.globalAlpha = grain * 0.5;
+      ctx.globalAlpha = grain * GRAIN_OPACITY;
       ctx.fillStyle = pattern;
       ctx.fillRect(0, 0, w, h);
       ctx.globalAlpha = 1;
@@ -246,7 +260,7 @@ export function bakeFilter(
   }
 
   // 4. Vignette.
-  if (preset.vignette > 0) {
+  if (vignette > 0) {
     const grad = ctx.createRadialGradient(
       w / 2,
       h / 2,
@@ -256,7 +270,7 @@ export function bakeFilter(
       Math.max(w, h) * 0.72
     );
     grad.addColorStop(0, "rgba(0,0,0,0)");
-    grad.addColorStop(1, `rgba(0,0,0,${preset.vignette})`);
+    grad.addColorStop(1, `rgba(0,0,0,${vignette})`);
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
   }

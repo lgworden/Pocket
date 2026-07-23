@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   FILTER_PRESETS,
   DEFAULT_PRESET_ID,
+  GRAIN_OPACITY,
   getNoiseDataUrl,
   dateStampText,
   bakeFilter,
@@ -11,9 +12,10 @@ import {
 } from "@/lib/photoFilters";
 
 // Photo-editing step for a feed post. Sits between picking a photo and sharing:
-// pick a one-tap filter (grainy "digicam" look leads the set), dial the grain, and
-// optionally burn in a camcorder date stamp. Preview is live via CSS; on "Use photo"
-// the exact look is flattened onto a canvas so what you see is what gets uploaded.
+// opens on the unfiltered photo, then optionally pick a one-tap filter (the grainy
+// "digicam" look is the second option), dial the Retro intensity, and burn in a
+// camcorder date stamp. Preview is live via CSS; on "Use photo" the exact look is
+// flattened onto a canvas so what you see uploads.
 export default function PhotoEditor({
   src,
   onCancel,
@@ -30,7 +32,8 @@ export default function PhotoEditor({
     () => FILTER_PRESETS.find((p) => p.id === presetId) ?? FILTER_PRESETS[0],
     [presetId]
   );
-  const [grain, setGrain] = useState(preset.grain);
+  // "Retro" is a 0–1 intensity for the whole vintage look; 1 = the preset as designed.
+  const [retro, setRetro] = useState(1);
   const [dateStamp, setDateStamp] = useState(preset.dateStamp);
   const noiseUrl = useMemo(() => getNoiseDataUrl(), []);
   const stamp = useMemo(() => dateStampText(), []);
@@ -45,16 +48,16 @@ export default function PhotoEditor({
     im.src = src;
   }, [src]);
 
-  // Switching presets resets grain + date-stamp to that look's defaults.
+  // Switching presets resets Retro to full + date-stamp to that look's default.
   function choosePreset(p: FilterPreset) {
     setPresetId(p.id);
-    setGrain(p.grain);
+    setRetro(1);
     setDateStamp(p.dateStamp);
   }
 
   function apply() {
     if (!imgRef.current) return;
-    const baked = bakeFilter(imgRef.current, { preset, grain, dateStamp });
+    const baked = bakeFilter(imgRef.current, { preset, retro, dateStamp });
     onDone({
       ...baked,
       previewUrl: `data:${baked.mediaType};base64,${baked.base64}`,
@@ -62,6 +65,10 @@ export default function PhotoEditor({
   }
 
   const cssFilter = preset.css === "none" ? "none" : preset.css;
+  // Aging effects scaled by the Retro slider (the color grade stays at full).
+  const effGrain = preset.grain * retro;
+  const effVignette = preset.vignette * retro;
+  const effTintAlpha = preset.tintAlpha * retro;
 
   return (
     <div className="space-y-4">
@@ -75,7 +82,7 @@ export default function PhotoEditor({
           style={{ filter: cssFilter }}
         />
         {/* Grain overlay */}
-        {grain > 0 && (
+        {effGrain > 0 && (
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
@@ -83,29 +90,29 @@ export default function PhotoEditor({
               backgroundImage: `url(${noiseUrl})`,
               backgroundSize: "128px 128px",
               mixBlendMode: "overlay",
-              opacity: grain * 0.5,
+              opacity: effGrain * GRAIN_OPACITY,
             }}
           />
         )}
         {/* Color cast */}
-        {preset.tint && preset.tintAlpha > 0 && (
+        {preset.tint && effTintAlpha > 0 && (
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
               background: `rgb(${preset.tint})`,
               mixBlendMode: "soft-light",
-              opacity: preset.tintAlpha,
+              opacity: effTintAlpha,
             }}
           />
         )}
         {/* Vignette */}
-        {preset.vignette > 0 && (
+        {effVignette > 0 && (
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
-              background: `radial-gradient(ellipse at center, rgba(0,0,0,0) 45%, rgba(0,0,0,${preset.vignette}) 100%)`,
+              background: `radial-gradient(ellipse at center, rgba(0,0,0,0) 45%, rgba(0,0,0,${effVignette}) 100%)`,
             }}
           />
         )}
@@ -161,7 +168,7 @@ export default function PhotoEditor({
                         backgroundImage: `url(${noiseUrl})`,
                         backgroundSize: "64px 64px",
                         mixBlendMode: "overlay",
-                        opacity: p.grain * 0.5,
+                        opacity: p.grain * GRAIN_OPACITY,
                       }}
                     />
                   )}
@@ -179,22 +186,22 @@ export default function PhotoEditor({
         </div>
       </div>
 
-      {/* Grain slider */}
+      {/* Retro slider — scales the whole vintage look (grain + vignette + tint) */}
       <div>
         <div className="flex items-center justify-between">
           <label className="text-xs font-ui font-semibold text-slate tracking-wide">
-            Grain
+            Retro
           </label>
-          <span className="text-xs text-slate/70">{Math.round(grain * 100)}</span>
+          <span className="text-xs text-slate/70">{Math.round(retro * 100)}</span>
         </div>
         <input
           type="range"
           min={0}
           max={100}
-          value={Math.round(grain * 100)}
-          onChange={(e) => setGrain(Number(e.target.value) / 100)}
+          value={Math.round(retro * 100)}
+          onChange={(e) => setRetro(Number(e.target.value) / 100)}
           className="mt-1 w-full accent-brown"
-          aria-label="Grain amount"
+          aria-label="Retro intensity"
         />
       </div>
 
