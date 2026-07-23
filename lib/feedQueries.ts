@@ -4,6 +4,7 @@
 
 import pool from "./db";
 import type {
+  FeedComment,
   FeedPost,
   FeedPostItem,
   FeedReactionType,
@@ -24,6 +25,8 @@ type PostRow = {
   reaction_counts: Record<string, number> | null;
   my_reactions: FeedReactionType[] | null;
   items: FeedPostItem[] | null;
+  comment_count: number;
+  comments: FeedComment[] | null;
 };
 
 // Shows `viewerId`'s own posts (all tiers, including private) plus friends'
@@ -73,7 +76,22 @@ export async function getFeedPosts(
          FROM outfit_logs ol
          JOIN items i ON i.id = ANY(ol.item_ids)
          WHERE ol.id = p.outfit_log_id
-       ) AS items
+       ) AS items,
+       (
+         SELECT COUNT(*)::int FROM feed_comments WHERE post_id = p.id
+       ) AS comment_count,
+       (
+         SELECT COALESCE(jsonb_agg(jsonb_build_object(
+           'id', c.id,
+           'author_id', c.user_id,
+           'author_name', COALESCE(cu.display_name, cu.name),
+           'body', c.body,
+           'created_at', c.created_at
+         ) ORDER BY c.created_at ASC), '[]'::jsonb)
+         FROM feed_comments c
+         JOIN users cu ON cu.id = c.user_id
+         WHERE c.post_id = p.id
+       ) AS comments
      FROM feed_posts p
      JOIN users u ON u.id = p.user_id
      WHERE (
@@ -106,5 +124,7 @@ export async function getFeedPosts(
     reaction_counts: (r.reaction_counts ?? {}) as FeedPost["reaction_counts"],
     my_reactions: r.my_reactions ?? [],
     items: r.items ?? [],
+    comment_count: r.comment_count,
+    comments: r.comments ?? [],
   }));
 }

@@ -74,6 +74,15 @@ export type FeedTaggedFriend = {
   name: string;
 };
 
+// A comment on a post — shown on the flipped card's back face, oldest first.
+export type FeedComment = {
+  id: string;
+  author_id: string;
+  author_name: string;
+  body: string;
+  created_at: string;
+};
+
 export type FeedPost = {
   id: string;
   photo: string;
@@ -88,4 +97,6 @@ export type FeedPost = {
   reaction_counts: Partial<Record<FeedReactionType, number>>;
   my_reactions: FeedReactionType[];
   items: FeedPostItem[];
+  comment_count: number;
+  comments: FeedComment[];
 };

@@ -56,6 +56,7 @@ async function main() {
     path.join(__dirname, "014_add_outfit_mockups.sql"),
     path.join(__dirname, "015_add_feed_post_details.sql"),
     path.join(__dirname, "016_add_username.sql"),
+    path.join(__dirname, "017_add_feed_comments.sql"),
   ];
 
   for (const migrationPath of migrations) {

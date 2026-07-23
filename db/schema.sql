@@ -125,6 +125,16 @@ CREATE TABLE feed_reactions (
 );
 CREATE INDEX idx_feed_reactions_post ON feed_reactions(post_id);
 
+-- Comments on feed posts, shown on the flipped card's back face (see 017_add_feed_comments.sql).
+CREATE TABLE feed_comments (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_id    UUID NOT NULL REFERENCES feed_posts(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  body       TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_feed_comments_post ON feed_comments(post_id, created_at);
+
 -- In-app notification center (see 007_add_notifications.sql).
 CREATE TYPE notification_type AS ENUM (
   'daily_digest',
