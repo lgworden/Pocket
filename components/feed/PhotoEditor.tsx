@@ -13,7 +13,7 @@ import {
 
 // Photo-editing step for a feed post. Sits between picking a photo and sharing:
 // opens on the unfiltered photo, then optionally pick a one-tap filter (the grainy
-// "digicam" look is the second option), dial the Retro intensity, and burn in a
+// "digicam" look is the second option), dial the Mood intensity, and burn in a
 // camcorder date stamp. Preview is live via CSS; on "Use photo" the exact look is
 // flattened onto a canvas so what you see uploads.
 export default function PhotoEditor({
@@ -32,9 +32,11 @@ export default function PhotoEditor({
     () => FILTER_PRESETS.find((p) => p.id === presetId) ?? FILTER_PRESETS[0],
     [presetId]
   );
-  // "Retro" is a 0–1 intensity for the whole vintage look; 1 = the preset as designed.
-  const [retro, setRetro] = useState(1);
+  // "Mood" is a 0–1 intensity for the whole filter effect; 1 = the preset as designed.
+  const [mood, setMood] = useState(1);
   const [dateStamp, setDateStamp] = useState(preset.dateStamp);
+  // Original has no grain/vignette/tint to dial — nothing for the Mood slider to do.
+  const hasMood = preset.grain > 0 || preset.vignette > 0 || preset.tintAlpha > 0;
   const noiseUrl = useMemo(() => getNoiseDataUrl(), []);
   const stamp = useMemo(() => dateStampText(), []);
 
@@ -48,16 +50,16 @@ export default function PhotoEditor({
     im.src = src;
   }, [src]);
 
-  // Switching presets resets Retro to full + date-stamp to that look's default.
+  // Switching presets resets Mood to full + date-stamp to that look's default.
   function choosePreset(p: FilterPreset) {
     setPresetId(p.id);
-    setRetro(1);
+    setMood(1);
     setDateStamp(p.dateStamp);
   }
 
   function apply() {
     if (!imgRef.current) return;
-    const baked = bakeFilter(imgRef.current, { preset, retro, dateStamp });
+    const baked = bakeFilter(imgRef.current, { preset, mood, dateStamp });
     onDone({
       ...baked,
       previewUrl: `data:${baked.mediaType};base64,${baked.base64}`,
@@ -65,10 +67,10 @@ export default function PhotoEditor({
   }
 
   const cssFilter = preset.css === "none" ? "none" : preset.css;
-  // Aging effects scaled by the Retro slider (the color grade stays at full).
-  const effGrain = preset.grain * retro;
-  const effVignette = preset.vignette * retro;
-  const effTintAlpha = preset.tintAlpha * retro;
+  // Grain/vignette/tint scaled by the Mood slider (the color grade stays at full).
+  const effGrain = preset.grain * mood;
+  const effVignette = preset.vignette * mood;
+  const effTintAlpha = preset.tintAlpha * mood;
 
   return (
     <div className="space-y-4">
@@ -186,24 +188,27 @@ export default function PhotoEditor({
         </div>
       </div>
 
-      {/* Retro slider — scales the whole vintage look (grain + vignette + tint) */}
-      <div>
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-ui font-semibold text-slate tracking-wide">
-            Retro
-          </label>
-          <span className="text-xs text-slate/70">{Math.round(retro * 100)}</span>
+      {/* Mood slider — scales the filter's grain + vignette + tint together.
+          Hidden for Original: there's no effect intensity to dial. */}
+      {hasMood && (
+        <div>
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-ui font-semibold text-slate tracking-wide">
+              Mood
+            </label>
+            <span className="text-xs text-slate/70">{Math.round(mood * 100)}</span>
+          </div>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={Math.round(mood * 100)}
+            onChange={(e) => setMood(Number(e.target.value) / 100)}
+            className="mt-1 w-full accent-brown"
+            aria-label="Mood intensity"
+          />
         </div>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          value={Math.round(retro * 100)}
-          onChange={(e) => setRetro(Number(e.target.value) / 100)}
-          className="mt-1 w-full accent-brown"
-          aria-label="Retro intensity"
-        />
-      </div>
+      )}
 
       {/* Date stamp toggle */}
       <button

@@ -206,9 +206,9 @@ export function dateStampText(d = new Date()): string {
 
 export type BakeOptions = {
   preset: FilterPreset;
-  // The "Retro" slider, 0–1. Scales the whole vintage look — grain, vignette, and
-  // color cast — from clean (0) up to the preset's designed intensity (1).
-  retro: number;
+  // The "Mood" slider, 0–1. Scales the filter's grain, vignette, and color cast
+  // together, from clean (0) up to the preset's designed intensity (1).
+  mood: number;
   // Whether to burn the date stamp in, independent of the preset default.
   dateStamp: boolean;
 };
@@ -217,7 +217,7 @@ export type BakeOptions = {
 // prefix) plus its media type — the exact shape the feed upload/compress path uses.
 export function bakeFilter(
   source: HTMLImageElement,
-  { preset, retro, dateStamp }: BakeOptions
+  { preset, mood, dateStamp }: BakeOptions
 ): { base64: string; mediaType: string } {
   const w = source.naturalWidth || source.width;
   const h = source.naturalHeight || source.height;
@@ -226,10 +226,10 @@ export function bakeFilter(
   canvas.height = h;
   const ctx = canvas.getContext("2d")!;
 
-  // Retro scales the aging effects together; the color grade (css) stays at full.
-  const grain = preset.grain * retro;
-  const vignette = preset.vignette * retro;
-  const tintAlpha = preset.tintAlpha * retro;
+  // Mood scales grain/vignette/tint together; the color grade (css) stays at full.
+  const grain = preset.grain * mood;
+  const vignette = preset.vignette * mood;
+  const tintAlpha = preset.tintAlpha * mood;
 
   // 1. Color grade.
   ctx.filter = preset.css === "none" ? "none" : preset.css;
