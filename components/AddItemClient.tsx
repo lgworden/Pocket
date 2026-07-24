@@ -19,7 +19,8 @@ type Draft = {
 
 export default function AddItemClient() {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const libraryInputRef = useRef<HTMLInputElement>(null);
 
   const [status, setStatus] = useState<"capture" | "drafting" | "confirm" | "saving">("capture");
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
@@ -91,7 +92,8 @@ export default function AddItemClient() {
       setProvenance("");
       setCost("");
       setTags("");
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (cameraInputRef.current) cameraInputRef.current.value = "";
+      if (libraryInputRef.current) libraryInputRef.current.value = "";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setStatus("confirm");
@@ -131,19 +133,33 @@ export default function AddItemClient() {
             Photograph one item at a time, flat or on a hanger, good light.
           </p>
           <input
-            ref={fileInputRef}
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={handleFile}
+          />
+          <input
+            ref={libraryInputRef}
             type="file"
             accept="image/*"
             className="hidden"
-            id="photo-input"
             onChange={handleFile}
           />
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => cameraInputRef.current?.click()}
             className="btn-primary w-full"
           >
-            📷 Add photo
+            📷 Take a photo
+          </button>
+          <button
+            type="button"
+            onClick={() => libraryInputRef.current?.click()}
+            className="btn-secondary w-full"
+          >
+            Choose from camera roll
           </button>
         </div>
       )}
