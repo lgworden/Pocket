@@ -25,12 +25,12 @@ export const HELP_OPTIONS = [
 export const NOTIFY_GROUPS = [
   {
     id: "daily",
-    label: "Daily nudges — morning outfit digest + 11am reminder to post",
+    label: "Daily nudges",
     keys: ["daily_digest", "ootd_reminder"],
   },
   {
     id: "weekly",
-    label: "Weekly recap — what I wore, my style patterns, and feed activity",
+    label: "Weekly recap",
     keys: ["weekly_style_analysis", "weekly_feed_summary"],
   },
 ];

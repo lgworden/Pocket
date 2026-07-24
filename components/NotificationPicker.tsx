@@ -53,7 +53,7 @@ export default function NotificationPicker({
             : "border-slate/20 bg-transparent text-slate hover:border-slate/40"
         }`}
       >
-        Whatever the chef recommends (all notif options)
+        Whatever the chef recommends
       </button>
     </div>
   );
