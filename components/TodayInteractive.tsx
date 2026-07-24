@@ -166,27 +166,22 @@ export default function TodayInteractive({
     <div className="space-y-4">
       {/* Daily Planner Table */}
       <div className="card bg-slate/5 border border-slate/20">
-        <div className="grid grid-cols-3 gap-2">
-          {calendarEvents.length > 0 ? (
-            calendarEvents.map((event, i) => {
-              const time = event.split(" (")[1]?.replace(")", "") || "TBD";
-              const title = event.split(" (")[0];
-              return (
-                <div key={i} className="bg-white border border-slate/20 rounded-lg p-3 text-center">
-                  <p className="text-xs font-ui text-slate/60 mb-1">📅</p>
-                  <p className="text-xs font-semibold text-ink">{title}</p>
-                  <p className="text-xs text-slate/60 mt-1">{time}</p>
-                </div>
-              );
-            })
-          ) : (
-            <div className="col-span-3 text-center py-4">
-              <p className="text-xs text-slate/60">
-                {calendarConnected ? "no events scheduled" : <a href="/api/auth/google?mode=calendar" className="text-blue underline">connect google calendar</a>}
-              </p>
-            </div>
-          )}
-        </div>
+        {calendarEvents.length > 0 ? (
+          <ul className="space-y-1">
+            {calendarEvents.map((event, i) => (
+              <li key={i} className="text-xs text-ink flex gap-1.5">
+                <span className="text-slate/50">-</span>
+                <span>{event}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="text-center py-4">
+            <p className="text-xs text-slate/60">
+              {calendarConnected ? "no events scheduled" : <a href="/api/auth/google?mode=calendar" className="text-blue underline">connect google calendar</a>}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="card">

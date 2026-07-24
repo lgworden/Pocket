@@ -1,5 +1,5 @@
 import pool from "./db";
-import { getZonedDayBoundsRFC3339 } from "./time";
+import { DEFAULT_TIMEZONE, getZonedDayBoundsRFC3339 } from "./time";
 
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -213,14 +213,23 @@ export async function getTodayEventsDetailed(userId: string): Promise<CalendarEv
   });
 }
 
-// Back-compat flattened form for callers that just want a display string per event.
+// Back-compat flattened form for callers that just want a display string per event:
+// "Title - 9:00 AM" for timed events, "Title - all day" for all-day ones. Formats
+// the time in the user's zone explicitly — the server's own clock is UTC on
+// Railway, so leaving the zone implicit would print the wrong time (same class of
+// bug getZonedDayBoundsRFC3339 above fixes for the fetch window itself).
 export async function getTodayEventsSummary(userId: string): Promise<string[] | null> {
   const events = await getTodayEventsDetailed(userId);
   if (events === null) return null;
 
   return events.map((e) => {
-    if (!e.start) return e.summary;
-    const time = new Date(e.start).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-    return `${e.summary} (${time})`;
+    const time = e.start
+      ? new Date(e.start).toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit",
+          timeZone: DEFAULT_TIMEZONE,
+        })
+      : "all day";
+    return `${e.summary} - ${time}`;
   });
 }
