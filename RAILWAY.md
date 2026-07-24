@@ -58,4 +58,4 @@ Click "Deploy" in Railway. The pre-deploy script (`npm run db:migrate`) runs aut
 4. HTTP headers: `Authorization: Bearer <YOUR_CRON_SECRET>`
 
 ## Photos
-Currently stored on disk (ephemeral). For production, configure S3 or Railway volume via `PHOTO_STORAGE_URL` and `PHOTO_STORAGE_KEY`.
+Currently stored on disk at `data/uploads` (ephemeral, served via `/api/photos/[filename]`). Mount a Railway volume at `/app/data/uploads`, or configure S3 via `PHOTO_STORAGE_URL` and `PHOTO_STORAGE_KEY` for production.

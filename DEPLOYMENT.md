@@ -24,11 +24,12 @@ Railway deploys from a GitHub repo. Create a repo and push this project to it.
 
 ## 3. Add a volume for photos **(you)**
 
-Item and outfit photos are written to `public/uploads`, which is wiped on every
-redeploy unless it's on a volume.
+Item and outfit photos are written to `data/uploads` (served via
+`/api/photos/[filename]`, not Next's static file server — see the comment in
+`lib/photos.ts` for why), which is wiped on every redeploy unless it's on a volume.
 
 - Select the **app service** → **Variables/Settings → Volumes** → **New Volume**,
-  mount path: `/app/public/uploads`.
+  mount path: `/app/data/uploads`.
 
 > Longer term you may move photos to S3-compatible storage (there are
 > `PHOTO_STORAGE_*` env placeholders for it), but a volume is fine for a friends test.
