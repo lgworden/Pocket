@@ -33,11 +33,6 @@ export const NOTIFY_GROUPS = [
     label: "Weekly recap — what I wore, my style patterns, and feed activity",
     keys: ["weekly_style_analysis", "weekly_feed_summary"],
   },
-  {
-    id: "sync",
-    label: "Calendar sync + friend style updates",
-    keys: ["sync_gcal", "friends_updates"],
-  },
 ];
 export const NOTIFY_KEYS = NOTIFY_GROUPS.flatMap((g) => g.keys);
 
