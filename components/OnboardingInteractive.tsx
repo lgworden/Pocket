@@ -82,7 +82,7 @@ export default function OnboardingInteractive({ user }: { user: User }) {
         }),
       });
       if (!res.ok) throw new Error("Couldn't save that — try again?");
-      router.push("/");
+      router.push("/welcome");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

@@ -14,6 +14,7 @@ CREATE TABLE users (
   scheduling_preferences JSONB DEFAULT '{}', -- { office_days: ['mon', 'wed', 'fri'], ... }
   google_calendar JSONB,            -- { access_token, refresh_token, expiry_date } once connected
   onboarding_completed BOOLEAN NOT NULL DEFAULT false, -- gates access until registration flow is done
+  walkthrough_completed BOOLEAN NOT NULL DEFAULT false, -- gates access until the welcome carousel is seen/skipped
   notification_preferences JSONB DEFAULT '{}', -- { sync_gcal, friends_updates, daily_digest } from onboarding
   created_at    TIMESTAMPTZ DEFAULT now()
 );

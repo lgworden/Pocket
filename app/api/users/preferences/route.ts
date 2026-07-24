@@ -19,6 +19,7 @@ export async function PATCH(req: NextRequest) {
       style_profile,
       notification_preferences,
       onboarding_completed,
+      walkthrough_completed,
     } = await req.json();
 
     // Check username uniqueness if provided
@@ -43,10 +44,11 @@ export async function PATCH(req: NextRequest) {
         scheduling_preferences = COALESCE($9, scheduling_preferences),
         style_profile = COALESCE($10, style_profile),
         notification_preferences = COALESCE($11, notification_preferences),
-        onboarding_completed = COALESCE($12, onboarding_completed)
-      WHERE id = $13
+        onboarding_completed = COALESCE($12, onboarding_completed),
+        walkthrough_completed = COALESCE($13, walkthrough_completed)
+      WHERE id = $14
       RETURNING id, display_name, username, bio, location, home_address, scheduling_preferences, style_profile,
-                notification_preferences, onboarding_completed
+                notification_preferences, onboarding_completed, walkthrough_completed
     `;
 
     const result = await pool.query(query, [
@@ -62,6 +64,7 @@ export async function PATCH(req: NextRequest) {
       style_profile ? JSON.stringify(style_profile) : null,
       notification_preferences ? JSON.stringify(notification_preferences) : null,
       typeof onboarding_completed === "boolean" ? onboarding_completed : null,
+      typeof walkthrough_completed === "boolean" ? walkthrough_completed : null,
       userId,
     ]);
 

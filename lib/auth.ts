@@ -22,7 +22,7 @@ export async function getCurrentUserId(): Promise<string> {
 export async function getCurrentUser() {
   const id = await getCurrentUserId();
   const { rows } = await pool.query(
-    "SELECT id, name, email, display_name, bio, avatar, location, home_address, style_profile, scheduling_preferences, notification_preferences, onboarding_completed FROM users WHERE id = $1",
+    "SELECT id, name, email, display_name, bio, avatar, location, home_address, style_profile, scheduling_preferences, notification_preferences, onboarding_completed, walkthrough_completed FROM users WHERE id = $1",
     [id]
   );
   if (rows.length === 0) {
@@ -56,12 +56,17 @@ export async function findOrCreateUserByEmail(profile: {
 }
 
 // Call at the top of any page that should be unreachable until registration
-// (name / style / "how can we help") is complete. Redirects to /onboarding
-// otherwise. The onboarding page itself must not call this.
+// (name / style / "how can we help") is complete, and until the new-user
+// welcome carousel has been seen or skipped. Redirects to /onboarding or
+// /welcome as needed. The onboarding and welcome pages themselves must not
+// call this — they'd redirect into each other.
 export async function requireOnboarded() {
   const user = await getCurrentUser();
   if (!user.onboarding_completed) {
     redirect("/onboarding");
+  }
+  if (!user.walkthrough_completed) {
+    redirect("/welcome");
   }
   return user;
 }
