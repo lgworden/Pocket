@@ -74,7 +74,7 @@ export async function getProfileStats(userId: string): Promise<ProfileStats> {
     pool.query<{ item_count: string; outfit_count: string; friend_count: string }>(
       `SELECT
          (SELECT COUNT(*) FROM items WHERE user_id = $1 AND status != 'archived') AS item_count,
-         (SELECT COUNT(*) FROM outfit_logs WHERE user_id = $1) AS outfit_count,
+         (SELECT COUNT(*) FROM feed_posts WHERE user_id = $1 AND visibility IN ('friends', 'close_friends')) AS outfit_count,
          (SELECT COUNT(*) FROM friendships WHERE user_id = $1) AS friend_count`,
       [userId]
     ),
