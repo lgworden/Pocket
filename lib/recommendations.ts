@@ -3,6 +3,7 @@ import { getCurrentUser } from "./auth";
 import { buildRecommendationContext } from "./recommendationContext";
 import { getRecommendations } from "./anthropic";
 import type { TodayWeather } from "./weather";
+import { track } from "./analytics";
 
 // Shared by the interactive "Get outfits" button (app/api/recommendations/route.ts)
 // and the daily-digest cron job — both just assemble context, call Claude, and
@@ -34,6 +35,8 @@ export async function generateAndSaveRecommendation(
      RETURNING id`,
     [userId, JSON.stringify(context), JSON.stringify(result)]
   );
+
+  track(userId, "recommendation_requested", {});
 
   return {
     id: rows[0].id,

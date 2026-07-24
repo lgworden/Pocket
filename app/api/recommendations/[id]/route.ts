@@ -3,6 +3,7 @@ import pool from "@/lib/db";
 import { getCurrentUserId } from "@/lib/auth";
 import { analyzeUserBehavior } from "@/lib/preferenceAnalyzer";
 import { classifyEventType, type WeatherSnapshot } from "@/lib/weatherEventMatrix";
+import { track } from "@/lib/analytics";
 
 type StoredRecommendationContext = {
   weather?: { high: number; low: number; precipitation_in: number; wind_mph: number; condition: string };
@@ -58,6 +59,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
          VALUES ($1, $2, 'recommended', $3, $4)`,
         [userId, itemIds, weatherSnapshot ? JSON.stringify(weatherSnapshot) : null, occasion]
       );
+
+      track(userId, "outfit_logged", { source: "recommended" });
 
       // Trigger preference analysis in the background
       // Don't await — let it run async so response is fast

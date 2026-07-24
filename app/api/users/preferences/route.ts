@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/auth";
 import pool from "@/lib/db";
+import { track } from "@/lib/analytics";
 
 export async function PATCH(req: NextRequest) {
   try {
@@ -33,7 +34,14 @@ export async function PATCH(req: NextRequest) {
       }
     }
 
+    // The CTE captures each flag's pre-update value in the same statement as
+    // the UPDATE, so the completion trackers below can fire only on a genuine
+    // false -> true transition rather than on every PATCH that happens to
+    // re-send `true` (e.g. a client retry).
     const query = `
+      WITH prev AS (
+        SELECT onboarding_completed, walkthrough_completed FROM users WHERE id = $14
+      )
       UPDATE users
       SET
         display_name = COALESCE($1, display_name),
@@ -44,11 +52,14 @@ export async function PATCH(req: NextRequest) {
         scheduling_preferences = COALESCE($9, scheduling_preferences),
         style_profile = COALESCE($10, style_profile),
         notification_preferences = COALESCE($11, notification_preferences),
-        onboarding_completed = COALESCE($12, onboarding_completed),
-        walkthrough_completed = COALESCE($13, walkthrough_completed)
-      WHERE id = $14
-      RETURNING id, display_name, username, bio, location, home_address, scheduling_preferences, style_profile,
-                notification_preferences, onboarding_completed, walkthrough_completed
+        onboarding_completed = COALESCE($12, users.onboarding_completed),
+        walkthrough_completed = COALESCE($13, users.walkthrough_completed)
+      FROM prev
+      WHERE users.id = $14
+      RETURNING users.id, display_name, username, bio, location, home_address, scheduling_preferences, style_profile,
+                notification_preferences, users.onboarding_completed, users.walkthrough_completed,
+                prev.onboarding_completed AS prev_onboarding_completed,
+                prev.walkthrough_completed AS prev_walkthrough_completed
     `;
 
     const result = await pool.query(query, [
@@ -72,7 +83,16 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    return NextResponse.json(result.rows[0]);
+    const { prev_onboarding_completed, prev_walkthrough_completed, ...user } = result.rows[0];
+
+    if (typeof onboarding_completed === "boolean" && onboarding_completed && !prev_onboarding_completed) {
+      track(userId, "onboarding_completed", {});
+    }
+    if (typeof walkthrough_completed === "boolean" && walkthrough_completed && !prev_walkthrough_completed) {
+      track(userId, "walkthrough_completed", {});
+    }
+
+    return NextResponse.json(user);
   } catch (err) {
     console.error("Error updating preferences:", err);
     return NextResponse.json(

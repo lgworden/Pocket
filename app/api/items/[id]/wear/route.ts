@@ -5,6 +5,7 @@ import { getTodayWeather } from "@/lib/weather";
 import { getTodayEventsSummary } from "@/lib/googleCalendar";
 import { classifyEventType, type WeatherSnapshot } from "@/lib/weatherEventMatrix";
 import { analyzeUserBehavior } from "@/lib/preferenceAnalyzer";
+import { track } from "@/lib/analytics";
 
 // Best-effort context capture — a one-tap wear log should still succeed even
 // if weather/calendar lookups fail (no location set, API hiccup, expired
@@ -68,6 +69,8 @@ export async function POST(
        VALUES ($1, $2, $3, 'self_styled', $4, $5)`,
       [userId, today, [params.id], weatherSnapshot ? JSON.stringify(weatherSnapshot) : null, occasion]
     );
+
+    track(userId, "outfit_logged", { source: "self_styled" });
 
     analyzeUserBehavior(userId).catch((err) =>
       console.error("[API] Background preference analysis failed:", err)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db";
 import { getCurrentUserId } from "@/lib/auth";
 import { VISIBILITY_VALUES, type FeedVisibility } from "@/lib/feed";
+import { track } from "@/lib/analytics";
 
 // Promotes a private "recent fit" log to the public Feed, reusing the same
 // photo (already on disk) rather than re-uploading. Links back via
@@ -28,6 +29,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
      RETURNING id`,
     [userId, photo, caption?.trim() || null, tier, params.id]
   );
+
+  track(userId, "feed_post_created", { postId: rows[0].id, visibility: tier, fromOutfitLog: true });
 
   return NextResponse.json({ id: rows[0].id }, { status: 201 });
 }

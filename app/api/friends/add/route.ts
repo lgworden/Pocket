@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUserId } from "@/lib/auth";
 import { addFriend } from "@/lib/friends";
+import { track } from "@/lib/analytics";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,6 +20,7 @@ export async function POST(req: NextRequest) {
     }
 
     await addFriend(userId, friendId);
+    track(userId, "friend_added", { friendId });
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("Error adding friend:", err);

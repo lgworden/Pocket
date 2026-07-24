@@ -3,6 +3,7 @@ import pool from "@/lib/db";
 import { getCurrentUserId } from "@/lib/auth";
 import { saveBase64Photo } from "@/lib/photos";
 import { analyzeUserBehavior } from "@/lib/preferenceAnalyzer";
+import { track } from "@/lib/analytics";
 
 // Logs a "recent fit" pic from the Closet screen: a private photo tagged with
 // the closet items worn. This writes to outfit_logs like the recommendation
@@ -33,6 +34,8 @@ export async function POST(req: NextRequest) {
      RETURNING id, photo, created_at`,
     [userId, taggedItemIds, photo, notes?.trim() || null]
   );
+
+  track(userId, "outfit_logged", { source: "self_styled", taggedItemCount: taggedItemIds.length });
 
   if (taggedItemIds.length > 0) {
     analyzeUserBehavior(userId).catch((err) =>

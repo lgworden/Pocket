@@ -180,6 +180,17 @@ CREATE TABLE invites (
 );
 CREATE INDEX invites_inviter_idx ON invites(inviter_user_id);
 
+-- Lightweight product-analytics event log (DIY tracking for the friends beta).
+CREATE TABLE events (
+  id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL,
+  metadata   JSONB NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_events_type_created ON events(event_type, created_at);
+CREATE INDEX idx_events_user_created ON events(user_id, created_at);
+
 -- Wear count / last-worn are derived views, never stored redundantly (per build plan)
 CREATE VIEW item_wear_stats AS
 SELECT

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getSessionUserId } from "@/lib/auth";
 import { acceptInvite } from "@/lib/friends";
+import { track } from "@/lib/analytics";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +35,10 @@ export default async function InvitePage({
   }
 
   const result = await acceptInvite(params.code, userId);
+
+  if (result.status === "accepted") {
+    track(userId, "invite_accepted", { inviterName: result.inviterName });
+  }
 
   if (result.status === "invalid") {
     return (

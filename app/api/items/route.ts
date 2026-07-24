@@ -3,6 +3,7 @@ import pool from "@/lib/db";
 import { getCurrentUserId } from "@/lib/auth";
 import { nextDisplayId } from "@/lib/displayId";
 import { saveBase64Photo } from "@/lib/photos";
+import { track } from "@/lib/analytics";
 
 export async function GET(req: NextRequest) {
   const userId = await getCurrentUserId();
@@ -106,6 +107,8 @@ export async function POST(req: NextRequest) {
       finalPhotos,
     ]
   );
+
+  track(userId, "item_added", { category, itemId: rows[0].id });
 
   return NextResponse.json(rows[0], { status: 201 });
 }

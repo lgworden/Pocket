@@ -3,6 +3,7 @@ import pool from "@/lib/db";
 import { getCurrentUserId } from "@/lib/auth";
 import { saveBase64Photo } from "@/lib/photos";
 import { VISIBILITY_VALUES, type FeedVisibility } from "@/lib/feed";
+import { track } from "@/lib/analytics";
 
 // Create a feed post: upload the outfit photo, then insert with a visibility tier.
 // Body: { image: base64, mediaType, caption?, visibility, location?, taggedFriendIds? }
@@ -35,6 +36,8 @@ export async function POST(req: NextRequest) {
      RETURNING id`,
     [userId, photo, caption?.trim() || null, tier, location?.trim() || null, taggedIds]
   );
+
+  track(userId, "feed_post_created", { postId: rows[0].id, visibility: tier });
 
   return NextResponse.json({ id: rows[0].id, photo });
 }

@@ -4,6 +4,7 @@ import { getTripWeather, type TripWeather } from "./weather";
 import { buildLearnedUserProfile } from "./learnedProfileBuilder";
 import { getPackingPlan } from "./anthropic";
 import { TRIP_ACTIVITIES } from "./tripActivities";
+import { track } from "./analytics";
 
 const VALID_ACTIVITIES = new Set<string>(TRIP_ACTIVITIES.map((a) => a.value));
 
@@ -118,6 +119,8 @@ export async function generatePackingPlan(
      RETURNING id`,
     [userId, JSON.stringify(context), JSON.stringify(options)]
   );
+
+  track(userId, "packing_plan_generated", { destination, days });
 
   return { id: rows[0].id, plan, weather };
 }
