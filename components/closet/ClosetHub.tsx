@@ -5,10 +5,17 @@ import Link from "next/link";
 import LogFitComposer, { type LoggedFit } from "@/components/closet/LogFitComposer";
 import FitDetailModal from "@/components/closet/FitDetailModal";
 
-function PlusIcon() {
+function DressIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <path d="M8 2v12M2 8h12" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+    <svg width="17" height="17" viewBox="0 0 20 20" fill="none">
+      <path d="M7.3 3.2 8.3 6.3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M12.7 3.2 11.7 6.3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+      <path
+        d="M8.3 6.3Q10 8 11.7 6.3L12.6 9.8 15.3 16.8H4.7L7.4 9.8Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -68,9 +75,9 @@ export default function ClosetHub({
         <Link
           href="/add-item"
           aria-label="add to closet"
-          className="icon-btn bg-ink text-cream"
+          className="icon-btn bg-panel border border-slate/20 text-ink"
         >
-          <PlusIcon />
+          <DressIcon />
         </Link>
         <button
           type="button"

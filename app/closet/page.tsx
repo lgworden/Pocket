@@ -162,6 +162,12 @@ export default async function ClosetPage({
           Closet
         </p>
         <h1 className="text-2xl mt-1">{categoryLabel}</h1>
+        {!category && (
+          <p className="text-sm text-ink/60 mt-1">
+            use your virtual closet to plan and collect your best looks. everything here
+            is private — consider it your sandbox :)
+          </p>
+        )}
       </header>
 
       <ClosetHub
