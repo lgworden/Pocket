@@ -22,6 +22,20 @@ export function getCurrentWeekdayInZone(tz: string = DEFAULT_TIMEZONE, date = ne
     .toLowerCase(); // "sun", "mon", ...
 }
 
+// "Good morning" / "Good afternoon" / "Good evening" for the Today screen's
+// header. Zone-safe for the same reason as everything else in this file — the
+// server's own clock (UTC on Railway) is not the user's local time of day.
+export function getTimeOfDayGreeting(tz: string = DEFAULT_TIMEZONE, date = new Date()): string {
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", { timeZone: tz, hour12: false, hour: "2-digit" })
+      .formatToParts(date)
+      .find((p) => p.type === "hour")?.value ?? "0"
+  );
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  return "Good evening";
+}
+
 // Returns the [start, end) of "today" in `tz` as RFC3339 strings with an explicit
 // UTC offset — safe to hand straight to an API's timeMin/timeMax (e.g. Google
 // Calendar) regardless of what timezone the server process itself runs in.

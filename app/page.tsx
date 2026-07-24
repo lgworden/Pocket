@@ -1,6 +1,7 @@
 import { requireOnboarded, getCurrentUserId } from "@/lib/auth";
 import { getTodayWeather } from "@/lib/weather";
 import { isCalendarConnected } from "@/lib/googleCalendar";
+import { getTimeOfDayGreeting } from "@/lib/time";
 import pool from "@/lib/db";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
@@ -46,7 +47,7 @@ export default async function TodayPage({
           <p className="text-xs font-ui font-semibold text-slate tracking-wide">
             Stylist
           </p>
-          <h1 className="text-2xl mt-1">Good morning, {user.display_name || user.name}</h1>
+          <h1 className="text-2xl mt-1">{getTimeOfDayGreeting()}, {user.display_name || user.name}</h1>
           <p className="text-sm text-ink/60 mt-1">
             {weather
               ? `${weather.tempHighF}°/${weather.tempLowF}° · ${weather.condition} · ${weather.label}`
