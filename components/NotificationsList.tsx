@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 
 type Notification = {
   id: string;
-  type: "daily_digest" | "weekly_style_analysis" | "weekly_feed_summary" | "ootd_reminder";
+  type:
+    | "daily_digest"
+    | "weekly_style_analysis"
+    | "weekly_feed_summary"
+    | "ootd_reminder"
+    | "new_follower";
   title: string;
   body: string;
   link: string | null;
@@ -18,6 +23,7 @@ const TYPE_ICON: Record<Notification["type"], string> = {
   weekly_style_analysis: "🧵",
   weekly_feed_summary: "📸",
   ootd_reminder: "📣",
+  new_follower: "👋",
 };
 
 function timeAgo(iso: string): string {

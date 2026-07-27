@@ -34,6 +34,8 @@ type PostRow = {
 //   - visibility='friends'       → any accepted friend of the author
 //   - visibility='close_friends' → only friends the author marked close_friend
 //   - visibility='private'       → author only
+// Reach/discovery is handled by search-and-friend (lib/friends.ts), not a
+// broadcast tier — there is no "public" visibility, deliberately.
 // Pass `authorId` to scope to a single person's posts (e.g. a profile page) —
 // still gated by the same visibility rules, just narrowed to one author.
 export async function getFeedPosts(

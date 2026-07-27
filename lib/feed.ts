@@ -4,6 +4,11 @@
 // components like FeedCard, and pulling in `pg` would break the browser bundle.
 // The actual DB query lives in lib/feedQueries.ts (server-only).
 
+// Three tiers only — reach/discovery is handled by search-and-friend (anyone
+// can find and friend anyone, see lib/friends.ts), not by a broadcast tier.
+// A "public" value briefly existed in the DB enum during social-pivot Phase 1
+// planning; it's unused and nothing ever writes it — see feed_visibility in
+// db/020_add_social.sql.
 export type FeedVisibility = "friends" | "close_friends" | "private";
 export type FeedReactionType = "cheers" | "fire" | "eyes";
 

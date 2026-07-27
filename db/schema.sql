@@ -16,6 +16,7 @@ CREATE TABLE users (
   onboarding_completed BOOLEAN NOT NULL DEFAULT false, -- gates access until registration flow is done
   walkthrough_completed BOOLEAN NOT NULL DEFAULT false, -- gates access until the welcome carousel is seen/skipped
   notification_preferences JSONB DEFAULT '{}', -- { sync_gcal, friends_updates, daily_digest } from onboarding
+  influencer_since TIMESTAMPTZ, -- set once, first time follower count crosses the threshold (see lib/follows.ts)
   created_at    TIMESTAMPTZ DEFAULT now()
 );
 
@@ -97,9 +98,10 @@ CREATE TABLE vision_boards (
 );
 
 -- Feed: shareable outfit posts + limited emoji reactions (see 006_add_feed.sql).
--- Three visibility tiers: broad "friends", inner "close_friends", or "private"
+-- Four visibility tiers: "public" (anyone who follows the author — see
+-- 020_add_social.sql), broad "friends", inner "close_friends", or "private"
 -- (a personal "safe for later" save that still renders in the owner's collage).
-CREATE TYPE feed_visibility AS ENUM ('friends', 'close_friends', 'private');
+CREATE TYPE feed_visibility AS ENUM ('public', 'friends', 'close_friends', 'private');
 CREATE TYPE feed_reaction AS ENUM ('cheers', 'fire', 'eyes');
 
 CREATE TABLE feed_posts (
@@ -141,7 +143,8 @@ CREATE TYPE notification_type AS ENUM (
   'daily_digest',
   'weekly_style_analysis',
   'weekly_feed_summary',
-  'ootd_reminder'
+  'ootd_reminder',
+  'new_follower'
 );
 
 CREATE TABLE notifications (
@@ -171,6 +174,21 @@ CREATE TABLE friendships (
 );
 CREATE INDEX friendships_user_idx ON friendships(user_id);
 CREATE INDEX friendships_friend_idx ON friendships(friend_id);
+
+-- Asymmetric follow graph (see 020_add_social.sql) — deliberately separate
+-- from `friendships` above. A row here means exactly one thing: follower_id
+-- follows followee_id. `friendships` stays the mutual, tiered grant that
+-- gates 'friends'/'close_friends' post visibility; `follows` gates the
+-- 'public' tier and drives follower/following counts and influencer status.
+CREATE TABLE follows (
+  follower_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  followee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (follower_id, followee_id),
+  CHECK (follower_id <> followee_id)
+);
+CREATE INDEX follows_followee_idx ON follows(followee_id);
+CREATE INDEX follows_follower_idx ON follows(follower_id);
 
 CREATE TABLE invites (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),

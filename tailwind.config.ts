@@ -19,6 +19,8 @@ const config: Config = {
         rose: "#B97A66",   // muted terracotta — errors / secondary accent
         ink: "#2E2924",    // espresso, primary text
         slate: "#8F8577",  // warm stone, muted text / borders
+        azure: "#9BAAB4",  // dusty desaturated blue — influencer signal only,
+                           // the one deliberately cool color in an all-warm system
       },
       fontFamily: {
         display: ["Georgia", "'Iowan Old Style'", "serif"], // quiet italic accents only

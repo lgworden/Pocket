@@ -9,7 +9,8 @@ export type NotificationType =
   | "daily_digest"
   | "weekly_style_analysis"
   | "weekly_feed_summary"
-  | "ootd_reminder";
+  | "ootd_reminder"
+  | "new_follower";
 
 export type NotificationRow = {
   id: string;

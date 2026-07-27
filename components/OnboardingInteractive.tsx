@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import StylePicker from "./StylePicker";
 import GoalsPicker from "./GoalsPicker";
 import NotificationPicker from "./NotificationPicker";
+import FriendSearch from "./FriendSearch";
 import { NOTIFY_KEYS } from "@/lib/onboardingOptions";
 
 interface User {
@@ -138,6 +139,19 @@ export default function OnboardingInteractive({ user }: { user: User }) {
             <div className="flex items-center text-xs text-slate/60">checking...</div>
           )}
         </div>
+      </div>
+
+      {/* Find your friends — surfaced here rather than left to be discovered
+          later behind the feed's friends icon, since a brand-new account
+          otherwise only has whoever invited them. */}
+      <div className="card">
+        <label className="text-xs font-ui font-semibold text-slate tracking-wide">
+          Find your friends
+        </label>
+        <p className="text-xs text-slate/60 mt-1 mb-3">
+          Search for anyone already on Pocket — totally optional, you can always do this later.
+        </p>
+        <FriendSearch />
       </div>
 
       {/* Your Style */}

@@ -1,4 +1,5 @@
 import pool from "./db";
+import { getFollowerCount, getFollowingCount, isFollowing } from "./follows";
 
 export type ProfileUser = {
   id: string;
@@ -8,28 +9,48 @@ export type ProfileUser = {
   avatar: string | null;
   location: string | null;
   created_at: string;
+  influencer_since: string | null;
 };
 
 export type ProfileStats = {
   item_count: number;
   outfit_count: number;
   friend_count: number;
+  follower_count: number;
+  following_count: number;
   streak_days: number;
 };
 
-// Self always allowed; otherwise must be an accepted friend (either tier).
-export async function canViewProfile(viewerId: string, profileUserId: string): Promise<boolean> {
-  if (viewerId === profileUserId) return true;
-  const { rows } = await pool.query(
-    "SELECT 1 FROM friendships WHERE user_id = $1 AND friend_id = $2",
+// The access ladder: every profile is reachable (name, avatar, counts, follow
+// button), but posts and the friends list widen only as the relationship
+// deepens. "friend" here means mutual — a `friendships` row exists (that
+// table is unchanged from before follows existed; see lib/friends.ts).
+// "follower" means a one-way `follows` row — enough to see the author's
+// `public`-tier posts (lib/feedQueries.ts enforces this at the query level
+// regardless of what this function returns; this is for UI copy/gating only).
+export type ProfileAccess = "self" | "friend" | "follower" | "stranger";
+
+export async function getProfileAccess(
+  viewerId: string,
+  profileUserId: string
+): Promise<ProfileAccess> {
+  if (viewerId === profileUserId) return "self";
+
+  const { rows } = await pool.query<{ is_friend: boolean }>(
+    "SELECT 1 AS is_friend FROM friendships WHERE user_id = $1 AND friend_id = $2",
     [viewerId, profileUserId]
   );
-  return rows.length > 0;
+  if (rows.length > 0) return "friend";
+
+  if (await isFollowing(viewerId, profileUserId)) return "follower";
+
+  return "stranger";
 }
 
 export async function getProfileUser(userId: string): Promise<ProfileUser | null> {
   const { rows } = await pool.query<ProfileUser>(
-    "SELECT id, name, display_name, bio, avatar, location, created_at FROM users WHERE id = $1",
+    `SELECT id, name, display_name, bio, avatar, location, created_at, influencer_since
+       FROM users WHERE id = $1`,
     [userId]
   );
   return rows[0] ?? null;
@@ -70,7 +91,7 @@ async function getOOTDStreak(userId: string): Promise<number> {
 }
 
 export async function getProfileStats(userId: string): Promise<ProfileStats> {
-  const [{ rows }, streak_days] = await Promise.all([
+  const [{ rows }, streak_days, follower_count, following_count] = await Promise.all([
     pool.query<{ item_count: string; outfit_count: string; friend_count: string }>(
       `SELECT
          (SELECT COUNT(*) FROM items WHERE user_id = $1 AND status != 'archived') AS item_count,
@@ -79,11 +100,15 @@ export async function getProfileStats(userId: string): Promise<ProfileStats> {
       [userId]
     ),
     getOOTDStreak(userId),
+    getFollowerCount(userId),
+    getFollowingCount(userId),
   ]);
   return {
     item_count: Number(rows[0]?.item_count ?? 0),
     outfit_count: Number(rows[0]?.outfit_count ?? 0),
     friend_count: Number(rows[0]?.friend_count ?? 0),
+    follower_count,
+    following_count,
     streak_days,
   };
 }

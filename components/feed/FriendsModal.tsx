@@ -1,18 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Modal from "@/components/Modal";
+import FriendSearch from "@/components/FriendSearch";
 import type { Friend, FriendTier } from "@/lib/friends";
-
-type SearchUser = {
-  id: string;
-  username: string;
-  display_name: string;
-  avatar?: string;
-  is_friend: boolean;
-};
 
 // Manage friends. Close-friend is a per-viewer toggle, shown as a heart:
 // turning it on lets that friend see your "close friends" posts.
@@ -28,55 +21,6 @@ export default function FriendsModal({
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
-
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchUser[]>([]);
-  const [searching, setSearching] = useState(false);
-  const [addingId, setAddingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!open) {
-      setQuery("");
-      setResults([]);
-    }
-  }, [open]);
-
-  useEffect(() => {
-    if (!query || query.trim().length < 2) {
-      setResults([]);
-      return;
-    }
-    const handle = setTimeout(async () => {
-      setSearching(true);
-      try {
-        const res = await fetch(`/api/users/search?q=${encodeURIComponent(query.trim())}`);
-        if (!res.ok) throw new Error("search failed");
-        const data = await res.json();
-        setResults(data.users || []);
-      } catch {
-        setResults([]);
-      } finally {
-        setSearching(false);
-      }
-    }, 300);
-    return () => clearTimeout(handle);
-  }, [query]);
-
-  async function addFriend(user: SearchUser) {
-    setAddingId(user.id);
-    try {
-      const res = await fetch("/api/friends/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ friendId: user.id }),
-      });
-      if (!res.ok) throw new Error("failed to add");
-      setResults((prev) => prev.map((u) => (u.id === user.id ? { ...u, is_friend: true } : u)));
-      router.refresh();
-    } finally {
-      setAddingId(null);
-    }
-  }
 
   async function toggleTier(friend: Friend) {
     const next: FriendTier = friend.tier === "close_friend" ? "friend" : "close_friend";
@@ -104,53 +48,9 @@ export default function FriendsModal({
     }
   }
 
-  const friendIds = new Set(friends.map((f) => f.id));
-  const newResults = results.filter((u) => !friendIds.has(u.id));
-
   return (
     <Modal open={open} onClose={onClose} title="Friends">
-      <div className="space-y-4">
-        <div>
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by @username or name..."
-            className="w-full bg-transparent border border-slate/20 rounded-full px-4 py-2 text-sm"
-          />
-        </div>
-
-        {query.trim().length >= 2 && (
-          <div className="space-y-2">
-            {searching ? (
-              <p className="text-sm text-ink/50 py-1">Searching...</p>
-            ) : newResults.length === 0 ? (
-              <p className="text-sm text-ink/50 py-1">No new users found.</p>
-            ) : (
-              <ul className="space-y-2">
-                {newResults.map((u) => (
-                  <li
-                    key={u.id}
-                    className="flex items-center justify-between gap-3 rounded-2xl bg-cream px-4 py-3"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{u.display_name}</p>
-                      <p className="text-xs text-slate">@{u.username}</p>
-                    </div>
-                    <button
-                      onClick={() => addFriend(u)}
-                      disabled={u.is_friend || addingId === u.id}
-                      className="shrink-0 text-xs font-ui font-semibold rounded-full px-3 py-1.5 btn-primary disabled:opacity-50"
-                    >
-                      {u.is_friend ? "added" : addingId === u.id ? "..." : "add"}
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-      </div>
+      <FriendSearch onAdded={() => router.refresh()} />
 
       {friends.length === 0 ? (
         <p className="text-sm text-ink/50 py-2 mt-4">No friends yet.</p>

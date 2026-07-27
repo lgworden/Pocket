@@ -7,6 +7,7 @@ export type EventType =
   | "packing_plan_generated"
   | "invite_accepted"
   | "friend_added"
+  | "user_followed"
   | "feed_post_created"
   | "onboarding_completed"
   | "walkthrough_completed";
