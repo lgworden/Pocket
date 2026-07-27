@@ -195,7 +195,7 @@ export async function generateWeeklyFeedSummary(user: UserRow): Promise<boolean>
 
   const body = `You posted ${postCount} outfit${postCount === 1 ? "" : "s"} to the feed this week and got ${reactionLine}.`;
 
-  await createNotification(user.id, "weekly_feed_summary", "Your feed this week", body, "/feed");
+  await createNotification(user.id, "weekly_feed_summary", "Your feed this week", body, "/");
   return true;
 }
 
@@ -216,7 +216,7 @@ export async function generateOotdReminder(user: UserRow): Promise<boolean> {
     "ootd_reminder",
     "Post today's outfit",
     "Don't forget to share your outfit of the day on the feed!",
-    "/feed"
+    "/"
   );
   return true;
 }

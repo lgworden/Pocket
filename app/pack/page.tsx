@@ -12,7 +12,7 @@ export default async function PackPage() {
     <main className="px-4 pt-6 space-y-6 pb-28">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <Link href="/" className="text-xs font-ui text-slate/60 hover:text-slate">
+          <Link href="/stylist" className="text-xs font-ui text-slate/60 hover:text-slate">
             ← stylist
           </Link>
           <h1 className="text-2xl mt-1">Pack my bags ✈️</h1>

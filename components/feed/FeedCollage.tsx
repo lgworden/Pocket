@@ -5,8 +5,15 @@ import { useRouter } from "next/navigation";
 import FeedCard from "./FeedCard";
 import FeedComposer from "./FeedComposer";
 import FriendsModal from "./FriendsModal";
-import { VISIBILITY_OPTIONS, VISIBILITY_STYLES, type FeedPost } from "@/lib/feed";
+import { VISIBILITY_OPTIONS, VISIBILITY_STYLES, type FeedPost, type FeedVisibility } from "@/lib/feed";
 import type { Friend } from "@/lib/friends";
+
+// Brief per-tier descriptions for the stacked color legend.
+const VISIBILITY_LEGEND_LABELS: Record<FeedVisibility, string> = {
+  friends: "for friends",
+  close_friends: "for besties",
+  private: "for you",
+};
 
 // Client shell for the feed: hosts the composer modal and renders posts in a
 // Pinterest-style masonry (CSS columns — cards keep their natural photo height
@@ -14,18 +21,30 @@ import type { Friend } from "@/lib/friends";
 export default function FeedCollage({
   posts,
   friends,
+  initialComposerOpen = false,
 }: {
   posts: FeedPost[];
   friends: Friend[];
+  initialComposerOpen?: boolean;
 }) {
   const router = useRouter();
-  const [composerOpen, setComposerOpen] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(initialComposerOpen);
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [livePosts, setLivePosts] = useState(posts);
 
   useEffect(() => {
     setLivePosts(posts);
   }, [posts]);
+
+  // The nav's persistent compose button links here with ?compose=1 so it can
+  // open the modal from any screen. Strip the query once we've consumed it so
+  // a later refresh doesn't silently reopen the composer.
+  useEffect(() => {
+    if (initialComposerOpen) {
+      router.replace("/", { scroll: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -52,13 +71,17 @@ export default function FeedCollage({
         </div>
       </div>
 
-      {/* Color legend dots only — no labels. */}
-      <div className="flex gap-2">
+      {/* Color legend: one row per visibility tier, dot + brief description. */}
+      <div className="flex flex-col gap-1">
         {VISIBILITY_OPTIONS.map((opt) => (
-          <span
-            key={opt.value}
-            className={`w-2.5 h-2.5 rounded-full border ${VISIBILITY_STYLES[opt.value].card}`}
-          />
+          <div key={opt.value} className="flex items-center gap-1.5">
+            <span
+              className={`w-2.5 h-2.5 rounded-full border shrink-0 ${VISIBILITY_STYLES[opt.value].card}`}
+            />
+            <span className="text-[11px] text-ink/50">
+              {VISIBILITY_LEGEND_LABELS[opt.value]}
+            </span>
+          </div>
         ))}
       </div>
 
@@ -67,14 +90,13 @@ export default function FeedCollage({
           No looks yet — tap <span className="font-medium">+ Share</span> to post your first outfit.
         </div>
       ) : (
-        <div className="columns-2 gap-2 [column-fill:_balance]">
+        <div className="grid grid-cols-2 gap-2">
           {livePosts.map((post) => (
-            <div key={post.id} className="break-inside-avoid mb-2">
-              <FeedCard
-                post={post}
-                onDeleted={(id) => setLivePosts((ps) => ps.filter((p) => p.id !== id))}
-              />
-            </div>
+            <FeedCard
+              key={post.id}
+              post={post}
+              onDeleted={(id) => setLivePosts((ps) => ps.filter((p) => p.id !== id))}
+            />
           ))}
         </div>
       )}

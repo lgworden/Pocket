@@ -260,9 +260,10 @@ export default function FeedCard({
                 aria-label="Post comment"
                 className="shrink-0 w-6 h-6 rounded-full bg-ink text-cream flex items-center justify-center disabled:opacity-30"
               >
+                {/* return/enter glyph — distinct from the card-flip arrow */}
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 2 11 13" />
-                  <path d="M22 2 15 22l-4-9-9-4 20-7Z" />
+                  <polyline points="9 10 4 15 9 20" />
+                  <path d="M20 4v7a4 4 0 0 1-4 4H4" />
                 </svg>
               </button>
             </div>
@@ -276,7 +277,9 @@ export default function FeedCard({
             setConfirmingDelete(false);
           }}
           aria-label={flipped ? "Show photo" : "Show outfit details"}
-          className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-ink/50 text-cream flex items-center justify-center backdrop-blur-sm"
+          className={`absolute w-6 h-6 rounded-full bg-ink/50 text-cream flex items-center justify-center backdrop-blur-sm ${
+            flipped ? "top-1.5 right-1.5" : "bottom-1.5 right-1.5"
+          }`}
         >
           <svg
             width="12"

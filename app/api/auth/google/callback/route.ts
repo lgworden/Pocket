@@ -24,16 +24,16 @@ export async function GET(req: NextRequest) {
   const baseUrl = `${proto}://${host}`;
 
   if (state === "calendar") {
-    if (error || !code) return NextResponse.redirect(`${baseUrl}/?calendar=error`);
+    if (error || !code) return NextResponse.redirect(`${baseUrl}/stylist?calendar=error`);
     try {
       const userId = await getSessionUserId();
       if (!userId) return NextResponse.redirect(`${baseUrl}/login`);
       const tokens = await exchangeCodeForTokens(code);
       await saveTokens(userId, tokens);
-      return NextResponse.redirect(`${baseUrl}/?calendar=connected`);
+      return NextResponse.redirect(`${baseUrl}/stylist?calendar=connected`);
     } catch (err) {
       console.error("[auth/google/callback] calendar connect failed:", err);
-      return NextResponse.redirect(`${baseUrl}/?calendar=error`);
+      return NextResponse.redirect(`${baseUrl}/stylist?calendar=error`);
     }
   }
 

@@ -47,7 +47,7 @@ export default async function InvitePage({
         <p className="text-sm text-ink/60 mt-3 max-w-xs">
           This invite link is invalid or has been removed.
         </p>
-        <Continue href="/feed" label="Go to your feed" />
+        <Continue href="/" label="Go to your feed" />
       </Shell>
     );
   }
@@ -59,7 +59,7 @@ export default async function InvitePage({
         <p className="text-sm text-ink/60 mt-3 max-w-xs">
           This is your own invite link — share it with a friend to connect.
         </p>
-        <Continue href="/feed" label="Back to your feed" />
+        <Continue href="/" label="Back to your feed" />
       </Shell>
     );
   }
