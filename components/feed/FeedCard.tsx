@@ -248,12 +248,26 @@ export default function FeedCard({
           </div>
 
           {/* Back: location, tagged friends, the outfit's items, and comments */}
-          <div
-            className={`absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-cream flex flex-col ${
-              post.is_mine ? "pl-8" : ""
-            }`}
-          >
-            <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-2">
+          <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-cream flex flex-col">
+            {/* pt-8 clears the flip-back arrow (and, for own posts, the delete
+                icon) which float over this top-left corner — without it their
+                circles sit directly on top of the first line of text. */}
+            <div className="flex-1 min-h-0 overflow-y-auto p-2 pt-8 space-y-2">
+              {!post.is_mine && post.is_tagged && (
+                <button
+                  type="button"
+                  onClick={() => setResharing(true)}
+                  className="w-full flex items-center justify-center gap-1.5 rounded-full border border-slate/25 px-3 py-1.5 text-[11px] font-medium text-ink hover:border-slate/45 transition-colors"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                    <polyline points="16 6 12 2 8 6" />
+                    <line x1="12" y1="2" x2="12" y2="15" />
+                  </svg>
+                  Reshare this fit
+                </button>
+              )}
+
               {post.location && (
                 <div className="flex items-start gap-1 text-[11px] leading-snug text-ink">
                   {/* pin glyph */}
@@ -412,7 +426,7 @@ export default function FeedCard({
             type="button"
             onClick={() => setConfirmingDelete(true)}
             aria-label="Delete post"
-            className="absolute top-1.5 left-1.5 w-6 h-6 rounded-full bg-ink/50 text-cream flex items-center justify-center text-[11px] backdrop-blur-sm"
+            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-ink/50 text-cream flex items-center justify-center text-[11px] backdrop-blur-sm"
           >
             🗑
           </button>
@@ -485,23 +499,6 @@ export default function FeedCard({
             </svg>
             {commentCount > 0 && <span className="text-[10px] tabular-nums">{commentCount}</span>}
           </button>
-
-          {!post.is_mine && post.is_tagged && (
-            <button
-              type="button"
-              onClick={() => setResharing(true)}
-              aria-label="Reshare this post"
-              className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-                <polyline points="16 6 12 2 8 6" />
-                <line x1="12" y1="2" x2="12" y2="15" />
-              </svg>
-              Reshare
-            </button>
-          )}
-
         </div>
       </div>
 
