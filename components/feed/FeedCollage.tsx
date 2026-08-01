@@ -31,10 +31,15 @@ export default function FeedCollage({
   const [composerOpen, setComposerOpen] = useState(initialComposerOpen);
   const [friendsOpen, setFriendsOpen] = useState(false);
   const [livePosts, setLivePosts] = useState(posts);
+  const [activeFilter, setActiveFilter] = useState<FeedVisibility | null>(null);
 
   useEffect(() => {
     setLivePosts(posts);
   }, [posts]);
+
+  const visiblePosts = activeFilter
+    ? livePosts.filter((p) => p.visibility === activeFilter)
+    : livePosts;
 
   // The nav's persistent compose button links here with ?compose=1 so it can
   // open the modal from any screen. Strip the query once we've consumed it so
@@ -71,27 +76,66 @@ export default function FeedCollage({
         </div>
       </div>
 
-      {/* Color legend: one row per visibility tier, dot + brief description. */}
+      {/* Color legend doubles as a filter: tap a tier to show only those
+          posts, tap it again (or "Show all") to clear. */}
       <div className="flex flex-col gap-1">
-        {VISIBILITY_OPTIONS.map((opt) => (
-          <div key={opt.value} className="flex items-center gap-1.5">
-            <span
-              className={`w-2.5 h-2.5 rounded-full border shrink-0 ${VISIBILITY_STYLES[opt.value].card}`}
-            />
-            <span className="text-[11px] text-ink/50">
-              {VISIBILITY_LEGEND_LABELS[opt.value]}
-            </span>
-          </div>
-        ))}
+        {VISIBILITY_OPTIONS.map((opt) => {
+          const isActive = activeFilter === opt.value;
+          const isDimmed = activeFilter !== null && !isActive;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              aria-pressed={isActive}
+              onClick={() => setActiveFilter((cur) => (cur === opt.value ? null : opt.value))}
+              className={`flex items-center gap-1.5 -mx-1 px-1 py-0.5 rounded-md text-left transition ${
+                isActive ? "bg-ink/8" : "hover:bg-ink/5"
+              } ${isDimmed ? "opacity-40" : ""}`}
+            >
+              <span
+                className={`w-2.5 h-2.5 rounded-full border shrink-0 ${VISIBILITY_STYLES[opt.value].card}`}
+              />
+              <span
+                className={`text-[11px] ${isActive ? "text-ink font-semibold" : "text-ink/50"}`}
+              >
+                {VISIBILITY_LEGEND_LABELS[opt.value]}
+              </span>
+            </button>
+          );
+        })}
+        {activeFilter && (
+          <button
+            type="button"
+            onClick={() => setActiveFilter(null)}
+            className="self-start text-[11px] text-blue font-medium underline underline-offset-2 mt-0.5 ml-1"
+          >
+            Show all
+          </button>
+        )}
       </div>
 
-      {livePosts.length === 0 ? (
+      {visiblePosts.length === 0 ? (
         <div className="card text-center text-sm text-ink/60 py-10">
-          No looks yet — tap <span className="font-medium">+ Share</span> to post your first outfit.
+          {activeFilter ? (
+            <>
+              No posts {VISIBILITY_LEGEND_LABELS[activeFilter]} yet.{" "}
+              <button
+                type="button"
+                onClick={() => setActiveFilter(null)}
+                className="font-medium text-blue underline underline-offset-2"
+              >
+                Show all
+              </button>
+            </>
+          ) : (
+            <>
+              No looks yet — tap <span className="font-medium">+ Share</span> to post your first outfit.
+            </>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-2">
-          {livePosts.map((post) => (
+          {visiblePosts.map((post) => (
             <FeedCard
               key={post.id}
               post={post}
