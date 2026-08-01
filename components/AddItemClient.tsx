@@ -111,7 +111,7 @@ export default function AddItemClient() {
           <p className="text-xs font-ui font-semibold text-slate tracking-wide">
             Add item
           </p>
-          <h1 className="text-2xl mt-1">Snap a piece</h1>
+          <h1 className="text-2xl mt-1">Snap piece</h1>
         </div>
         <button onClick={() => router.push("/closet")} className="text-sm text-slate">
           Done →
@@ -147,20 +147,22 @@ export default function AddItemClient() {
             className="hidden"
             onChange={handleFile}
           />
-          <button
-            type="button"
-            onClick={() => cameraInputRef.current?.click()}
-            className="btn-primary w-full"
-          >
-            📷 Take a photo
-          </button>
-          <button
-            type="button"
-            onClick={() => libraryInputRef.current?.click()}
-            className="btn-secondary w-full"
-          >
-            Choose from camera roll
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => cameraInputRef.current?.click()}
+              className="btn-primary flex-1"
+            >
+              📷 Capture
+            </button>
+            <button
+              type="button"
+              onClick={() => libraryInputRef.current?.click()}
+              className="btn-secondary flex-1"
+            >
+              Album
+            </button>
+          </div>
         </div>
       )}
 

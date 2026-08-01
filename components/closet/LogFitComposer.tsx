@@ -44,7 +44,8 @@ export default function LogFitComposer({
   onClose: () => void;
   onSaved: (fit: LoggedFit) => void;
 }) {
-  const fileRef = useRef<HTMLInputElement>(null);
+  const cameraFileRef = useRef<HTMLInputElement>(null);
+  const libraryFileRef = useRef<HTMLInputElement>(null);
   const [view, setView] = useState<"compose" | "tagging">("compose");
   const [preview, setPreview] = useState<string | null>(null);
   const [payload, setPayload] = useState<{ base64: string; mediaType: string } | null>(null);
@@ -69,7 +70,8 @@ export default function LogFitComposer({
     setSelected(new Set());
     setNotes("");
     setError(null);
-    if (fileRef.current) fileRef.current.value = "";
+    if (cameraFileRef.current) cameraFileRef.current.value = "";
+    if (libraryFileRef.current) libraryFileRef.current.value = "";
   }
 
   function close() {
@@ -154,7 +156,7 @@ export default function LogFitComposer({
     <Modal
       open={open}
       onClose={handleModalClose}
-      title={view === "tagging" ? "Tag items" : "Log a fit"}
+      title={view === "tagging" ? "Tag items" : "Log fit"}
     >
       {view === "tagging" ? (
         <div className="space-y-4">
@@ -221,6 +223,22 @@ export default function LogFitComposer({
       ) : (
         <div className="space-y-4">
           {/* Photo */}
+          <input
+            ref={cameraFileRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={handleFile}
+          />
+          <input
+            ref={libraryFileRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFile}
+          />
+
           {preview ? (
             <div className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -230,7 +248,8 @@ export default function LogFitComposer({
                 onClick={() => {
                   setPreview(null);
                   setPayload(null);
-                  if (fileRef.current) fileRef.current.value = "";
+                  if (cameraFileRef.current) cameraFileRef.current.value = "";
+                  if (libraryFileRef.current) libraryFileRef.current.value = "";
                 }}
                 className="absolute top-2 right-2 bg-ink/70 text-cream rounded-full w-8 h-8 flex items-center justify-center text-lg leading-none"
                 aria-label="Remove photo"
@@ -239,18 +258,22 @@ export default function LogFitComposer({
               </button>
             </div>
           ) : (
-            <label className="aspect-square bg-blue/10 rounded-xl border border-dashed border-slate/40 flex flex-col items-center justify-center gap-2 cursor-pointer text-slate">
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={handleFile}
-              />
-              <span className="text-3xl leading-none">＋</span>
-              <span className="text-sm">Add a photo</span>
-            </label>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => cameraFileRef.current?.click()}
+                className="btn-primary flex-1"
+              >
+                📷 Capture
+              </button>
+              <button
+                type="button"
+                onClick={() => libraryFileRef.current?.click()}
+                className="btn-secondary flex-1"
+              >
+                Album
+              </button>
+            </div>
           )}
 
           {/* Item tagging */}

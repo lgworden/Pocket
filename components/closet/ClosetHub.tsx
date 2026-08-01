@@ -85,7 +85,7 @@ export default function ClosetHub({
           </Link>
           <button
             type="button"
-            aria-label="log a fit"
+            aria-label="log fit"
             onClick={() => setComposerOpen(true)}
             className="icon-btn bg-panel border border-slate/20 text-ink"
           >
