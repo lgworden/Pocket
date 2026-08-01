@@ -8,8 +8,9 @@ import { createNotification } from "./notifications";
 
 // Automatic "influencer" status kicks in at this many followers. Placeholder
 // pending real distribution data (see SOCIAL_PIVOT_PLAN.md "Open decisions")
-// — tune here once there's signal on what's actually rare.
-const INFLUENCER_THRESHOLD = 50;
+// — tune here once there's signal on what's actually rare. Exported so the
+// profile page can show "N more to go" progress toward it.
+export const INFLUENCER_THRESHOLD = 50;
 
 export async function follow(followerId: string, followeeId: string): Promise<void> {
   if (followerId === followeeId) return;

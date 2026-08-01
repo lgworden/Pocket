@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireOnboarded } from "@/lib/auth";
 import { getProfileAccess, getProfileUser, getProfileStats } from "@/lib/profile";
-import { isFollowing } from "@/lib/follows";
+import { isFollowing, INFLUENCER_THRESHOLD } from "@/lib/follows";
 import { getFeedPosts } from "@/lib/feedQueries";
 import BottomNav from "@/components/BottomNav";
 import FeedCard from "@/components/feed/FeedCard";
@@ -48,9 +48,9 @@ export default async function ProfilePage({ params }: { params: { id: string } }
   const [access, stats, posts, viewerFollows] = await Promise.all([
     isSelf ? Promise.resolve("self" as const) : getProfileAccess(viewer.id, profileUser.id),
     getProfileStats(profileUser.id),
-    // Visibility is enforced by the query itself (public → followers only,
-    // friends/close_friends → the existing friendships gate, private → author
-    // only) — a stranger simply gets back zero rows, no separate check needed.
+    // Visibility is enforced by the query itself (friends/close_friends → the
+    // friendships gate, private → author only) — a stranger or follower simply
+    // gets back zero rows, no separate check needed here.
     getFeedPosts(viewer.id, { authorId: profileUser.id }),
     isSelf ? Promise.resolve(false) : isFollowing(viewer.id, profileUser.id),
   ]);
@@ -97,6 +97,13 @@ export default async function ProfilePage({ params }: { params: { id: string } }
             <Stat value={stats.friend_count} label="friends" />
           </div>
         </div>
+
+        {isSelf && !isInfluencer && (
+          <p className="text-[11px] text-ink/40 text-center mt-3">
+            {Math.max(0, INFLUENCER_THRESHOLD - stats.follower_count)} more followers to reach
+            influencer status
+          </p>
+        )}
       </div>
 
       <div className="flex items-center divide-x divide-slate/15">

@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 
-export default function InviteLinkCard({ inviteUrl }: { inviteUrl: string }) {
+export default function InviteLinkCard({
+  inviteUrl,
+  joinedCount,
+}: {
+  inviteUrl: string;
+  joinedCount: number;
+}) {
   const [copied, setCopied] = useState(false);
 
   async function copyLink() {
@@ -17,7 +23,14 @@ export default function InviteLinkCard({ inviteUrl }: { inviteUrl: string }) {
 
   return (
     <div className="card">
-      <p className="text-sm font-medium mb-3">Share this link with friends!</p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm font-medium">Share this link with friends!</p>
+        {joinedCount > 0 && (
+          <span className="text-xs font-ui font-semibold rounded-full px-2 py-0.5 shrink-0 bg-ink/10 text-ink/70">
+            {joinedCount} joined
+          </span>
+        )}
+      </div>
       <div className="flex gap-2">
         <input
           readOnly

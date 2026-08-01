@@ -9,6 +9,7 @@ import {
   type FeedPost,
   type FeedReactionType,
 } from "@/lib/feed";
+import ShareCardButton from "./ShareCardButton";
 
 // A single outfit post in the collage. The card background is tinted by
 // visibility tier (see VISIBILITY_STYLES) so the feed reads as a color-coded
@@ -375,6 +376,16 @@ export default function FeedCard({
             </svg>
             {commentCount > 0 && <span className="text-[10px] tabular-nums">{commentCount}</span>}
           </button>
+
+          {/* Export a branded image for external sharing — own posts only,
+              see components/feed/ShareCardButton.tsx. */}
+          {post.is_mine && (
+            <ShareCardButton
+              photo={post.photo && !photoFailed ? post.photo : null}
+              caption={post.caption}
+              authorName={post.author_name}
+            />
+          )}
         </div>
       </div>
     </div>

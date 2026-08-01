@@ -190,13 +190,30 @@ CREATE TABLE follows (
 CREATE INDEX follows_followee_idx ON follows(followee_id);
 CREATE INDEX follows_follower_idx ON follows(follower_id);
 
+-- Invites are uncapped — growth matters more than scarcity right now (see
+-- SOCIAL_PIVOT_PLAN.md Phase 3). `max_uses` shipped, was enforced briefly,
+-- then explicitly reversed the same week; left in the schema, unused by
+-- lib/friends.ts, so a future cap is just re-adding the check, not new
+-- plumbing or a migration.
 CREATE TABLE invites (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code            TEXT NOT NULL UNIQUE,
   inviter_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  max_uses        INT NOT NULL DEFAULT 5,
   created_at      TIMESTAMPTZ DEFAULT now()
 );
 CREATE INDEX invites_inviter_idx ON invites(inviter_user_id);
+
+-- Every acceptance, tracked for attribution/analytics — not for capacity
+-- enforcement (see above). Still useful: shows "N joined via your link" and
+-- (idempotently) never double-records a re-accept.
+CREATE TABLE invite_redemptions (
+  invite_id        UUID NOT NULL REFERENCES invites(id) ON DELETE CASCADE,
+  accepter_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (invite_id, accepter_user_id)
+);
+CREATE INDEX invite_redemptions_invite_idx ON invite_redemptions(invite_id);
 
 -- Lightweight product-analytics event log (DIY tracking for the friends beta).
 CREATE TABLE events (
