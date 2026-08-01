@@ -161,7 +161,7 @@ export default async function ClosetPage({
         <p className="text-xs font-ui font-semibold text-slate tracking-wide">
           Closet
         </p>
-        <h1 className="text-2xl mt-1">{categoryLabel}</h1>
+        {category && <h1 className="text-2xl mt-1">{categoryLabel}</h1>}
         {!category && (
           <p className="text-sm text-ink/60 mt-1">
             use your virtual closet to plan and archive your best looks. everything here
