@@ -269,8 +269,10 @@ export default function FeedCard({
 
   return (
     <div className={`rounded-2xl border overflow-hidden shadow-soft-sm ${style.card}`}>
-      {/* Polaroid-style top border, with the poster's name sitting in it. */}
-      <div className="px-2.5 pt-2 pb-1.5">
+      {/* Polaroid-style top border, with the poster's name sitting in it.
+          Always cream (not the visibility tint) so it reads as white paper,
+          like the rest of the page background. */}
+      <div className="px-2.5 pt-2 pb-1.5 bg-cream">
         <Link href={`/profile/${post.author_id}`} className="text-[11px] font-ui font-medium text-ink/70 truncate hover:underline">
           {post.author_name}
         </Link>
