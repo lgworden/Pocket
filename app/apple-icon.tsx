@@ -1,12 +1,11 @@
 import { ImageResponse } from "next/og";
-import PocketMark from "@/components/PocketMark";
+import BagIcon from "@/components/BagIcon";
 
 // iOS "Add to Home Screen" uses this as the app icon (auto-injected as
-// <link rel="apple-touch-icon">). Full-bleed denim so iOS masks it into a
-// rounded square cleanly — a jeans back pocket, riffing on the name "pckt".
+// <link rel="apple-touch-icon">).
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
 export default function AppleIcon() {
-  return new ImageResponse(<PocketMark size={180} />, { ...size });
+  return new ImageResponse(<BagIcon size={180} />, { ...size });
 }

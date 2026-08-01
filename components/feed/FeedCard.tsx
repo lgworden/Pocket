@@ -433,8 +433,8 @@ export default function FeedCard({
           {/* Flip to the back to read/add comments — there's no other entry point. */}
           <button
             type="button"
-            onClick={() => setFlipped(true)}
-            aria-label="View comments"
+            onClick={() => setFlipped((f) => !f)}
+            aria-label={flipped ? "Show photo" : "View comments"}
             className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
