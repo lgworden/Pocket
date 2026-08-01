@@ -141,6 +141,7 @@ export default function FeedCollage({
             <FeedCard
               key={post.id}
               post={post}
+              friends={friends}
               onDeleted={(id) => setLivePosts((ps) => ps.filter((p) => p.id !== id))}
             />
           ))}

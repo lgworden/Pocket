@@ -73,25 +73,26 @@ export default function ClosetHub({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end gap-2">
-        <Link
-          href="/add-item"
-          aria-label="add to closet"
-          className="icon-btn bg-panel border border-slate/20 text-ink"
-        >
-          <DressIcon />
-        </Link>
-        <button
-          type="button"
-          aria-label="log a fit"
-          onClick={() => setComposerOpen(true)}
-          className="icon-btn bg-panel border border-slate/20 text-ink"
-        >
-          <CameraIcon />
-        </button>
+      <div className="flex items-center justify-between gap-3">
+        {intro && <div className="flex-1">{intro}</div>}
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href="/add-item"
+            aria-label="add to closet"
+            className="icon-btn bg-panel border border-slate/20 text-ink"
+          >
+            <DressIcon />
+          </Link>
+          <button
+            type="button"
+            aria-label="log a fit"
+            onClick={() => setComposerOpen(true)}
+            className="icon-btn bg-panel border border-slate/20 text-ink"
+          >
+            <CameraIcon />
+          </button>
+        </div>
       </div>
-
-      {intro}
 
       <div className="flex gap-3 items-start">
         <div className="w-[92px] shrink-0 sticky top-4 flex flex-col gap-4 items-center">

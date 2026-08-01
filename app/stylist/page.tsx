@@ -44,10 +44,7 @@ export default async function TodayPage({
     <main className="px-4 pt-6 space-y-6">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-ui font-semibold text-slate tracking-wide">
-            Stylist
-          </p>
-          <h1 className="text-2xl mt-1">{getTimeOfDayGreeting()}, {user.display_name || user.name}</h1>
+          <h1 className="text-2xl">{getTimeOfDayGreeting()}, {user.display_name || user.name}</h1>
           <p className="text-sm text-ink/60 mt-1">
             {weather
               ? `${weather.tempHighF}°/${weather.tempLowF}° · ${weather.condition} · ${weather.label}`

@@ -9,7 +9,7 @@ import {
   type FeedPost,
   type FeedReactionType,
 } from "@/lib/feed";
-import ShareCardButton from "./ShareCardButton";
+import type { Friend } from "@/lib/friends";
 
 // A single outfit post in the collage. The card background is tinted by
 // visibility tier (see VISIBILITY_STYLES) so the feed reads as a color-coded
@@ -21,9 +21,11 @@ import ShareCardButton from "./ShareCardButton";
 // one always leaves you looking at the thread.
 export default function FeedCard({
   post,
+  friends,
   onDeleted,
 }: {
   post: FeedPost;
+  friends: Friend[];
   onDeleted?: (id: string) => void;
 }) {
   const style = VISIBILITY_STYLES[post.visibility];
@@ -38,6 +40,9 @@ export default function FeedCard({
   const [commentCount, setCommentCount] = useState(post.comment_count);
   const [draft, setDraft] = useState("");
   const [posting, setPosting] = useState(false);
+  const [mentionSuggestions, setMentionSuggestions] = useState<Friend[]>([]);
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionStartIndex, setMentionStartIndex] = useState(-1);
   const imgRef = useRef<HTMLImageElement>(null);
 
   // The browser starts fetching an SSR'd <img> before React hydrates, so a
@@ -78,6 +83,48 @@ export default function FeedCard({
     } finally {
       setPending(null);
     }
+  }
+
+  function handleCommentChange(text: string) {
+    setDraft(text);
+
+    const atIndex = text.lastIndexOf("@");
+    if (atIndex === -1) {
+      setShowMentions(false);
+      return;
+    }
+
+    const afterAt = text.substring(atIndex + 1);
+    if (afterAt.includes(" ")) {
+      setShowMentions(false);
+      return;
+    }
+
+    setMentionStartIndex(atIndex);
+    const query = afterAt.toLowerCase();
+
+    if (query.length === 0) {
+      setMentionSuggestions(friends);
+      setShowMentions(true);
+    } else {
+      const filtered = friends.filter((f) =>
+        f.name.toLowerCase().includes(query)
+      );
+      setMentionSuggestions(filtered);
+      setShowMentions(filtered.length > 0);
+    }
+  }
+
+  function insertMention(friend: Friend) {
+    const beforeAt = draft.substring(0, mentionStartIndex);
+    const afterAt = draft.substring(mentionStartIndex + 1);
+    const afterQuery = afterAt.substring(afterAt.lastIndexOf("@") === -1 ? afterAt.length : afterAt.lastIndexOf("@") + 1);
+
+    const query = afterAt.replace(afterQuery, "");
+    const newText = `${beforeAt}@${friend.name} `;
+    setDraft(newText);
+    setShowMentions(false);
+    setMentionSuggestions([]);
   }
 
   async function submitComment() {
@@ -241,32 +288,50 @@ export default function FeedCard({
 
             {/* Comment composer — the only place a comment can be added, so posting
                 one always leaves the viewer on the back, looking at the thread. */}
-            <div className="shrink-0 flex items-center gap-1.5 border-t border-slate/15 p-1.5">
-              <input
-                type="text"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") submitComment();
-                }}
-                placeholder="Add a comment…"
-                maxLength={500}
-                disabled={posting}
-                className="flex-1 min-w-0 bg-transparent border border-slate/25 rounded-full px-2.5 py-1 text-[11px] focus:outline-none focus:border-slate/50 disabled:opacity-60"
-              />
-              <button
-                type="button"
-                onClick={submitComment}
-                disabled={!draft.trim() || posting}
-                aria-label="Post comment"
-                className="shrink-0 w-6 h-6 rounded-full bg-ink text-cream flex items-center justify-center disabled:opacity-30"
-              >
-                {/* return/enter glyph — distinct from the card-flip arrow */}
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 10 4 15 9 20" />
-                  <path d="M20 4v7a4 4 0 0 1-4 4H4" />
-                </svg>
-              </button>
+            <div className="shrink-0 space-y-1 border-t border-slate/15 p-1.5">
+              <div className="flex items-center gap-1.5">
+                <div className="flex-1 min-w-0 relative">
+                  <input
+                    type="text"
+                    value={draft}
+                    onChange={(e) => handleCommentChange(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !showMentions) submitComment();
+                    }}
+                    placeholder="Add a comment…"
+                    maxLength={500}
+                    disabled={posting}
+                    className="w-full bg-transparent border border-slate/25 rounded-full px-2.5 py-1 text-[11px] focus:outline-none focus:border-slate/50 disabled:opacity-60"
+                  />
+                  {showMentions && mentionSuggestions.length > 0 && (
+                    <div className="absolute bottom-full left-0 right-0 mb-1 bg-panel border border-slate/20 rounded-lg shadow-soft-sm max-h-32 overflow-y-auto z-10">
+                      {mentionSuggestions.map((friend) => (
+                        <button
+                          key={friend.id}
+                          type="button"
+                          onClick={() => insertMention(friend)}
+                          className="w-full text-left px-2.5 py-1.5 text-[11px] hover:bg-ink/5 transition first:rounded-t-lg last:rounded-b-lg"
+                        >
+                          {friend.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={submitComment}
+                  disabled={!draft.trim() || posting}
+                  aria-label="Post comment"
+                  className="shrink-0 w-6 h-6 rounded-full bg-ink text-cream flex items-center justify-center disabled:opacity-30"
+                >
+                  {/* return/enter glyph — distinct from the card-flip arrow */}
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 10 4 15 9 20" />
+                    <path d="M20 4v7a4 4 0 0 1-4 4H4" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -279,7 +344,7 @@ export default function FeedCard({
           }}
           aria-label={flipped ? "Show photo" : "Show outfit details"}
           className={`absolute w-6 h-6 rounded-full bg-ink/50 text-cream flex items-center justify-center backdrop-blur-sm ${
-            flipped ? "top-1.5 right-1.5" : "bottom-1.5 right-1.5"
+            flipped ? "top-1.5 left-1.5" : "bottom-1.5 right-1.5"
           }`}
         >
           <svg
@@ -377,15 +442,6 @@ export default function FeedCard({
             {commentCount > 0 && <span className="text-[10px] tabular-nums">{commentCount}</span>}
           </button>
 
-          {/* Export a branded image for external sharing — own posts only,
-              see components/feed/ShareCardButton.tsx. */}
-          {post.is_mine && (
-            <ShareCardButton
-              photo={post.photo && !photoFailed ? post.photo : null}
-              caption={post.caption}
-              authorName={post.author_name}
-            />
-          )}
         </div>
       </div>
     </div>

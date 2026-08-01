@@ -97,13 +97,6 @@ export default async function ProfilePage({ params }: { params: { id: string } }
             <Stat value={stats.friend_count} label="friends" />
           </div>
         </div>
-
-        {isSelf && !isInfluencer && (
-          <p className="text-[11px] text-ink/40 text-center mt-3">
-            {Math.max(0, INFLUENCER_THRESHOLD - stats.follower_count)} more followers to reach
-            influencer status
-          </p>
-        )}
       </div>
 
       <div className="flex items-center divide-x divide-slate/15">
