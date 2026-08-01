@@ -221,6 +221,52 @@ export default function FeedCard({
     }
   }
 
+  // Flip to the back to read/add comments — there's no other entry point.
+  // Rendered as plain JSX (not a nested component) since both spots below
+  // need the exact same elements and a nested function component would
+  // remount — and lose the input's focus — on every keystroke in the
+  // comment box on the back of the card.
+  const commentButton = (
+    <button
+      type="button"
+      onClick={() => setFlipped((f) => !f)}
+      aria-label={flipped ? "Show photo" : "View comments"}
+      className="flex items-center gap-0.5 rounded-full px-1 py-0.5 text-[10px] bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
+    >
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" />
+      </svg>
+      {commentCount > 0 && <span className="text-[9px] tabular-nums">{commentCount}</span>}
+    </button>
+  );
+
+  const flipButton = (
+    <button
+      type="button"
+      onClick={() => {
+        setFlipped((f) => !f);
+        setConfirmingDelete(false);
+      }}
+      aria-label={flipped ? "Show photo" : "Show outfit details"}
+      className="shrink-0 flex items-center justify-center rounded-full p-1 bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
+    >
+      <svg
+        width="11"
+        height="11"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={`shrink-0 transition-transform duration-500 ${flipped ? "rotate-180" : ""}`}
+      >
+        <path d="M5 12h14" />
+        <path d="M13 6l6 6-6 6" />
+      </svg>
+    </button>
+  );
+
   return (
     <div className={`rounded-2xl border overflow-hidden shadow-soft-sm ${style.card}`}>
       {/* Polaroid-style top border, with the poster's name sitting in it. */}
@@ -438,78 +484,52 @@ export default function FeedCard({
       </div>
 
       <div className="p-2 space-y-1.5">
-        {/* Emoji reactions, left-justified over caption */}
-        <div className="flex items-center gap-1">
-          {REACTIONS.map((r) => {
-            const active = mine.includes(r.value);
-            const count = counts[r.value] ?? 0;
-            return (
-              <button
-                key={r.value}
-                type="button"
-                aria-label={r.label}
-                aria-pressed={active}
-                onClick={() => react(r.value)}
-                className={`flex items-center gap-0.5 rounded-full px-1 py-0.5 text-[10px] transition-colors ${
-                  active
-                    ? "bg-ink text-cream"
-                    : "bg-cream/70 text-ink border border-slate/15 hover:border-slate/40"
-                }`}
-              >
-                <span className="leading-none text-[11px]">{r.emoji}</span>
-                {count > 0 && <span className="text-[9px] tabular-nums">{count}</span>}
-              </button>
-            );
-          })}
-        </div>
-
+        {/* Emoji reactions, left-justified over caption. When there's no
+            caption, the comment/flip controls fold up onto this row instead
+            of leaving a second row with nothing but empty space. */}
         <div className="flex items-center justify-between gap-2">
-          {post.caption ? (
-            <p className="flex-1 min-w-0 text-xs text-ink leading-snug">{post.caption}</p>
-          ) : (
-            <span className="flex-1" />
-          )}
-
-          <div className="shrink-0 flex items-center gap-1">
-            {/* Flip to the back to read/add comments — there's no other entry point. */}
-            <button
-              type="button"
-              onClick={() => setFlipped((f) => !f)}
-              aria-label={flipped ? "Show photo" : "View comments"}
-              className="flex items-center gap-0.5 rounded-full px-1 py-0.5 text-[10px] bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
-            >
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" />
-              </svg>
-              {commentCount > 0 && <span className="text-[9px] tabular-nums">{commentCount}</span>}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setFlipped((f) => !f);
-                setConfirmingDelete(false);
-              }}
-              aria-label={flipped ? "Show photo" : "Show outfit details"}
-              className="shrink-0 flex items-center justify-center rounded-full p-1 bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
-            >
-              <svg
-                width="11"
-                height="11"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className={`shrink-0 transition-transform duration-500 ${flipped ? "rotate-180" : ""}`}
-              >
-                <path d="M5 12h14" />
-                <path d="M13 6l6 6-6 6" />
-              </svg>
-            </button>
+          <div className="flex items-center gap-1">
+            {REACTIONS.map((r) => {
+              const active = mine.includes(r.value);
+              const count = counts[r.value] ?? 0;
+              return (
+                <button
+                  key={r.value}
+                  type="button"
+                  aria-label={r.label}
+                  aria-pressed={active}
+                  onClick={() => react(r.value)}
+                  className={`flex items-center gap-0.5 rounded-full px-1 py-0.5 text-[10px] transition-colors ${
+                    active
+                      ? "bg-ink text-cream"
+                      : "bg-cream/70 text-ink border border-slate/15 hover:border-slate/40"
+                  }`}
+                >
+                  <span className="leading-none text-[11px]">{r.emoji}</span>
+                  {count > 0 && <span className="text-[9px] tabular-nums">{count}</span>}
+                </button>
+              );
+            })}
           </div>
+
+          {!post.caption && (
+            <div className="shrink-0 flex items-center gap-1">
+              {commentButton}
+              {flipButton}
+            </div>
+          )}
         </div>
+
+        {post.caption && (
+          <div className="flex items-center justify-between gap-2">
+            <p className="flex-1 min-w-0 text-xs text-ink leading-snug">{post.caption}</p>
+
+            <div className="shrink-0 flex items-center gap-1">
+              {commentButton}
+              {flipButton}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Reshare modal */}
