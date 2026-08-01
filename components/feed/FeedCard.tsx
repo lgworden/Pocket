@@ -415,64 +415,54 @@ export default function FeedCard({
       </div>
 
       <div className="p-2 space-y-1.5">
-        <Link href={`/profile/${post.author_id}`} className="text-xs text-ink/60 truncate block hover:underline">
-          {post.author_name}
-        </Link>
+        <div className="flex items-center justify-between gap-2">
+          <Link href={`/profile/${post.author_id}`} className="text-xs text-ink/60 truncate hover:underline">
+            {post.author_name}
+          </Link>
 
-        {post.caption && <p className="text-xs text-ink leading-snug">{post.caption}</p>}
+          <div className="flex items-center gap-1 shrink-0">
+            {REACTIONS.map((r) => {
+              const active = mine.includes(r.value);
+              const count = counts[r.value] ?? 0;
+              return (
+                <button
+                  key={r.value}
+                  type="button"
+                  aria-label={r.label}
+                  aria-pressed={active}
+                  onClick={() => react(r.value)}
+                  className={`flex items-center gap-0.5 rounded-full px-1 py-0.5 text-[10px] transition-colors ${
+                    active
+                      ? "bg-ink text-cream"
+                      : "bg-cream/70 text-ink border border-slate/15 hover:border-slate/40"
+                  }`}
+                >
+                  <span className="leading-none text-[11px]">{r.emoji}</span>
+                  {count > 0 && <span className="text-[9px] tabular-nums">{count}</span>}
+                </button>
+              );
+            })}
 
-        <div className="flex items-center gap-1 pt-0.5">
-          {REACTIONS.map((r) => {
-            const active = mine.includes(r.value);
-            const count = counts[r.value] ?? 0;
-            return (
-              <button
-                key={r.value}
-                type="button"
-                aria-label={r.label}
-                aria-pressed={active}
-                onClick={() => react(r.value)}
-                className={`flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs transition-colors ${
-                  active
-                    ? "bg-ink text-cream"
-                    : "bg-cream/70 text-ink border border-slate/15 hover:border-slate/40"
-                }`}
-              >
-                <span className="leading-none">{r.emoji}</span>
-                {count > 0 && <span className="text-[10px] tabular-nums">{count}</span>}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Row 2: comments, reshare, and the flip-to-back arrow. */}
-        <div className="flex items-center gap-1">
-          {/* Flip to the back to read/add comments — there's no other entry point. */}
-          <button
-            type="button"
-            onClick={() => setFlipped((f) => !f)}
-            aria-label={flipped ? "Show photo" : "View comments"}
-            className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" />
-            </svg>
-            {commentCount > 0 && <span className="text-[10px] tabular-nums">{commentCount}</span>}
-          </button>
-
-          {!post.is_mine && post.is_tagged && (
+            {/* Flip to the back to read/add comments — there's no other entry point. */}
             <button
               type="button"
-              onClick={() => setResharing(true)}
-              aria-label="Reshare this fit"
-              className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
+              onClick={() => setFlipped((f) => !f)}
+              aria-label={flipped ? "Show photo" : "View comments"}
+              className="flex items-center gap-0.5 rounded-full px-1 py-0.5 text-[10px] bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-                <polyline points="16 6 12 2 8 6" />
-                <line x1="12" y1="2" x2="12" y2="15" />
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" />
               </svg>
+              {commentCount > 0 && <span className="text-[9px] tabular-nums">{commentCount}</span>}
             </button>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-2">
+          {post.caption ? (
+            <p className="flex-1 min-w-0 text-xs text-ink leading-snug">{post.caption}</p>
+          ) : (
+            <span className="flex-1" />
           )}
 
           <button
@@ -482,11 +472,11 @@ export default function FeedCard({
               setConfirmingDelete(false);
             }}
             aria-label={flipped ? "Show photo" : "Show outfit details"}
-            className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
+            className="shrink-0 flex items-center justify-center rounded-full p-1 bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
           >
             <svg
-              width="12"
-              height="12"
+              width="11"
+              height="11"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -500,6 +490,21 @@ export default function FeedCard({
             </svg>
           </button>
         </div>
+
+        {!post.is_mine && post.is_tagged && (
+          <button
+            type="button"
+            onClick={() => setResharing(true)}
+            aria-label="Reshare this fit"
+            className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+              <polyline points="16 6 12 2 8 6" />
+              <line x1="12" y1="2" x2="12" y2="15" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Reshare modal */}
