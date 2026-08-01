@@ -438,30 +438,39 @@ export default function FeedCard({
       </div>
 
       <div className="p-2 space-y-1.5">
-        <div className="flex items-center justify-end gap-2">
-          <div className="flex items-center gap-1 shrink-0">
-            {REACTIONS.map((r) => {
-              const active = mine.includes(r.value);
-              const count = counts[r.value] ?? 0;
-              return (
-                <button
-                  key={r.value}
-                  type="button"
-                  aria-label={r.label}
-                  aria-pressed={active}
-                  onClick={() => react(r.value)}
-                  className={`flex items-center gap-0.5 rounded-full px-1 py-0.5 text-[10px] transition-colors ${
-                    active
-                      ? "bg-ink text-cream"
-                      : "bg-cream/70 text-ink border border-slate/15 hover:border-slate/40"
-                  }`}
-                >
-                  <span className="leading-none text-[11px]">{r.emoji}</span>
-                  {count > 0 && <span className="text-[9px] tabular-nums">{count}</span>}
-                </button>
-              );
-            })}
+        {/* Emoji reactions, left-justified over caption */}
+        <div className="flex items-center gap-1">
+          {REACTIONS.map((r) => {
+            const active = mine.includes(r.value);
+            const count = counts[r.value] ?? 0;
+            return (
+              <button
+                key={r.value}
+                type="button"
+                aria-label={r.label}
+                aria-pressed={active}
+                onClick={() => react(r.value)}
+                className={`flex items-center gap-0.5 rounded-full px-1 py-0.5 text-[10px] transition-colors ${
+                  active
+                    ? "bg-ink text-cream"
+                    : "bg-cream/70 text-ink border border-slate/15 hover:border-slate/40"
+                }`}
+              >
+                <span className="leading-none text-[11px]">{r.emoji}</span>
+                {count > 0 && <span className="text-[9px] tabular-nums">{count}</span>}
+              </button>
+            );
+          })}
+        </div>
 
+        <div className="flex items-center justify-between gap-2">
+          {post.caption ? (
+            <p className="flex-1 min-w-0 text-xs text-ink leading-snug">{post.caption}</p>
+          ) : (
+            <span className="flex-1" />
+          )}
+
+          <div className="shrink-0 flex items-center gap-1">
             {/* Flip to the back to read/add comments — there's no other entry point. */}
             <button
               type="button"
@@ -474,40 +483,32 @@ export default function FeedCard({
               </svg>
               {commentCount > 0 && <span className="text-[9px] tabular-nums">{commentCount}</span>}
             </button>
-          </div>
-        </div>
 
-        <div className="flex items-center justify-between gap-2">
-          {post.caption ? (
-            <p className="flex-1 min-w-0 text-xs text-ink leading-snug">{post.caption}</p>
-          ) : (
-            <span className="flex-1" />
-          )}
-
-          <button
-            type="button"
-            onClick={() => {
-              setFlipped((f) => !f);
-              setConfirmingDelete(false);
-            }}
-            aria-label={flipped ? "Show photo" : "Show outfit details"}
-            className="shrink-0 flex items-center justify-center rounded-full p-1 bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
-          >
-            <svg
-              width="11"
-              height="11"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={`shrink-0 transition-transform duration-500 ${flipped ? "rotate-180" : ""}`}
+            <button
+              type="button"
+              onClick={() => {
+                setFlipped((f) => !f);
+                setConfirmingDelete(false);
+              }}
+              aria-label={flipped ? "Show photo" : "Show outfit details"}
+              className="shrink-0 flex items-center justify-center rounded-full p-1 bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
             >
-              <path d="M5 12h14" />
-              <path d="M13 6l6 6-6 6" />
-            </svg>
-          </button>
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className={`shrink-0 transition-transform duration-500 ${flipped ? "rotate-180" : ""}`}
+              >
+                <path d="M5 12h14" />
+                <path d="M13 6l6 6-6 6" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
 
