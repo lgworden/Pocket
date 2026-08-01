@@ -162,17 +162,19 @@ export default async function ClosetPage({
           Closet
         </p>
         {category && <h1 className="text-2xl mt-1">{categoryLabel}</h1>}
-        {!category && (
-          <p className="text-sm text-ink/60 mt-1">
-            use your virtual closet to plan and archive your best looks. everything here
-            is private — consider it your canvas :)
-          </p>
-        )}
       </header>
 
       <ClosetHub
         initialFits={recentFits ?? []}
         showMoodBoard={!category}
+        intro={
+          !category && (
+            <p className="text-xs text-ink/60">
+              use your virtual closet to plan and archive your best looks. everything here
+              is private — consider it your canvas :)
+            </p>
+          )
+        }
         categoryNav={
           <CategoryNavList
             activeCategory={category}

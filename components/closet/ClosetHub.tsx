@@ -42,11 +42,13 @@ export default function ClosetHub({
   initialFits,
   showMoodBoard,
   categoryNav,
+  intro,
   children,
 }: {
   initialFits: LoggedFit[];
   showMoodBoard: boolean;
   categoryNav: ReactNode;
+  intro?: ReactNode;
   children: ReactNode;
 }) {
   const [fits, setFits] = useState<LoggedFit[]>(initialFits);
@@ -88,6 +90,8 @@ export default function ClosetHub({
           <CameraIcon />
         </button>
       </div>
+
+      {intro}
 
       <div className="flex gap-3 items-start">
         <div className="w-[92px] shrink-0 sticky top-4 flex flex-col gap-4 items-center">
