@@ -22,6 +22,7 @@ type PostRow = {
   author_name: string;
   location: string | null;
   tagged_friends: FeedTaggedFriend[] | null;
+  is_tagged: boolean;
   reaction_counts: Record<string, number> | null;
   my_reactions: FeedReactionType[] | null;
   items: FeedPostItem[] | null;
@@ -47,6 +48,7 @@ export async function getFeedPosts(
        p.id, p.photo, p.caption, p.visibility, p.created_at, p.location,
        COALESCE(u.display_name, u.name) AS author_name,
        p.user_id AS author_id,
+       $1::uuid = ANY(p.tagged_user_ids) AS is_tagged,
        (
          SELECT COALESCE(jsonb_agg(jsonb_build_object(
            'id', tu.id,
@@ -122,6 +124,7 @@ export async function getFeedPosts(
     author_name: r.author_name,
     is_mine: r.author_id === viewerId,
     location: r.location,
+    is_tagged: r.is_tagged,
     tagged_friends: r.tagged_friends ?? [],
     reaction_counts: (r.reaction_counts ?? {}) as FeedPost["reaction_counts"],
     my_reactions: r.my_reactions ?? [],

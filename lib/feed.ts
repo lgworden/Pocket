@@ -98,6 +98,7 @@ export type FeedPost = {
   author_name: string;
   is_mine: boolean;
   location: string | null;
+  is_tagged: boolean;
   tagged_friends: FeedTaggedFriend[];
   reaction_counts: Partial<Record<FeedReactionType, number>>;
   my_reactions: FeedReactionType[];

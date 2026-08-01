@@ -10,6 +10,8 @@ import {
   type FeedReactionType,
 } from "@/lib/feed";
 import type { Friend } from "@/lib/friends";
+import Modal from "@/components/Modal";
+import { celebrate } from "@/lib/confetti";
 
 // A single outfit post in the collage. The card background is tinted by
 // visibility tier (see VISIBILITY_STYLES) so the feed reads as a color-coded
@@ -46,6 +48,10 @@ export default function FeedCard({
   const [mentionSuggestions, setMentionSuggestions] = useState<Friend[]>([]);
   const [showMentions, setShowMentions] = useState(false);
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
+  const [resharing, setResharing] = useState(false);
+  const [resharePosting, setResharePosting] = useState(false);
+  const [reshareError, setReshareError] = useState<string | null>(null);
+  const [reshareCaption, setReshareCaption] = useState("");
   const imgRef = useRef<HTMLImageElement>(null);
 
   // The browser starts fetching an SSR'd <img> before React hydrates, so a
@@ -175,6 +181,43 @@ export default function FeedCard({
     } catch {
       setDeleting(false);
       setConfirmingDelete(false);
+    }
+  }
+
+  async function handleReshare() {
+    setResharePosting(true);
+    setReshareError(null);
+    try {
+      // Fetch the image and convert to base64
+      const imgRes = await fetch(post.photo);
+      if (!imgRes.ok) throw new Error("failed to fetch image");
+      const blob = await imgRes.blob();
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string).split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+
+      const res = await fetch("/api/feed", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image: base64,
+          mediaType: blob.type || "image/jpeg",
+          caption: reshareCaption.trim() || post.caption || null,
+          visibility: post.visibility,
+          location: post.location,
+        }),
+      });
+      if (!res.ok) throw new Error("reshare failed");
+      setResharing(false);
+      setReshareCaption("");
+      celebrate();
+    } catch {
+      setReshareError("Couldn't reshare that — try again?");
+    } finally {
+      setResharePosting(false);
     }
   }
 
@@ -443,8 +486,77 @@ export default function FeedCard({
             {commentCount > 0 && <span className="text-[10px] tabular-nums">{commentCount}</span>}
           </button>
 
+          {!post.is_mine && post.is_tagged && (
+            <button
+              type="button"
+              onClick={() => setResharing(true)}
+              aria-label="Reshare this post"
+              className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                <polyline points="16 6 12 2 8 6" />
+                <line x1="12" y1="2" x2="12" y2="15" />
+              </svg>
+              Reshare
+            </button>
+          )}
+
         </div>
       </div>
+
+      {/* Reshare modal */}
+      <Modal open={resharing} onClose={() => !resharePosting && setResharing(false)} title="Reshare this fit">
+        <div className="space-y-4">
+          {post.photo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={post.photo}
+              alt="outfit preview"
+              className="w-full rounded-xl object-cover max-h-64"
+            />
+          )}
+
+          <div>
+            <label className="text-xs font-ui font-semibold text-slate tracking-wide">
+              Caption
+            </label>
+            <textarea
+              className="w-full mt-2 bg-transparent border border-slate/20 rounded-lg p-2 text-sm resize-none"
+              rows={2}
+              placeholder={post.caption || "add a note about resharing this..."}
+              value={reshareCaption}
+              onChange={(e) => setReshareCaption(e.target.value)}
+              disabled={resharePosting}
+            />
+          </div>
+
+          {reshareError && (
+            <div className="bg-rose/10 border border-rose/30 rounded-lg p-3 text-sm text-rose">
+              {reshareError}
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setResharing(false)}
+              disabled={resharePosting}
+              className="btn-secondary flex-1 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleReshare}
+              disabled={resharePosting}
+              className="btn-primary flex-1 disabled:opacity-50"
+            >
+              {resharePosting ? "Resharing..." : "Reshare"}
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
