@@ -15,6 +15,22 @@ const VISIBILITY_LEGEND_LABELS: Record<FeedVisibility, string> = {
   private: "for you",
 };
 
+// Same glyph as the closet tab's "log a fit" action, so sharing a fit reads
+// as the same gesture everywhere in the app.
+function CameraIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 20 20" fill="none">
+      <path
+        d="M7 5.5 8 3.5h4l1 2h2.5A1.5 1.5 0 0 1 17 5v9a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 14V5a1.5 1.5 0 0 1 1.5-1.5H7Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+      <circle cx="10" cy="9.5" r="2.75" stroke="currentColor" strokeWidth="1.4" />
+    </svg>
+  );
+}
+
 // Client shell for the feed: hosts the composer modal and renders posts in a
 // Pinterest-style masonry (CSS columns — cards keep their natural photo height
 // and stagger, no JS layout pass needed).
@@ -70,15 +86,19 @@ export default function FeedCollage({
               <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           </button>
-          <button className="btn-primary" onClick={() => setComposerOpen(true)}>
-            +
+          <button
+            aria-label="share fit"
+            className="w-9 h-9 rounded-full bg-ink text-cream flex items-center justify-center hover:opacity-90 transition"
+            onClick={() => setComposerOpen(true)}
+          >
+            <CameraIcon />
           </button>
         </div>
       </div>
 
       {/* Color legend doubles as a filter: tap a tier to show only those
-          posts, tap it again (or "Show all") to clear. */}
-      <div className="flex flex-col gap-1">
+          posts, tap the active one again to clear it. */}
+      <div className="flex items-center gap-3">
         {VISIBILITY_OPTIONS.map((opt) => {
           const isActive = activeFilter === opt.value;
           const isDimmed = activeFilter !== null && !isActive;
@@ -103,30 +123,12 @@ export default function FeedCollage({
             </button>
           );
         })}
-        {activeFilter && (
-          <button
-            type="button"
-            onClick={() => setActiveFilter(null)}
-            className="self-start text-[11px] text-blue font-medium underline underline-offset-2 mt-0.5 ml-1"
-          >
-            Show all
-          </button>
-        )}
       </div>
 
       {visiblePosts.length === 0 ? (
         <div className="card text-center text-sm text-ink/60 py-10">
           {activeFilter ? (
-            <>
-              No posts {VISIBILITY_LEGEND_LABELS[activeFilter]} yet.{" "}
-              <button
-                type="button"
-                onClick={() => setActiveFilter(null)}
-                className="font-medium text-blue underline underline-offset-2"
-              >
-                Show all
-              </button>
-            </>
+            <>No posts {VISIBILITY_LEGEND_LABELS[activeFilter]} yet.</>
           ) : (
             <>
               No looks yet — tap <span className="font-medium">+ Share</span> to post your first outfit.

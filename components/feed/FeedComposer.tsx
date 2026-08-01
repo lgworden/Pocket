@@ -131,7 +131,7 @@ export default function FeedComposer({
   }
 
   return (
-    <Modal open={open} onClose={close} title="Share an outfit">
+    <Modal open={open} onClose={close} title="Share fit">
       <div className="space-y-4">
         {/* Photo */}
         {preview ? (
