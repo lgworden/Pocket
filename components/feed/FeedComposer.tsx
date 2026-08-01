@@ -207,7 +207,7 @@ export default function FeedComposer({
         {/* Caption */}
         <div>
           <label className="text-xs font-ui font-semibold text-slate tracking-wide">
-            Caption (optional)
+            Caption
           </label>
           <textarea
             className="w-full mt-2 bg-transparent border border-slate/20 rounded-lg p-2 text-sm resize-none"
@@ -221,7 +221,7 @@ export default function FeedComposer({
         {/* Location */}
         <div>
           <label className="text-xs font-ui font-semibold text-slate tracking-wide">
-            Location (optional)
+            Location
           </label>
           <input
             type="text"
@@ -236,7 +236,7 @@ export default function FeedComposer({
         {friends.length > 0 && (
           <div>
             <label className="text-xs font-ui font-semibold text-slate tracking-wide">
-              Tag friends (optional)
+              Tag friends
             </label>
             <div className="mt-2 flex flex-wrap gap-1.5">
               {friends.map((f) => {
