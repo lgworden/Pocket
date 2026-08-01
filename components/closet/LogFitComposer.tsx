@@ -256,7 +256,7 @@ export default function LogFitComposer({
           {/* Item tagging */}
           <div>
             <label className="text-xs font-ui font-semibold text-slate tracking-wide">
-              What are you wearing? (optional)
+              What are you wearing?
             </label>
 
             {selectedItems.length > 0 && (
@@ -287,7 +287,7 @@ export default function LogFitComposer({
           {/* Notes */}
           <div>
             <label className="text-xs font-ui font-semibold text-slate tracking-wide">
-              Notes (optional)
+              Notes
             </label>
             <textarea
               className="w-full mt-2 bg-transparent border border-slate/20 rounded-lg p-2 text-sm resize-none"

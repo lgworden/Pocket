@@ -218,7 +218,7 @@ export default function TodayInteractive({
         />
 
         <label className="text-xs font-ui font-semibold text-slate tracking-wide mt-3 block">
-          Mood (optional)
+          Mood
         </label>
         <input
           className="w-full mt-2 bg-transparent border border-slate/20 rounded-lg p-2 text-sm"

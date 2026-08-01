@@ -211,7 +211,7 @@ function CategoryNavList({
     { href: "/closet", label: "all", active: !activeCategory },
     ...CATEGORIES.filter((c) => (counts[c.value] ?? 0) >= 2).map((c) => ({
       href: `/closet?category=${c.value}`,
-      label: `my ${c.label}`,
+      label: c.label,
       count: counts[c.value],
       active: activeCategory === c.value,
     })),

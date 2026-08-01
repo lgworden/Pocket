@@ -257,9 +257,9 @@ export default function FeedCard({
                 <button
                   type="button"
                   onClick={() => setResharing(true)}
-                  className="w-full flex items-center justify-center gap-1.5 rounded-full border border-slate/25 px-3 py-1.5 text-[11px] font-medium text-ink hover:border-slate/45 transition-colors"
+                  className="mx-auto flex items-center justify-center gap-1 rounded-full border border-slate/25 px-2 py-0.5 text-[9px] font-medium text-ink hover:border-slate/45 transition-colors"
                 >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                     <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
                     <polyline points="16 6 12 2 8 6" />
                     <line x1="12" y1="2" x2="12" y2="15" />
