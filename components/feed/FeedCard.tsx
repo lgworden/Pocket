@@ -249,8 +249,9 @@ export default function FeedCard({
 
           {/* Back: location, tagged friends, the outfit's items, and comments */}
           <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)] bg-cream flex flex-col">
-            {/* pt-8 clears the delete icon (own posts only), which floats over
-                this top-right corner — without it, it sits on the first line of text. */}
+            {/* pt-8 clears the delete/reshare icon (mutually exclusive: own vs.
+                tagged posts) which floats over this top-right corner — without
+                it, it sits on the first line of text. */}
             <div className="flex-1 min-h-0 overflow-y-auto p-2 pt-8 space-y-2">
               {post.location && (
                 <div className="flex items-start gap-1 text-[11px] leading-snug text-ink">
@@ -389,6 +390,21 @@ export default function FeedCard({
           </button>
         )}
 
+        {!post.is_mine && post.is_tagged && flipped && (
+          <button
+            type="button"
+            onClick={() => setResharing(true)}
+            aria-label="Reshare this fit"
+            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-ink/50 text-cream flex items-center justify-center backdrop-blur-sm"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+              <polyline points="16 6 12 2 8 6" />
+              <line x1="12" y1="2" x2="12" y2="15" />
+            </svg>
+          </button>
+        )}
+
         {confirmingDelete && flipped && (
           <div className="absolute inset-0 bg-ink/70 backdrop-blur-sm flex flex-col items-center justify-center gap-2 p-3 text-center">
             <p className="text-xs text-cream font-ui font-semibold">Delete this post?</p>
@@ -490,21 +506,6 @@ export default function FeedCard({
             </svg>
           </button>
         </div>
-
-        {!post.is_mine && post.is_tagged && (
-          <button
-            type="button"
-            onClick={() => setResharing(true)}
-            aria-label="Reshare this fit"
-            className="flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs bg-cream/70 text-ink border border-slate/15 hover:border-slate/40 transition-colors"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-              <polyline points="16 6 12 2 8 6" />
-              <line x1="12" y1="2" x2="12" y2="15" />
-            </svg>
-          </button>
-        )}
       </div>
 
       {/* Reshare modal */}
