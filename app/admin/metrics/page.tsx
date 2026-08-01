@@ -4,7 +4,10 @@ import pool from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-function isAdmin(email: string): boolean {
+// Username accounts have no email at all (migration 022), so a null here is a
+// normal signed-in user who simply isn't an admin — not an error.
+function isAdmin(email: string | null | undefined): boolean {
+  if (!email) return false;
   const allowed = (process.env.ADMIN_EMAILS ?? "")
     .split(",")
     .map((e) => e.trim().toLowerCase())

@@ -27,7 +27,10 @@ export default async function PreferencesPage() {
       />
 
       <div className="pt-2 text-center">
-        <p className="text-xs text-ink/40 mb-2">Signed in as {user.email}</p>
+        {/* Username accounts have no email — show the handle instead. */}
+        <p className="text-xs text-ink/40 mb-2">
+          Signed in as {user.username ? `@${user.username}` : user.email}
+        </p>
         <a
           href="/api/auth/logout"
           className="text-sm font-ui font-semibold text-slate underline"

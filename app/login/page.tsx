@@ -1,5 +1,6 @@
 import { getSessionUserId } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import AuthForm from "@/components/AuthForm";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export default async function LoginPage({
   if (existing) redirect("/");
 
   const error = searchParams.error;
+  const invite = typeof searchParams.invite === "string" ? searchParams.invite : undefined;
   const showDevLogin = process.env.NODE_ENV !== "production";
 
   return (
@@ -33,9 +35,17 @@ export default async function LoginPage({
         </div>
       )}
 
+      <AuthForm invite={invite} />
+
+      <div className="w-full max-w-xs flex items-center gap-3 mt-6 mb-4">
+        <span className="flex-1 h-px bg-slate/20" />
+        <span className="text-[11px] font-ui text-ink/40">or</span>
+        <span className="flex-1 h-px bg-slate/20" />
+      </div>
+
       <a
-        href="/api/auth/google"
-        className="btn-primary mt-8 w-full max-w-xs inline-flex items-center justify-center gap-2"
+        href={invite ? `/api/auth/google?invite=${encodeURIComponent(invite)}` : "/api/auth/google"}
+        className="btn-secondary w-full max-w-xs inline-flex items-center justify-center gap-2"
       >
         Continue with Google
       </a>

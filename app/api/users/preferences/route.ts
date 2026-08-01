@@ -23,12 +23,14 @@ export async function PATCH(req: NextRequest) {
       walkthrough_completed,
     } = await req.json();
 
-    // Check username uniqueness if provided
+    // Check username uniqueness if provided. Case-insensitive, matching the
+    // unique index on lower(username) (migration 022) — an exact-match check
+    // would pass here and then fail as a 500 at the UPDATE.
     if (username) {
-      const existing = await pool.query("SELECT id FROM users WHERE username = $1 AND id != $2", [
-        username,
-        userId,
-      ]);
+      const existing = await pool.query(
+        "SELECT id FROM users WHERE lower(username) = lower($1) AND id != $2",
+        [username, userId]
+      );
       if (existing.rows.length > 0) {
         return NextResponse.json({ error: "Username already taken" }, { status: 409 });
       }

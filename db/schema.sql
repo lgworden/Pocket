@@ -6,7 +6,8 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TABLE users (
   id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name          TEXT NOT NULL,
-  email         TEXT UNIQUE NOT NULL,
+  email         TEXT UNIQUE,        -- only set for Google-provisioned accounts
+  password_hash TEXT,               -- scrypt digest for username/password accounts (lib/password.ts)
   display_name  TEXT,               -- custom name for app to use; falls back to name
   location      TEXT,              -- e.g. "Washington, DC" — for weather lookups
   home_address  TEXT,              -- real geocodable address — for travel-time-to-change checks

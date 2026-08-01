@@ -110,7 +110,9 @@ export default function OnboardingInteractive({ user }: { user: User }) {
       {/* Username */}
       <div className="card">
         <label className="text-xs font-ui font-semibold text-slate tracking-wide">
-          Choose your username
+          {/* Already chosen at sign-up for username accounts — this is a
+              chance to change it, not a second demand for one. */}
+          {user.username ? "Your username" : "Choose your username"}
         </label>
         <p className="text-xs text-slate/60 mt-1 mb-2">
           This is how friends will find you. Must be unique.

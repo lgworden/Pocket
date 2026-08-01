@@ -55,7 +55,9 @@
       "Bash(.tools/node-v20.16.0-darwin-arm64/bin/node /private/tmp/claude-501/-Users-lilyworden-Claude-Projects-closet-stylist/687ece26-5e25-4dc0-9d1b-a8d2308493e2/scratchpad/start-pg.mjs)",
       "Bash(mkdir -p \"/Users/lilyworden/Claude/Projects/closet-stylist/app/api/feed/[id]/comments\")",
       "Bash(python3 -c ' *)",
-      "Bash(xargs ls -la)"
+      "Bash(xargs ls -la)",
+      "Bash(PATH=/Users/lilyworden/Claude/Projects/closet-stylist/.tools/node-v20.16.0-darwin-arm64/bin:__TRACKED_VAR__ npx tsc --noEmit)",
+      "Bash(PATH=__TRACKED_VAR__/.tools/node-v20.16.0-darwin-arm64/bin:__TRACKED_VAR__ npm run db:migrate)"
     ]
   }
 }

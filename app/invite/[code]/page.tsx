@@ -43,9 +43,17 @@ export default async function InvitePage({
           {info.inviterName} invited you to Pocket. Sign in to accept and start
           sharing fits.
         </p>
+        {/* Both paths carry the code through, so the callback lands back here
+            to finish accepting once the account exists. */}
+        <Link
+          href={`/login?invite=${encodeURIComponent(params.code)}`}
+          className="btn-primary mt-8 w-full max-w-xs inline-flex items-center justify-center"
+        >
+          Create an account
+        </Link>
         <a
           href={`/api/auth/google?invite=${encodeURIComponent(params.code)}`}
-          className="btn-primary mt-8 w-full max-w-xs inline-flex items-center justify-center"
+          className="btn-secondary mt-3 w-full max-w-xs inline-flex items-center justify-center"
         >
           Continue with Google
         </a>

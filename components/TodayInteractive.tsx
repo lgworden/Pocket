@@ -175,10 +175,27 @@ export default function TodayInteractive({
               </li>
             ))}
           </ul>
-        ) : (
+        ) : calendarConnected ? (
           <div className="text-center py-4">
-            <p className="text-xs text-slate/60">
-              {calendarConnected ? "no events scheduled" : <a href="/api/auth/google?mode=calendar" className="text-blue underline">connect google calendar</a>}
+            <p className="text-xs text-slate/60">no events scheduled</p>
+          </div>
+        ) : (
+          // Entirely optional — the planner works from the free-text plan box
+          // below on its own, so this offers the connection without ever
+          // blocking on it. Google Calendar's API is flaky enough that
+          // requiring it would take the whole screen down with it.
+          <div className="text-center py-3 space-y-1.5">
+            <p className="text-xs text-slate/70">
+              Want your day filled in for you?
+            </p>
+            <a
+              href="/api/auth/google?mode=calendar"
+              className="btn-secondary inline-flex items-center justify-center"
+            >
+              connect google calendar
+            </a>
+            <p className="text-[11px] text-slate/50">
+              Optional — you can always just type your plan below.
             </p>
           </div>
         )}

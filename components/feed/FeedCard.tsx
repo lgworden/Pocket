@@ -21,11 +21,14 @@ import type { Friend } from "@/lib/friends";
 // one always leaves you looking at the thread.
 export default function FeedCard({
   post,
-  friends,
+  // Candidates for "@" mentions in the comment box. Optional: callers that
+  // don't have the viewer's friend list to hand (e.g. a profile page) still
+  // render a working card, just without mention suggestions.
+  friends = [],
   onDeleted,
 }: {
   post: FeedPost;
-  friends: Friend[];
+  friends?: Friend[];
   onDeleted?: (id: string) => void;
 }) {
   const style = VISIBILITY_STYLES[post.visibility];
@@ -115,14 +118,12 @@ export default function FeedCard({
     }
   }
 
+  // Replaces the partial "@que" the caret sits in with the full handle. Only
+  // the text before the "@" is kept — handleCommentChange guarantees the
+  // remainder is the (space-free) query itself.
   function insertMention(friend: Friend) {
-    const beforeAt = draft.substring(0, mentionStartIndex);
-    const afterAt = draft.substring(mentionStartIndex + 1);
-    const afterQuery = afterAt.substring(afterAt.lastIndexOf("@") === -1 ? afterAt.length : afterAt.lastIndexOf("@") + 1);
-
-    const query = afterAt.replace(afterQuery, "");
-    const newText = `${beforeAt}@${friend.name} `;
-    setDraft(newText);
+    const beforeAt = draft.slice(0, mentionStartIndex);
+    setDraft(`${beforeAt}@${friend.name} `);
     setShowMentions(false);
     setMentionSuggestions([]);
   }

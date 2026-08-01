@@ -8,9 +8,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Username required" }, { status: 400 });
     }
 
-    const { rows } = await pool.query("SELECT id FROM users WHERE username = $1", [
-      username,
-    ]);
+    // Case-insensitive, matching the unique index on lower(username) that
+    // actually enforces this (migration 022) — an exact-match check would call
+    // "Nora" available when "nora" already holds it.
+    const { rows } = await pool.query(
+      "SELECT id FROM users WHERE lower(username) = lower($1)",
+      [username]
+    );
 
     return NextResponse.json({ available: rows.length === 0 });
   } catch (err) {
