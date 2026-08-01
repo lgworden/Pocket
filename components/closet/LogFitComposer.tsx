@@ -157,6 +157,7 @@ export default function LogFitComposer({
       open={open}
       onClose={handleModalClose}
       title={view === "tagging" ? "Tag items" : "Log fit"}
+      compact
     >
       {view === "tagging" ? (
         <div className="space-y-4">
@@ -258,18 +259,18 @@ export default function LogFitComposer({
               </button>
             </div>
           ) : (
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => cameraFileRef.current?.click()}
-                className="btn-primary flex-1"
+                className="flex-1 rounded-full px-3 py-1.5 text-xs font-ui font-medium lowercase bg-ink text-cream shadow-soft-sm"
               >
-                📷 Capture
+                Capture
               </button>
               <button
                 type="button"
                 onClick={() => libraryFileRef.current?.click()}
-                className="btn-secondary flex-1"
+                className="flex-1 rounded-full px-3 py-1.5 text-xs font-ui font-medium lowercase bg-panel border border-slate/20 text-ink"
               >
                 Album
               </button>

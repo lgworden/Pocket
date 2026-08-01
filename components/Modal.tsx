@@ -7,11 +7,13 @@ export default function Modal({
   onClose,
   title,
   children,
+  compact = false,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
+  compact?: boolean;
 }) {
   useEffect(() => {
     if (!open) return;
@@ -30,11 +32,13 @@ export default function Modal({
       onClick={onClose}
     >
       <div
-        className="bg-panel rounded-t-3xl sm:rounded-2xl shadow-soft w-full sm:max-w-md max-h-[88vh] overflow-y-auto p-5"
+        className={`bg-panel rounded-t-3xl sm:rounded-2xl shadow-soft w-full max-h-[88vh] overflow-y-auto ${
+          compact ? "sm:max-w-sm p-4" : "sm:max-w-md p-5"
+        }`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-display">{title}</h2>
+        <div className={`flex items-center justify-between ${compact ? "mb-3" : "mb-4"}`}>
+          <h2 className={compact ? "text-lg font-display" : "text-xl font-display"}>{title}</h2>
           <button
             type="button"
             aria-label="close"
