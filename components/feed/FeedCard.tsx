@@ -223,6 +223,13 @@ export default function FeedCard({
 
   return (
     <div className={`rounded-2xl border overflow-hidden shadow-soft-sm ${style.card}`}>
+      {/* Polaroid-style top border, with the poster's name sitting in it. */}
+      <div className="px-2.5 pt-2 pb-1.5">
+        <Link href={`/profile/${post.author_id}`} className="text-[11px] font-ui font-medium text-ink/70 truncate hover:underline">
+          {post.author_name}
+        </Link>
+      </div>
+
       <div className="relative w-full aspect-[4/5] [perspective:1000px]">
         <div
           className={`relative w-full h-full transition-transform duration-500 [transform-style:preserve-3d] ${
@@ -431,11 +438,7 @@ export default function FeedCard({
       </div>
 
       <div className="p-2 space-y-1.5">
-        <div className="flex items-center justify-between gap-2">
-          <Link href={`/profile/${post.author_id}`} className="text-xs text-ink/60 truncate hover:underline">
-            {post.author_name}
-          </Link>
-
+        <div className="flex items-center justify-end gap-2">
           <div className="flex items-center gap-1 shrink-0">
             {REACTIONS.map((r) => {
               const active = mine.includes(r.value);
