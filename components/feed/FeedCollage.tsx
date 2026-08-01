@@ -136,14 +136,15 @@ export default function FeedCollage({
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="columns-2 gap-2">
           {visiblePosts.map((post) => (
-            <FeedCard
-              key={post.id}
-              post={post}
-              friends={friends}
-              onDeleted={(id) => setLivePosts((ps) => ps.filter((p) => p.id !== id))}
-            />
+            <div key={post.id} className="break-inside-avoid mb-2">
+              <FeedCard
+                post={post}
+                friends={friends}
+                onDeleted={(id) => setLivePosts((ps) => ps.filter((p) => p.id !== id))}
+              />
+            </div>
           ))}
         </div>
       )}
