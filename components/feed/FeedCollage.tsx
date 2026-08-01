@@ -76,7 +76,7 @@ export default function FeedCollage({
         <div className="flex items-center gap-2">
           <button
             aria-label="Friends"
-            className="w-9 h-9 rounded-full bg-ink/10 text-ink flex items-center justify-center hover:bg-ink/15 transition"
+            className="icon-btn bg-panel border border-slate/20 text-ink hover:bg-ink/5 transition"
             onClick={() => setFriendsOpen(true)}
           >
             {/* people glyph */}
@@ -88,7 +88,7 @@ export default function FeedCollage({
           </button>
           <button
             aria-label="share fit"
-            className="w-9 h-9 rounded-full bg-ink text-cream flex items-center justify-center hover:opacity-90 transition"
+            className="icon-btn bg-panel border border-slate/20 text-ink hover:bg-ink/5 transition"
             onClick={() => setComposerOpen(true)}
           >
             <CameraIcon />

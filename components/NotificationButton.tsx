@@ -21,11 +21,11 @@ export default function NotificationButton() {
     <Link
       href="/notifications"
       aria-label="notifications"
-      className="btn-primary relative shrink-0 flex items-center justify-center"
+      className="icon-btn bg-panel border border-slate/20 text-ink relative shrink-0"
     >
       ✨
       {unreadCount > 0 && (
-        <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose ring-2 ring-ink" />
+        <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose ring-2 ring-panel" />
       )}
     </Link>
   );
