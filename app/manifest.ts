@@ -13,8 +13,8 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#FBF8F3", // cream — matches the app background
     theme_color: "#FBF8F3",
     icons: [
-      { src: "/apple-icon", sizes: "180x180", type: "image/png" },
-      { src: "/icon", sizes: "32x32", type: "image/png" },
+      { src: "/apple-icon.jpg", sizes: "1254x1254", type: "image/jpeg" },
+      { src: "/icon.jpg", sizes: "1254x1254", type: "image/jpeg" },
     ],
   };
 }
