@@ -4,6 +4,7 @@ import { generateAndSaveRecommendation } from "./recommendations";
 import { getUserPreferenceAnalysis } from "./preferenceAnalyzer";
 import { getWeeklyStyleSummary } from "./anthropic";
 import { DEFAULT_TIMEZONE } from "./time";
+import { sendPushToUser } from "./push";
 
 export type NotificationType =
   | "daily_digest"
@@ -37,6 +38,9 @@ export async function createNotification(
      RETURNING id`,
     [userId, type, title, body, link]
   );
+  // Best-effort — a user with no push subscription just gets the in-app
+  // notification, no error surfaced to the caller.
+  await sendPushToUser(userId, { title, body, link }).catch(() => {});
   return rows[0].id;
 }
 

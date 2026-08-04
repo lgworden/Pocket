@@ -48,6 +48,9 @@ Service → **Variables**:
 | `GOOGLE_REDIRECT_URI` | `https://YOUR-APP.up.railway.app/api/auth/google/callback` (fill in your real domain — see service **Settings → Networking → Public Domain**) |
 | `GOOGLE_MAPS_API_KEY` | Optional — enables the back-to-back-events feature |
 | `CRON_SECRET` | Any random string (used by the notifications cron) |
+| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | Generate a pair: `node -e "console.log(require('web-push').generateVAPIDKeys())"` — use a **different** pair than any you generated for local dev |
+| `VAPID_PRIVATE_KEY` | The matching private key from the same command |
+| `VAPID_SUBJECT` | `mailto:you@example.com` — a contact address push services may use if your key is misbehaving |
 
 Do **not** set `SEED_USER_*` in production — accounts are created on sign-in.
 

@@ -1,22 +1,111 @@
-# Closet Stylist — Claude Code build brief
+# pckt (née Closet Stylist) — Claude Code build brief
 
-This scaffold is set up. Your job is to build it out phase by phase. Full product
-spec lives in `closet-stylist-build-plan.md` in the project root — read it first,
-it's the source of truth for data model, screens, and the recommendation prompt.
+Original product spec lives in `closet-stylist-build-plan.md` in the project root.
+That plan's Phases 1-2 (closet + recommendations) are the foundation this app
+still runs on, but the product has since pivoted social-first (see
+`SOCIAL_PIVOT_PLAN.md`) and grown well past the original phase list. **The
+"Feature inventory" section below reflects what's actually shipped and live
+today (2026-08-03) — treat it as the source of truth over the phase list,
+which is kept only for historical build-order context.** App name settled on
+"pckt" (plain text wordmark).
 
 ## What's already here
 - Next.js 14 (App Router) + TypeScript + Tailwind, configured with the brand's
-  design tokens in `tailwind.config.ts` (colors, Cormorant Garamond for headlines,
-  Inter for UI) — pulled from the brand kit HTML. App name still TBD.
-- `db/schema.sql` — full Postgres schema for all six tables (users, items,
-  outfit_logs, recommendations, badges, vision_boards) plus a derived
-  `item_wear_stats` view. Run `npm run db:migrate` against `DATABASE_URL` to apply it.
+  "clean girl" design tokens in `tailwind.config.ts` (warm neutrals, one
+  caramel accent, rounded corners + soft shadows; Cormorant Garamond for
+  headlines, Inter for UI).
+- `db/schema.sql` — Postgres schema covering users, items, outfit_logs,
+  recommendations, badges, vision_boards, feed_posts, feed_reactions,
+  feed_comments, notifications, friendships, follows, invites,
+  invite_redemptions, events, plus a derived `item_wear_stats` view. Run
+  `npm run db:migrate` against `DATABASE_URL` to apply it. **Note:** the
+  `badges` and `vision_boards` tables exist in the schema but have no
+  application code reading/writing them yet — original Phase 3/4 items that
+  never got built (see Feature inventory below).
 - `lib/db.ts` — pg Pool connection helper.
-- `lib/anthropic.ts` — two Claude API calls stubbed out: `draftItemFromPhoto()`
-  for the Add Item flow, `getRecommendations()` for the Today screen. Both
-  return parsed JSON per the response shapes in the build plan.
-- `app/page.tsx` — a static, styled skeleton of the Today screen so the visual
-  system is validated before real data is wired in.
+- `lib/anthropic.ts` / `lib/mockup.ts` — Claude calls for `draftItemFromPhoto()`
+  (Add Item), `getRecommendations()` (Stylist), and a gpt-image-1 call that
+  composes a single outfit illustration from per-item photos.
+- `app/page.tsx` — now the **Feed**, not a Today skeleton. The Today/outfit
+  recommendation screen lives at `app/stylist/page.tsx`.
+
+## Feature inventory (current, verified live unless noted)
+
+**Auth & onboarding**
+- Username/password signup (primary path) + Google Sign-In (secondary) —
+  `app/login`, `app/api/auth/{register,signin,google,logout}`.
+- `app/welcome` — 4-slide walkthrough carousel for first-time users, gated by
+  `walkthrough_completed`.
+- `app/onboarding` — style questionnaire → `users.style_profile`; app-wide
+  gate via `requireOnboarded()` in `lib/auth.ts`.
+
+**Closet**
+- `app/closet` — split layout: filter rail (category/occasion/color/
+  provenance/status) on the left, scrollable recent-fits reel on the right,
+  icon-only add buttons up top. Category index → per-category list → detail,
+  never a blank photo placeholder (uses `AddPhotoButton`).
+- `app/closet/[id]` — item detail: photo, display_id, all fields, wear
+  history + cost-per-wear from `item_wear_stats`.
+- `app/add-item` — camera-first capture → `draftItemFromPhoto()` → editable
+  confirm form → provenance → insert into `items`. Client-side photo
+  compression before upload.
+- `app/add-item/from-outfit` ("log my items") — upload an outfit photo,
+  Claude decomposes it into multiple draft items with crops, user
+  reviews/skips/saves each into the closet.
+- Remove-item flow (`RemoveItemButton`).
+
+**Stylist (Today screen, `app/stylist`)**
+- Weather strip (Open-Meteo, keyless) + optional day-summary and free-text
+  mood field → assembles recommendation context (style profile, weather, day
+  text, recently-worn items, filtered closet) → `getRecommendations()` →
+  outfit cards with Wore it / show me another / skip.
+- "Shuffle favs" option: recommends a previously-worn outfit matched on
+  weather/plan from `outfit_logs`, no Claude call.
+- Auto-generated outfit mockup illustration (composed multi-item image),
+  cached per unique piece-set.
+- Google Calendar autofill of today's events (`app/api/calendar/today`) —
+  opt-in, requires user's own OAuth credentials.
+- Wore-it writes to `outfit_logs`; self-styled logging has gap-detection
+  (tapping an item not yet in `items` prompts add-item).
+
+**Feed & social**
+- `app/page.tsx` (home) — color-coded masonry `FeedCollage` of shareable
+  outfit posts, 3-tier visibility (friends / close friends / private), 3
+  emoji reactions, share-card rendering (`ShareCardButton`).
+- Follow graph (`FollowButton`, `app/api/follows`) + friend tiers
+  (`app/api/friends`, `FriendSearch`) — search-based discovery.
+- `app/profile`, `app/profile/[id]` — own and others' profiles.
+- `app/invite`, `app/invite/[code]` — generic invite links (not tied to a
+  specific channel), `InviteLinkCard`.
+
+**Notifications**
+- In-app notifications, 4 types, `app/notifications` + `NotificationsList` /
+  `NotificationsModal` / `NotificationButton`; delivered via Railway-cron
+  hitting `app/api/cron/tick`.
+- Web push (home-screen push) on top of in-app: `public/sw.js` service
+  worker, VAPID keys, `PushNotificationSetup` component, `app/api/push`
+  subscribe/unsubscribe. **Not yet fully live** — prod needs its own VAPID
+  key pair set on Railway.
+
+**Pack My Bags** (`app/pack`)
+- 3-3-3 method vacation packing planner: destination multi-day weather,
+  activity chips, airplane-fly animation, generates a packing list from the
+  closet.
+
+**Preferences & profile management** (`app/preferences`)
+- Editable "Your info" / "Notifications" popups (shared pickers, not inline).
+- `StylePicker`, `GoalsPicker`, `NotificationPicker`, avatar upload
+  (`AvatarUpload`), editable location (fixes an earlier bug where a null
+  location silently geocoded to France).
+
+**Admin & observability**
+- `app/admin/metrics` — dashboard gated by `ADMIN_EMAILS` env var.
+- DIY Postgres event logging (`lib/analytics.ts`, `events` table).
+- Sentry error tracking (`sentry.{client,server,edge}.config.ts`).
+
+**Built in schema but not yet implemented in app code**
+- Badges/gamification (`badges` table, no queries against it anywhere).
+- Vision boards (`vision_boards` table, no upload UI or usage).
 
 ## Setup
 ```
@@ -26,7 +115,7 @@ npm run db:migrate
 npm run dev
 ```
 
-## Build order (matches the plan's phases — don't skip ahead)
+## Original build order (historical — Phases 1-2 fully shipped, Phase 3 partially shipped as noted, Phases 4-5 superseded by the social pivot; kept for context only, see Feature inventory above for current state)
 
 ### Phase 1 — Closet
 1. Add a minimal single-user auth (a hardcoded/seeded user row is fine for v1;
