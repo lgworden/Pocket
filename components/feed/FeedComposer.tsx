@@ -196,14 +196,14 @@ export default function FeedComposer({
                 onClick={() => cameraRef.current?.click()}
                 className="w-full rounded-xl bg-ink text-cream text-sm font-ui font-semibold py-2.5 flex items-center justify-center gap-2"
               >
-                <span aria-hidden>📷</span> Take a photo
+                capture
               </button>
               <button
                 type="button"
                 onClick={() => albumRef.current?.click()}
                 className="w-full rounded-xl bg-transparent border border-slate/30 text-ink text-sm font-ui font-semibold py-2.5 flex items-center justify-center gap-2 hover:border-slate/50 transition-colors"
               >
-                <span aria-hidden>🖼</span> Choose from album
+                album
               </button>
             </div>
           </div>
