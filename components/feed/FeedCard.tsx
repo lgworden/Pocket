@@ -387,48 +387,46 @@ export default function FeedCard({
             {/* Comment composer — the only place a comment can be added, so posting
                 one always leaves the viewer on the back, looking at the thread. */}
             <div className="shrink-0 space-y-1 border-t border-slate/15 p-1.5">
-              <div className="flex items-center gap-1.5">
-                <div className="flex-1 min-w-0 relative">
-                  <input
-                    type="text"
-                    value={draft}
-                    onChange={(e) => handleCommentChange(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !showMentions) submitComment();
-                    }}
-                    placeholder="Add a comment…"
-                    maxLength={500}
-                    disabled={posting}
-                    className="w-full bg-transparent border border-slate/25 rounded-full px-2.5 py-1 text-[11px] focus:outline-none focus:border-slate/50 disabled:opacity-60"
-                  />
-                  {showMentions && mentionSuggestions.length > 0 && (
-                    <div className="absolute bottom-full left-0 right-0 mb-1 bg-panel border border-slate/20 rounded-lg shadow-soft-sm max-h-32 overflow-y-auto z-10">
-                      {mentionSuggestions.map((friend) => (
-                        <button
-                          key={friend.id}
-                          type="button"
-                          onClick={() => insertMention(friend)}
-                          className="w-full text-left px-2.5 py-1.5 text-[11px] hover:bg-ink/5 transition first:rounded-t-lg last:rounded-b-lg"
-                        >
-                          {friend.name}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={draft}
+                  onChange={(e) => handleCommentChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !showMentions) submitComment();
+                  }}
+                  placeholder="Add a comment…"
+                  maxLength={500}
+                  disabled={posting}
+                  className="w-full bg-transparent border border-slate/25 rounded-full pl-2.5 pr-7 py-1 text-[11px] focus:outline-none focus:border-slate/50 disabled:opacity-60"
+                />
                 <button
                   type="button"
                   onClick={submitComment}
                   disabled={!draft.trim() || posting}
                   aria-label="Post comment"
-                  className="shrink-0 w-6 h-6 rounded-full bg-ink text-cream flex items-center justify-center disabled:opacity-30"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-ink text-cream flex items-center justify-center disabled:opacity-30"
                 >
                   {/* return/enter glyph — distinct from the card-flip arrow */}
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="9 10 4 15 9 20" />
                     <path d="M20 4v7a4 4 0 0 1-4 4H4" />
                   </svg>
                 </button>
+                {showMentions && mentionSuggestions.length > 0 && (
+                  <div className="absolute bottom-full left-0 right-0 mb-1 bg-panel border border-slate/20 rounded-lg shadow-soft-sm max-h-32 overflow-y-auto z-10">
+                    {mentionSuggestions.map((friend) => (
+                      <button
+                        key={friend.id}
+                        type="button"
+                        onClick={() => insertMention(friend)}
+                        className="w-full text-left px-2.5 py-1.5 text-[11px] hover:bg-ink/5 transition first:rounded-t-lg last:rounded-b-lg"
+                      >
+                        {friend.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -439,9 +437,15 @@ export default function FeedCard({
             type="button"
             onClick={() => setConfirmingDelete(true)}
             aria-label="Delete post"
-            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-ink/50 text-cream flex items-center justify-center text-[11px] backdrop-blur-sm"
+            className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-ink/50 text-cream flex items-center justify-center backdrop-blur-sm"
           >
-            🗑
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+              <path d="M3 6h18" />
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <line x1="10" y1="11" x2="10" y2="17" />
+              <line x1="14" y1="11" x2="14" y2="17" />
+            </svg>
           </button>
         )}
 
@@ -452,10 +456,14 @@ export default function FeedCard({
             aria-label="Reshare this fit"
             className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-ink/50 text-cream flex items-center justify-center backdrop-blur-sm"
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
-              <polyline points="16 6 12 2 8 6" />
-              <line x1="12" y1="2" x2="12" y2="15" />
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+              {/* reshare loop, top arm */}
+              <path d="M4 11V9a3 3 0 0 1 3-3h6" />
+              {/* reshare loop, bottom arm */}
+              <path d="M20 13v2a3 3 0 0 1-3 3H11" />
+              {/* hearts capping each arm, in place of arrowheads */}
+              <path d="M17.5 2.5c-.83 0-1.5.5-1.83 1.2-.33-.7-1-1.2-1.83-1.2-1.1 0-2 .9-2 2.05 0 1.75 1.83 3.05 3.83 4.7 2-1.65 3.83-2.95 3.83-4.7 0-1.15-.9-2.05-2-2.05Z" fill="currentColor" stroke="none" />
+              <path d="M6.5 21.5c.83 0 1.5-.5 1.83-1.2.33.7 1 1.2 1.83 1.2 1.1 0 2-.9 2-2.05 0-1.75-1.83-3.05-3.83-4.7-2 1.65-3.83 2.95-3.83 4.7 0 1.15.9 2.05 2 2.05Z" fill="currentColor" stroke="none" />
             </svg>
           </button>
         )}
@@ -485,7 +493,10 @@ export default function FeedCard({
         )}
       </div>
 
-      <div className="p-2 space-y-1.5">
+      <div className="relative z-10 p-2 space-y-1.5 [transform:translateZ(0)]">
+        {/* relative + translateZ(0): keeps this row in its own compositing
+            layer so the sibling 3D-flip transform above (rotateY + perspective)
+            can't cause it to flicker/vanish on WebKit right after a flip. */}
         {/* Emoji reactions, left-justified over caption. When there's no
             caption, the comment/flip controls fold up onto this row instead
             of leaving a second row with nothing but empty space. */}

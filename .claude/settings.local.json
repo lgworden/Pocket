@@ -60,7 +60,8 @@
       "Bash(PATH=__TRACKED_VAR__/.tools/node-v20.16.0-darwin-arm64/bin:__TRACKED_VAR__ npm run db:migrate)",
       "Bash(psql \"postgres://postgres:postgres@127.0.0.1:15432/closet_stylist\" -c \"SELECT id, name, username FROM users;\")",
       "Bash(node -e ' *)",
-      "Bash(shasum -a 256 public/app-icon.png)"
+      "Bash(shasum -a 256 public/app-icon.png)",
+      "Bash(PGPASSWORD=postgres psql -h 127.0.0.1 -p 15432 -U postgres -d closet_stylist -c \"select id, caption, photo_path, created_at from feed_posts order by created_at desc limit 15;\")"
     ]
   }
 }
