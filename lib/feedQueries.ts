@@ -64,7 +64,12 @@ export async function getFeedPosts(
          ) t
        ) AS reaction_counts,
        (
-         SELECT COALESCE(array_agg(reaction), '{}')
+         -- Cast to text[]: array_agg() over the feed_reaction enum column
+         -- produces an array of a custom-enum OID that node-postgres has no
+         -- parser for, so it comes back as a raw "{fire}" string instead of
+         -- a JS array — silently breaking client code (mine.filter(...))
+         -- that expects my_reactions to be an actual array.
+         SELECT COALESCE(array_agg(reaction)::text[], '{}')
          FROM feed_reactions WHERE post_id = p.id AND user_id = $1
        ) AS my_reactions,
        (
