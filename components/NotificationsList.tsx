@@ -10,7 +10,8 @@ type Notification = {
     | "weekly_style_analysis"
     | "weekly_feed_summary"
     | "ootd_reminder"
-    | "new_follower";
+    | "new_follower"
+    | "new_friend";
   title: string;
   body: string;
   link: string | null;
@@ -24,6 +25,7 @@ const TYPE_ICON: Record<Notification["type"], string> = {
   weekly_feed_summary: "📸",
   ootd_reminder: "📣",
   new_follower: "👋",
+  new_friend: "🤝",
 };
 
 function timeAgo(iso: string): string {

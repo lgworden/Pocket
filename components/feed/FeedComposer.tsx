@@ -12,6 +12,10 @@ import type { Friend } from "@/lib/friends";
 // optional caption, location, and friend tags → share. Photo is compressed
 // client-side and only uploaded on "Share", matching the Add Item flow's
 // budget-conscious approach.
+//
+// Two separate file inputs back the photo step: `capture="environment"` opens
+// the camera directly on mobile, but it also *blocks* the album picker, so the
+// album option needs its own input without the attribute.
 export default function FeedComposer({
   open,
   onClose,
@@ -23,7 +27,8 @@ export default function FeedComposer({
   onPosted: () => void;
   friends: Friend[];
 }) {
-  const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const albumRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [payload, setPayload] = useState<{ base64: string; mediaType: string } | null>(null);
   // Unfiltered source (data URL) kept around so re-editing starts from the original,
@@ -47,7 +52,14 @@ export default function FeedComposer({
     setLocation("");
     setTaggedFriendIds([]);
     setError(null);
-    if (fileRef.current) fileRef.current.value = "";
+    clearInputs();
+  }
+
+  // Both inputs get cleared together so re-picking the same file still fires
+  // onChange, whichever source it came from.
+  function clearInputs() {
+    if (cameraRef.current) cameraRef.current.value = "";
+    if (albumRef.current) albumRef.current.value = "";
   }
 
   function toggleFriend(id: string) {
@@ -121,7 +133,7 @@ export default function FeedComposer({
             // No baked result yet → drop back to the empty picker.
             if (!payload) {
               setOrigSrc(null);
-              if (fileRef.current) fileRef.current.value = "";
+              clearInputs();
             }
           }}
           onDone={handleEdited}
@@ -152,7 +164,7 @@ export default function FeedComposer({
                 setPreview(null);
                 setPayload(null);
                 setOrigSrc(null);
-                if (fileRef.current) fileRef.current.value = "";
+                clearInputs();
               }}
               className="absolute top-2 right-2 bg-ink/70 text-cream rounded-full w-8 h-8 flex items-center justify-center text-lg leading-none"
               aria-label="Remove photo"
@@ -161,18 +173,40 @@ export default function FeedComposer({
             </button>
           </div>
         ) : (
-          <label className="aspect-square bg-blue/10 rounded-xl border border-dashed border-slate/40 flex flex-col items-center justify-center gap-2 cursor-pointer text-slate">
+          <div className="aspect-square bg-blue/10 rounded-xl border border-dashed border-slate/40 flex flex-col items-center justify-center gap-4 text-slate px-6">
             <input
-              ref={fileRef}
+              ref={cameraRef}
               type="file"
               accept="image/*"
               capture="environment"
               className="hidden"
               onChange={handleFile}
             />
-            <span className="text-3xl leading-none">＋</span>
+            <input
+              ref={albumRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFile}
+            />
             <span className="text-sm">Add a photo</span>
-          </label>
+            <div className="w-full space-y-2">
+              <button
+                type="button"
+                onClick={() => cameraRef.current?.click()}
+                className="w-full rounded-xl bg-ink text-cream text-sm font-ui font-semibold py-2.5 flex items-center justify-center gap-2"
+              >
+                <span aria-hidden>📷</span> Take a photo
+              </button>
+              <button
+                type="button"
+                onClick={() => albumRef.current?.click()}
+                className="w-full rounded-xl bg-transparent border border-slate/30 text-ink text-sm font-ui font-semibold py-2.5 flex items-center justify-center gap-2 hover:border-slate/50 transition-colors"
+              >
+                <span aria-hidden>🖼</span> Choose from album
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Visibility */}

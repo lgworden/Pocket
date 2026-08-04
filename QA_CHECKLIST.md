@@ -69,6 +69,12 @@ Run date: ____________  Commit/deploy: ____________  Tester: ____________
 ## 4. Feed & social
 - [ ] Home feed (`/`) loads the masonry collage without layout breakage at
       mobile width.
+- [ ] Share-fit composer offers both "take a photo" (opens the camera) and
+      "choose from album" (opens the photo library) on a real phone.
+- [ ] Bottom nav slides fully out of view when scrolling down and comes back
+      opaque when scrolling up; always visible near the top of the page.
+- [ ] Close-friend heart: white for a plain friend, red once promoted, with a
+      brief "@user is now your close friend" confirmation on promotion.
 - [ ] Create a feed post from a logged outfit with each visibility tier
       (friends / close friends / private) — confirm a second test account in
       the right tier can/can't see it accordingly.
@@ -85,9 +91,12 @@ Run date: ____________  Commit/deploy: ____________  Tester: ____________
       session, and confirm it lands in signup pre-filled/linked correctly.
 
 ## 5. Notifications
-- [ ] Trigger each of the 4 notification types (check `lib/notifications.ts`
+- [ ] Trigger each of the 6 notification types (check `lib/notifications.ts`
       for the current list) and confirm each shows up in `/notifications`
       with correct copy and links to the right place.
+- [ ] Friending a second test account fires a `new_friend` notification to the
+      person who was added (both via friend search and via an invite link),
+      and re-adding an existing friend does *not* fire a duplicate.
 - [ ] "Mark all read" clears the unread badge/count.
 - [ ] Cron tick (`/api/cron/tick`) run manually in a non-prod environment
       generates the expected notifications without duplicating existing ones.

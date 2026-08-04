@@ -11,7 +11,8 @@ export type NotificationType =
   | "weekly_style_analysis"
   | "weekly_feed_summary"
   | "ootd_reminder"
-  | "new_follower";
+  | "new_follower"
+  | "new_friend";
 
 export type NotificationRow = {
   id: string;
@@ -219,8 +220,8 @@ export async function generateOotdReminder(user: UserRow): Promise<boolean> {
   await createNotification(
     user.id,
     "ootd_reminder",
-    "Post today's outfit",
-    "Don't forget to share your outfit of the day on the feed!",
+    "fit check",
+    "time to post today's look!",
     "/"
   );
   return true;

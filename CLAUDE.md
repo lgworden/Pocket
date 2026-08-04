@@ -72,16 +72,26 @@ which is kept only for historical build-order context.** App name settled on
 - `app/page.tsx` (home) — color-coded masonry `FeedCollage` of shareable
   outfit posts, 3-tier visibility (friends / close friends / private), 3
   emoji reactions, share-card rendering (`ShareCardButton`).
+- `FeedComposer` photo step offers both camera capture and album pick (two
+  file inputs — `capture="environment"` opens the camera but suppresses the
+  album picker, so each source needs its own input).
 - Follow graph (`FollowButton`, `app/api/follows`) + friend tiers
-  (`app/api/friends`, `FriendSearch`) — search-based discovery.
+  (`app/api/friends`, `FriendSearch`) — search-based discovery. Close-friend
+  tier is toggled by an SVG heart in `FriendsModal`: white = friend,
+  red = close friend, with a transient "@user is now your close friend"
+  confirmation on promotion.
+- `BottomNav` hides itself on scroll-down and reappears (fully opaque) on
+  scroll-up; always shown near the top of the page.
 - `app/profile`, `app/profile/[id]` — own and others' profiles.
 - `app/invite`, `app/invite/[code]` — generic invite links (not tied to a
   specific channel), `InviteLinkCard`.
 
 **Notifications**
-- In-app notifications, 4 types, `app/notifications` + `NotificationsList` /
-  `NotificationsModal` / `NotificationButton`; delivered via Railway-cron
-  hitting `app/api/cron/tick`.
+- In-app notifications, 6 types, `app/notifications` + `NotificationsList` /
+  `NotificationsModal` / `NotificationButton`; the scheduled ones are
+  delivered via Railway-cron hitting `app/api/cron/tick`, while `new_follower`
+  and `new_friend` fire inline from `lib/follows.ts` / `lib/friends.ts` at the
+  moment the relationship is created.
 - Web push (home-screen push) on top of in-app: `public/sw.js` service
   worker, VAPID keys, `PushNotificationSetup` component, `app/api/push`
   subscribe/unsubscribe. **Not yet fully live** — prod needs its own VAPID

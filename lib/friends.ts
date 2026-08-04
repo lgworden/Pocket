@@ -1,12 +1,14 @@
 import crypto from "crypto";
 import { headers } from "next/headers";
 import pool from "./db";
+import { createNotification } from "./notifications";
 
 export type FriendTier = "friend" | "close_friend";
 
 export type Friend = {
   id: string;
   name: string;
+  username: string | null;
   tier: FriendTier;
 };
 
@@ -15,6 +17,7 @@ export async function getFriends(userId: string): Promise<Friend[]> {
   const { rows } = await pool.query<Friend>(
     `SELECT f.friend_id AS id,
             COALESCE(u.display_name, u.name) AS name,
+            u.username,
             f.tier
        FROM friendships f
        JOIN users u ON u.id = f.friend_id
@@ -23,6 +26,29 @@ export async function getFriends(userId: string): Promise<Friend[]> {
     [userId]
   );
   return rows;
+}
+
+// Tell `recipientId` that `actorId` just friended them. Best-effort: a failure
+// here must never fail the friending itself. createNotification also fires the
+// web push, so this covers both in-app and on-device delivery.
+async function notifyNewFriend(recipientId: string, actorId: string): Promise<void> {
+  try {
+    const { rows } = await pool.query<{ name: string; username: string | null }>(
+      "SELECT COALESCE(display_name, name) AS name, username FROM users WHERE id = $1",
+      [actorId]
+    );
+    const actor = rows[0];
+    const label = actor?.username ? `@${actor.username}` : actor?.name ?? "Someone";
+    await createNotification(
+      recipientId,
+      "new_friend",
+      "New friend",
+      `${label} added you as a friend.`,
+      `/profile/${actorId}`
+    );
+  } catch (err) {
+    console.error("Failed to send new-friend notification:", err);
+  }
 }
 
 // One reusable invite code per user — created on first request, reused after.
@@ -146,9 +172,12 @@ export async function acceptInvite(code: string, accepterId: string): Promise<Ac
     [inviteId, accepterId]
   );
 
-  return already.rows.length > 0
-    ? { status: "already_friends", inviterName }
-    : { status: "accepted", inviterName };
+  if (already.rows.length > 0) return { status: "already_friends", inviterName };
+
+  // New friendship via invite — the inviter finds out the same way they would
+  // from a search-based add.
+  await notifyNewFriend(inviterId, accepterId);
+  return { status: "accepted", inviterName };
 }
 
 // Update how `userId` categorizes `friendId` (gates which of userId's posts
@@ -174,11 +203,17 @@ export async function removeFriend(userId: string, friendId: string): Promise<vo
   );
 }
 
-// Add a friend by user ID (used when searching by username)
+// Add a friend by user ID (used when searching by username). Notifies the other
+// side — but only on a genuinely new friendship: RETURNING comes back empty when
+// both directed rows already existed, so re-adding never re-notifies.
 export async function addFriend(userId: string, friendId: string): Promise<void> {
-  await pool.query(
+  const { rows } = await pool.query(
     `INSERT INTO friendships (user_id, friend_id) VALUES ($1, $2), ($2, $1)
-     ON CONFLICT (user_id, friend_id) DO NOTHING`,
+     ON CONFLICT (user_id, friend_id) DO NOTHING
+     RETURNING user_id`,
     [userId, friendId]
   );
+  if (rows.length === 0) return;
+
+  await notifyNewFriend(friendId, userId);
 }

@@ -1,13 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Modal from "@/components/Modal";
 import FriendSearch from "@/components/FriendSearch";
 import type { Friend, FriendTier } from "@/lib/friends";
 
-// Manage friends. Close-friend is a per-viewer toggle, shown as a heart:
+// A heart in one of two states: white (a plain friend) or filled red (a close
+// friend, who additionally sees your "close friends" posts). Drawn as an SVG
+// rather than the 🤍/❤️ emoji so the two states are unmistakable across
+// platforms — emoji hearts render at wildly different weights and some fonts
+// barely distinguish the white one from the background.
+function Heart({ close }: { close: boolean }) {
+  return (
+    <svg viewBox="0 0 24 24" className="w-5 h-5" aria-hidden>
+      <path
+        d="M12 20.5 4.7 13.4a4.6 4.6 0 0 1 0-6.6 4.8 4.8 0 0 1 6.7 0l.6.6.6-.6a4.8 4.8 0 0 1 6.7 0 4.6 4.6 0 0 1 0 6.6z"
+        fill={close ? "#B97A66" : "#FFFFFF"}
+        stroke={close ? "#B97A66" : "#2E2924"}
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+// Manage friends. Close-friend is a per-viewer toggle, shown as that heart:
 // turning it on lets that friend see your "close friends" posts.
 export default function FriendsModal({
   open,
@@ -21,17 +40,40 @@ export default function FriendsModal({
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
+
+  function flash(message: string) {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    setToast(message);
+    toastTimer.current = setTimeout(() => setToast(null), 2600);
+  }
 
   async function toggleTier(friend: Friend) {
     const next: FriendTier = friend.tier === "close_friend" ? "friend" : "close_friend";
     setBusyId(friend.id);
     try {
-      await fetch(`/api/friends/${friend.id}/tier`, {
+      const res = await fetch(`/api/friends/${friend.id}/tier`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ tier: next }),
       });
+      if (!res.ok) throw new Error("tier update failed");
+      // Only the promotion is worth announcing — demoting back to a plain
+      // friend is self-evident from the heart going white again.
+      if (next === "close_friend") {
+        const handle = friend.username ? `@${friend.username}` : friend.name;
+        flash(`${handle} is now your close friend`);
+      }
       router.refresh();
+    } catch {
+      flash("Couldn't update that — try again?");
     } finally {
       setBusyId(null);
     }
@@ -98,9 +140,9 @@ export default function FriendsModal({
                         : `Mark ${f.name} as a close friend`
                     }
                     aria-pressed={f.tier === "close_friend"}
-                    className="text-lg leading-none w-9 h-9 rounded-full flex items-center justify-center hover:bg-ink/10 transition disabled:opacity-50"
+                    className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-ink/10 transition disabled:opacity-50"
                   >
-                    {f.tier === "close_friend" ? "❤️" : "🤍"}
+                    <Heart close={f.tier === "close_friend"} />
                   </button>
                   <button
                     onClick={() => setConfirmId(f.id)}
@@ -115,6 +157,15 @@ export default function FriendsModal({
             )
           )}
         </ul>
+      )}
+
+      {toast && (
+        <p
+          role="status"
+          className="mt-4 rounded-full bg-ink text-cream text-xs font-ui font-medium text-center px-4 py-2.5"
+        >
+          {toast}
+        </p>
       )}
     </Modal>
   );

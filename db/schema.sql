@@ -145,7 +145,8 @@ CREATE TYPE notification_type AS ENUM (
   'weekly_style_analysis',
   'weekly_feed_summary',
   'ootd_reminder',
-  'new_follower'
+  'new_follower',
+  'new_friend'
 );
 
 CREATE TABLE notifications (
