@@ -432,7 +432,7 @@ export default function FeedCard({
           </div>
         </div>
 
-        {post.is_mine && flipped && !confirmingDelete && (
+        {post.is_mine && !confirmingDelete && (
           <button
             type="button"
             onClick={() => setConfirmingDelete(true)}
@@ -468,7 +468,7 @@ export default function FeedCard({
           </button>
         )}
 
-        {confirmingDelete && flipped && (
+        {confirmingDelete && (
           <div className="absolute inset-0 bg-ink/70 backdrop-blur-sm flex flex-col items-center justify-center gap-2 p-3 text-center">
             <p className="text-xs text-cream font-ui font-semibold">Delete this post?</p>
             <div className="flex gap-2">
