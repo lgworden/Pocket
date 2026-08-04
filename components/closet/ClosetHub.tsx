@@ -95,7 +95,7 @@ export default function ClosetHub({
       </div>
 
       <div className="flex gap-3 items-start">
-        <div className="w-[92px] shrink-0 sticky top-4 flex flex-col gap-4 items-center">
+        <div className="w-[92px] shrink-0 sticky top-4 flex flex-col gap-4 items-start">
           {categoryNav}
         </div>
 
