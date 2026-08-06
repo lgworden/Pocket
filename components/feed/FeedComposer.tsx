@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import Modal from "@/components/Modal";
 import PhotoEditor from "@/components/feed/PhotoEditor";
+import PhotoSourceSheet from "@/components/PhotoSourceSheet";
 import { compressImage } from "@/lib/compressImage";
 import { isNativePlatform, pickNativePhoto } from "@/lib/nativePhoto";
 import { celebrate } from "@/lib/confetti";
@@ -42,6 +43,7 @@ export default function FeedComposer({
   const [taggedFriendIds, setTaggedFriendIds] = useState<string[]>([]);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [albumSheetOpen, setAlbumSheetOpen] = useState(false);
 
   function reset() {
     setPreview(null);
@@ -96,6 +98,11 @@ export default function FeedComposer({
   // The native check is deliberately synchronous: on the web we must call
   // .click() inside the original event handler, since awaiting first would
   // spend the transient user activation that lets a file picker open at all.
+  //
+  // "album" branches further on native: @capacitor/camera has no Files
+  // source, so getting a Files option there means asking the user which of
+  // our two app-level choices they want (see PhotoSourceSheet) rather than
+  // going straight to the Camera plugin's Photos-only picker.
   function choosePhoto(
     source: "camera" | "album",
     webInput: HTMLInputElement | null
@@ -105,9 +112,24 @@ export default function FeedComposer({
       webInput?.click();
       return;
     }
+    if (source === "album") {
+      setAlbumSheetOpen(true);
+      return;
+    }
     void (async () => {
       try {
         const result = await pickNativePhoto(source);
+        if (result.status === "photo") acceptPhoto(result);
+      } catch {
+        setError("Couldn't read that photo — try another?");
+      }
+    })();
+  }
+
+  function pickFromNativeLibrary() {
+    void (async () => {
+      try {
+        const result = await pickNativePhoto("album");
         if (result.status === "photo") acceptPhoto(result);
       } catch {
         setError("Couldn't read that photo — try another?");
@@ -233,6 +255,13 @@ export default function FeedComposer({
                 album
               </button>
             </div>
+
+            <PhotoSourceSheet
+              open={albumSheetOpen}
+              onClose={() => setAlbumSheetOpen(false)}
+              onChooseLibrary={pickFromNativeLibrary}
+              onChooseFile={() => albumRef.current?.click()}
+            />
           </div>
         )}
 

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { compressImage } from "@/lib/compressImage";
 import { isNativePlatform, pickNativePhoto } from "@/lib/nativePhoto";
+import PhotoSourceSheet from "@/components/PhotoSourceSheet";
 
 // Compact tap target for items with no photo yet — deliberately not a blank
 // image block. Captures, compresses, and uploads a photo inline from a list row.
@@ -13,6 +14,7 @@ export default function AddPhotoButton({ itemId }: { itemId: string }) {
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [albumSheetOpen, setAlbumSheetOpen] = useState(false);
 
   async function upload(compressed: { base64: string; mediaType: string }) {
     setUploading(true);
@@ -42,6 +44,11 @@ export default function AddPhotoButton({ itemId }: { itemId: string }) {
   // Synchronous native check so the web path still calls .click() inside the
   // original event handler — awaiting first would burn the user activation
   // that a file picker needs to open.
+  //
+  // "album" branches further on native: @capacitor/camera has no Files
+  // source, so a Files option there means asking which of our two app-level
+  // choices the user wants (see PhotoSourceSheet) rather than going straight
+  // to the Camera plugin's Photos-only picker.
   function choosePhoto(
     source: "camera" | "album",
     webInput: HTMLInputElement | null
@@ -50,8 +57,19 @@ export default function AddPhotoButton({ itemId }: { itemId: string }) {
       webInput?.click();
       return;
     }
+    if (source === "album") {
+      setAlbumSheetOpen(true);
+      return;
+    }
     void (async () => {
       const result = await pickNativePhoto(source);
+      if (result.status === "photo") await upload(result);
+    })();
+  }
+
+  function pickFromNativeLibrary() {
+    void (async () => {
+      const result = await pickNativePhoto("album");
       if (result.status === "photo") await upload(result);
     })();
   }
@@ -112,6 +130,13 @@ export default function AddPhotoButton({ itemId }: { itemId: string }) {
           </div>
         </>
       )}
+
+      <PhotoSourceSheet
+        open={albumSheetOpen}
+        onClose={() => setAlbumSheetOpen(false)}
+        onChooseLibrary={pickFromNativeLibrary}
+        onChooseFile={() => uploadInputRef.current?.click()}
+      />
     </div>
   );
 }

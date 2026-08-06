@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Modal from "@/components/Modal";
 import { compressImage } from "@/lib/compressImage";
 import { isNativePlatform, pickNativePhoto } from "@/lib/nativePhoto";
+import PhotoSourceSheet from "@/components/PhotoSourceSheet";
 import { celebrate } from "@/lib/confetti";
 
 type PickerItem = {
@@ -55,6 +56,7 @@ export default function LogFitComposer({
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [albumSheetOpen, setAlbumSheetOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -107,6 +109,11 @@ export default function LogFitComposer({
   // Synchronous native check so the web path keeps calling .click() inside the
   // original event handler — awaiting first would spend the transient user
   // activation a file picker needs.
+  //
+  // "album" branches further on native: @capacitor/camera has no Files
+  // source, so a Files option there means asking which of our two app-level
+  // choices the user wants (see PhotoSourceSheet) rather than going straight
+  // to the Camera plugin's Photos-only picker.
   function choosePhoto(
     source: "camera" | "album",
     webInput: HTMLInputElement | null
@@ -116,9 +123,24 @@ export default function LogFitComposer({
       webInput?.click();
       return;
     }
+    if (source === "album") {
+      setAlbumSheetOpen(true);
+      return;
+    }
     void (async () => {
       try {
         const result = await pickNativePhoto(source);
+        if (result.status === "photo") acceptPhoto(result);
+      } catch {
+        setError("Couldn't read that photo — try another?");
+      }
+    })();
+  }
+
+  function pickFromNativeLibrary() {
+    void (async () => {
+      try {
+        const result = await pickNativePhoto("album");
         if (result.status === "photo") acceptPhoto(result);
       } catch {
         setError("Couldn't read that photo — try another?");
@@ -302,6 +324,13 @@ export default function LogFitComposer({
               </button>
             </div>
           )}
+
+          <PhotoSourceSheet
+            open={albumSheetOpen}
+            onClose={() => setAlbumSheetOpen(false)}
+            onChooseLibrary={pickFromNativeLibrary}
+            onChooseFile={() => libraryFileRef.current?.click()}
+          />
 
           {/* Item tagging */}
           <div>

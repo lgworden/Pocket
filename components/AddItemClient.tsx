@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import { compressImage } from "@/lib/compressImage";
 import { isNativePlatform, pickNativePhoto } from "@/lib/nativePhoto";
+import PhotoSourceSheet from "@/components/PhotoSourceSheet";
 import { celebrate } from "@/lib/confetti";
 import { CATEGORIES, OCCASIONS, PROVENANCES } from "@/lib/itemOptions";
 
@@ -34,6 +35,7 @@ export default function AddItemClient() {
   const [tags, setTags] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const [albumSheetOpen, setAlbumSheetOpen] = useState(false);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -44,6 +46,11 @@ export default function AddItemClient() {
   // Synchronous native check so the web path keeps calling .click() inside the
   // original event handler — awaiting first would spend the transient user
   // activation a file picker needs.
+  //
+  // "album" branches further on native: @capacitor/camera has no Files
+  // source, so a Files option there means asking which of our two app-level
+  // choices the user wants (see PhotoSourceSheet) rather than going straight
+  // to the Camera plugin's Photos-only picker.
   function choosePhoto(
     source: "camera" | "album",
     webInput: HTMLInputElement | null
@@ -52,8 +59,19 @@ export default function AddItemClient() {
       webInput?.click();
       return;
     }
+    if (source === "album") {
+      setAlbumSheetOpen(true);
+      return;
+    }
     void (async () => {
       const result = await pickNativePhoto(source);
+      if (result.status === "photo") await draftFromPhoto(result);
+    })();
+  }
+
+  function pickFromNativeLibrary() {
+    void (async () => {
+      const result = await pickNativePhoto("album");
       if (result.status === "photo") await draftFromPhoto(result);
     })();
   }
@@ -184,6 +202,13 @@ export default function AddItemClient() {
               Album
             </button>
           </div>
+
+          <PhotoSourceSheet
+            open={albumSheetOpen}
+            onClose={() => setAlbumSheetOpen(false)}
+            onChooseLibrary={pickFromNativeLibrary}
+            onChooseFile={() => libraryInputRef.current?.click()}
+          />
         </div>
       )}
 
