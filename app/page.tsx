@@ -18,7 +18,7 @@ export default async function HomePage({
   ]);
 
   return (
-    <main className="px-4 pt-6 pb-24">
+    <main className="px-4 pt-6 pb-32">
       <FeedCollage
         posts={posts}
         friends={friends}

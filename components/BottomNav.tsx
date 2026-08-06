@@ -57,7 +57,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-hidden={hidden}
-      className={`fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-panel opacity-100 border-t border-slate/25 rounded-t-2xl shadow-soft flex items-center justify-around py-3 px-4 transition-transform duration-300 ease-out ${
+      className={`fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-panel opacity-100 border-t border-slate/25 rounded-t-2xl shadow-soft flex items-center justify-around py-3 px-4 will-change-transform transition-transform duration-200 ease-out ${
         hidden ? "translate-y-full pointer-events-none" : "translate-y-0"
       }`}
     >
