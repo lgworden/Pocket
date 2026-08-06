@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Modal from "@/components/Modal";
 import { compressImage } from "@/lib/compressImage";
+import { isNativePlatform, pickNativePhoto } from "@/lib/nativePhoto";
 import { celebrate } from "@/lib/confetti";
 
 type PickerItem = {
@@ -87,17 +88,42 @@ export default function LogFitComposer({
     }
   }
 
+  function acceptPhoto(compressed: { base64: string; mediaType: string }) {
+    setPayload(compressed);
+    setPreview(`data:${compressed.mediaType};base64,${compressed.base64}`);
+  }
+
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     setError(null);
     try {
-      const compressed = await compressImage(file);
-      setPayload(compressed);
-      setPreview(`data:${compressed.mediaType};base64,${compressed.base64}`);
+      acceptPhoto(await compressImage(file));
     } catch {
       setError("Couldn't read that photo — try another?");
     }
+  }
+
+  // Synchronous native check so the web path keeps calling .click() inside the
+  // original event handler — awaiting first would spend the transient user
+  // activation a file picker needs.
+  function choosePhoto(
+    source: "camera" | "album",
+    webInput: HTMLInputElement | null
+  ) {
+    setError(null);
+    if (!isNativePlatform()) {
+      webInput?.click();
+      return;
+    }
+    void (async () => {
+      try {
+        const result = await pickNativePhoto(source);
+        if (result.status === "photo") acceptPhoto(result);
+      } catch {
+        setError("Couldn't read that photo — try another?");
+      }
+    })();
   }
 
   function toggleItem(id: string) {
@@ -262,14 +288,14 @@ export default function LogFitComposer({
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={() => cameraFileRef.current?.click()}
+                onClick={() => choosePhoto("camera", cameraFileRef.current)}
                 className="flex-1 rounded-full px-3 py-1.5 text-xs font-ui font-medium lowercase bg-ink text-cream shadow-soft-sm"
               >
                 Capture
               </button>
               <button
                 type="button"
-                onClick={() => libraryFileRef.current?.click()}
+                onClick={() => choosePhoto("album", libraryFileRef.current)}
                 className="flex-1 rounded-full px-3 py-1.5 text-xs font-ui font-medium lowercase bg-panel border border-slate/20 text-ink"
               >
                 Album

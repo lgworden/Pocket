@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-type Notification = {
+export type Notification = {
   id: string;
   type:
     | "daily_digest"
@@ -87,7 +87,9 @@ export default function NotificationsList({
             n.read_at ? "opacity-70" : "border-blue/40 bg-blue/5"
           }`}
         >
-          <span className="text-xl leading-none mt-0.5">{TYPE_ICON[n.type]}</span>
+          <span className="w-9 h-9 rounded-full bg-cream border border-slate/15 flex items-center justify-center text-base leading-none shrink-0">
+            {TYPE_ICON[n.type]}
+          </span>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <p className="text-sm font-ui font-semibold text-ink">{n.title}</p>

@@ -113,6 +113,32 @@ which is kept only for historical build-order context.** App name settled on
 - DIY Postgres event logging (`lib/analytics.ts`, `events` table).
 - Sentry error tracking (`sentry.{client,server,edge}.config.ts`).
 
+**Native app shell (Capacitor)**
+- `capacitor.config.ts` + `android/` + `ios/` — thin native wrapper whose
+  WebView loads the **deployed URL** (`server.url`), not a bundled build, since
+  the app depends on SSR, session cookies, and API routes. Consequence worth
+  remembering: **shipping to Railway updates the native app instantly, with no
+  App Store / Play resubmission.** Only native-surface changes (a new plugin,
+  icons, permission strings) need a rebuild. Override the target with
+  `PCKT_APP_URL` to test the shell against a LAN dev server.
+- `lib/nativePhoto.ts` — the only reason the shell exists. A browser
+  `<input type="file">` can't restrict the OS picker to the camera roll (the
+  Files/Browse entry is always offered and no attribute suppresses it); the
+  native Camera plugin can. Every picker call site branches through it:
+  FeedComposer, AddPhotoButton, AddItemClient, LogFitComposer, AvatarUpload,
+  AddFromOutfitClient.
+- **Two invariants to preserve when touching a photo picker:**
+  1. The native check (`isNativePlatform()`) must stay *synchronous* before the
+     web `.click()` — awaiting first spends the transient user activation a
+     file picker needs, which silently breaks it in Safari.
+  2. `@capacitor/*` must never be statically imported into client components.
+     Detection reads the `window.Capacitor` global and the plugin is behind a
+     dynamic `import()`, which keeps it a lazy ~13 kB chunk that browser users
+     never fetch (verified: 0 occurrences in the shared first-load bundles).
+- Not yet buildable on this machine: `npx cap add ios` scaffolded `ios/`, but
+  `pod install` was skipped — needs full Xcode (not just Command Line Tools)
+  plus CocoaPods. Android needs Android Studio / the SDK to build.
+
 **Built in schema but not yet implemented in app code**
 - Badges/gamification (`badges` table, no queries against it anywhere).
 - Vision boards (`vision_boards` table, no upload UI or usage).

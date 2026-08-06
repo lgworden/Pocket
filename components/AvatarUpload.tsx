@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { compressImage } from "@/lib/compressImage";
+import { isNativePlatform, pickNativePhoto } from "@/lib/nativePhoto";
 
 // Circular profile photo. Read-only for everyone except the profile's owner,
 // who can tap it to capture/upload a new one (compressed client-side, same
@@ -26,22 +27,39 @@ export default function AvatarUpload({
     return chars.join("").toUpperCase();
   })();
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function upload(compressed: { base64: string; mediaType: string }) {
     setUploading(true);
     try {
-      const { base64, mediaType } = await compressImage(file);
       await fetch("/api/users/avatar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64, mediaType }),
+        body: JSON.stringify({
+          image: compressed.base64,
+          mediaType: compressed.mediaType,
+        }),
       });
       router.refresh();
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = "";
     }
+  }
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await upload(await compressImage(file));
+  }
+
+  // On the web the <label> opens the input by itself, with no JS involved —
+  // leave that path alone and only intervene inside the native shell.
+  function handleLabelClick(e: React.MouseEvent) {
+    if (!isNativePlatform()) return;
+    e.preventDefault();
+    void (async () => {
+      const result = await pickNativePhoto("prompt");
+      if (result.status === "photo") await upload(result);
+    })();
   }
 
   const circle = (
@@ -58,7 +76,7 @@ export default function AvatarUpload({
   if (!editable) return circle;
 
   return (
-    <label className="relative shrink-0 cursor-pointer">
+    <label className="relative shrink-0 cursor-pointer" onClick={handleLabelClick}>
       <input
         ref={fileRef}
         type="file"

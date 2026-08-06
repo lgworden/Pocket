@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import { compressImage } from "@/lib/compressImage";
+import { isNativePlatform, pickNativeBlob } from "@/lib/nativePhoto";
 import { cropImage, type BoundingBox } from "@/lib/cropImage";
 import { celebrate } from "@/lib/confetti";
 import { CATEGORIES, OCCASIONS } from "@/lib/itemOptions";
@@ -112,6 +113,21 @@ export default function AddFromOutfitClient() {
     const file = e.target.files?.[0];
     if (!file) return;
     await analyze(file);
+  }
+
+  // Synchronous native check so the web path keeps calling .click() inside the
+  // original event handler — awaiting first would spend the transient user
+  // activation a file picker needs. analyze() compresses on its own, so this
+  // takes the uncompressed blob.
+  function choosePhoto() {
+    if (!isNativePlatform()) {
+      fileInputRef.current?.click();
+      return;
+    }
+    void (async () => {
+      const result = await pickNativeBlob("prompt");
+      if (result.status === "photo") await analyze(result.blob);
+    })();
   }
 
   // "Scan items" from an already-logged fit (components/closet/FitDetailModal.tsx)
@@ -226,7 +242,7 @@ export default function AddFromOutfitClient() {
           />
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={choosePhoto}
             className="btn-primary w-full"
           >
             📷 Photograph the outfit

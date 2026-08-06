@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { compressImage } from "@/lib/compressImage";
+import { isNativePlatform, pickNativePhoto } from "@/lib/nativePhoto";
 
 // Compact tap target for items with no photo yet — deliberately not a blank
 // image block. Captures, compresses, and uploads a photo inline from a list row.
@@ -13,16 +14,16 @@ export default function AddPhotoButton({ itemId }: { itemId: string }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  async function upload(compressed: { base64: string; mediaType: string }) {
     setUploading(true);
     try {
-      const { base64, mediaType } = await compressImage(file);
       await fetch(`/api/items/${itemId}/photo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: base64, mediaType }),
+        body: JSON.stringify({
+          image: compressed.base64,
+          mediaType: compressed.mediaType,
+        }),
       });
       router.refresh();
     } finally {
@@ -30,6 +31,29 @@ export default function AddPhotoButton({ itemId }: { itemId: string }) {
       if (cameraInputRef.current) cameraInputRef.current.value = "";
       if (uploadInputRef.current) uploadInputRef.current.value = "";
     }
+  }
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await upload(await compressImage(file));
+  }
+
+  // Synchronous native check so the web path still calls .click() inside the
+  // original event handler — awaiting first would burn the user activation
+  // that a file picker needs to open.
+  function choosePhoto(
+    source: "camera" | "album",
+    webInput: HTMLInputElement | null
+  ) {
+    if (!isNativePlatform()) {
+      webInput?.click();
+      return;
+    }
+    void (async () => {
+      const result = await pickNativePhoto(source);
+      if (result.status === "photo") await upload(result);
+    })();
   }
 
   return (
@@ -70,7 +94,7 @@ export default function AddPhotoButton({ itemId }: { itemId: string }) {
               className="w-full text-left text-sm px-2 py-2 rounded-lg hover:bg-blue/10"
               onClick={() => {
                 setMenuOpen(false);
-                cameraInputRef.current?.click();
+                choosePhoto("camera", cameraInputRef.current);
               }}
             >
               capture
@@ -80,7 +104,7 @@ export default function AddPhotoButton({ itemId }: { itemId: string }) {
               className="w-full text-left text-sm px-2 py-2 rounded-lg hover:bg-blue/10"
               onClick={() => {
                 setMenuOpen(false);
-                uploadInputRef.current?.click();
+                choosePhoto("album", uploadInputRef.current);
               }}
             >
               album

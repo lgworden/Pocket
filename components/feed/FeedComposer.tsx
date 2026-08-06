@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Modal from "@/components/Modal";
 import PhotoEditor from "@/components/feed/PhotoEditor";
 import { compressImage } from "@/lib/compressImage";
+import { isNativePlatform, pickNativePhoto } from "@/lib/nativePhoto";
 import { celebrate } from "@/lib/confetti";
 import { VISIBILITY_OPTIONS, type FeedVisibility } from "@/lib/feed";
 import type { Friend } from "@/lib/friends";
@@ -73,19 +74,45 @@ export default function FeedComposer({
     onClose();
   }
 
+  // Hand the compressed original to the filter step; the baked result becomes
+  // the actual upload payload once the user picks a look. Shared by the web
+  // file-input path and the native picker so both land in the same flow.
+  function acceptPhoto(compressed: { base64: string; mediaType: string }) {
+    setOrigSrc(`data:${compressed.mediaType};base64,${compressed.base64}`);
+    setEditing(true);
+  }
+
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     setError(null);
     try {
-      const compressed = await compressImage(file);
-      // Hand the compressed original to the filter step; the baked result becomes
-      // the actual upload payload once the user picks a look.
-      setOrigSrc(`data:${compressed.mediaType};base64,${compressed.base64}`);
-      setEditing(true);
+      acceptPhoto(await compressImage(file));
     } catch {
       setError("Couldn't read that photo — try another?");
     }
+  }
+
+  // The native check is deliberately synchronous: on the web we must call
+  // .click() inside the original event handler, since awaiting first would
+  // spend the transient user activation that lets a file picker open at all.
+  function choosePhoto(
+    source: "camera" | "album",
+    webInput: HTMLInputElement | null
+  ) {
+    setError(null);
+    if (!isNativePlatform()) {
+      webInput?.click();
+      return;
+    }
+    void (async () => {
+      try {
+        const result = await pickNativePhoto(source);
+        if (result.status === "photo") acceptPhoto(result);
+      } catch {
+        setError("Couldn't read that photo — try another?");
+      }
+    })();
   }
 
   function handleEdited(result: { base64: string; mediaType: string; previewUrl: string }) {
@@ -193,14 +220,14 @@ export default function FeedComposer({
             <div className="w-full space-y-2">
               <button
                 type="button"
-                onClick={() => cameraRef.current?.click()}
+                onClick={() => choosePhoto("camera", cameraRef.current)}
                 className="w-full rounded-xl bg-ink text-cream text-sm font-ui font-semibold py-2.5 flex items-center justify-center gap-2"
               >
                 capture
               </button>
               <button
                 type="button"
-                onClick={() => albumRef.current?.click()}
+                onClick={() => choosePhoto("album", albumRef.current)}
                 className="w-full rounded-xl bg-transparent border border-slate/30 text-ink text-sm font-ui font-semibold py-2.5 flex items-center justify-center gap-2 hover:border-slate/50 transition-colors"
               >
                 album
