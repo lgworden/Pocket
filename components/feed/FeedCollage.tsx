@@ -32,8 +32,8 @@ function CameraIcon() {
 }
 
 // Client shell for the feed: hosts the composer modal and renders posts in a
-// Pinterest-style masonry (CSS columns — cards keep their natural photo height
-// and stagger, no JS layout pass needed).
+// two-column masonry — cards keep their natural photo height, split left/right
+// by date (see the render below for why this isn't CSS `columns-2`).
 export default function FeedCollage({
   posts,
   friends,
@@ -136,14 +136,27 @@ export default function FeedCollage({
           )}
         </div>
       ) : (
-        <div className="columns-2 gap-2">
-          {visiblePosts.map((post) => (
-            <div key={post.id} className="break-inside-avoid mb-2">
-              <FeedCard
-                post={post}
-                friends={friends}
-                onDeleted={(id) => setLivePosts((ps) => ps.filter((p) => p.id !== id))}
-              />
+        // Explicit two-column split rather than CSS `columns-2`: a CSS
+        // multi-column layout fills the left column completely before
+        // touching the right one (and re-balances unpredictably as posts are
+        // added), so newer posts piled up on the left instead of alternating
+        // by date. Splitting visiblePosts (already newest-first) by index
+        // parity puts post 0 top-left and post 1 top-right — flush at the
+        // top by construction — then keeps alternating left/right in date
+        // order all the way down.
+        <div className="flex gap-2 items-start">
+          {[0, 1].map((col) => (
+            <div key={col} className="flex-1 space-y-2">
+              {visiblePosts
+                .filter((_, i) => i % 2 === col)
+                .map((post) => (
+                  <FeedCard
+                    key={post.id}
+                    post={post}
+                    friends={friends}
+                    onDeleted={(id) => setLivePosts((ps) => ps.filter((p) => p.id !== id))}
+                  />
+                ))}
             </div>
           ))}
         </div>
