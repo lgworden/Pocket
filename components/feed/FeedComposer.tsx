@@ -5,7 +5,7 @@ import Modal from "@/components/Modal";
 import PhotoEditor from "@/components/feed/PhotoEditor";
 import PhotoSourceSheet from "@/components/PhotoSourceSheet";
 import { compressImage } from "@/lib/compressImage";
-import { isNativePlatform, pickNativePhoto } from "@/lib/nativePhoto";
+import { isNativePlatform, pickNativeFile, pickNativePhoto } from "@/lib/nativePhoto";
 import { celebrate } from "@/lib/confetti";
 import { VISIBILITY_OPTIONS, type FeedVisibility } from "@/lib/feed";
 import type { Friend } from "@/lib/friends";
@@ -137,6 +137,17 @@ export default function FeedComposer({
     })();
   }
 
+  function pickFromNativeFiles() {
+    void (async () => {
+      try {
+        const result = await pickNativeFile();
+        if (result.status === "photo") acceptPhoto(result);
+      } catch {
+        setError("Couldn't read that photo — try another?");
+      }
+    })();
+  }
+
   function handleEdited(result: { base64: string; mediaType: string; previewUrl: string }) {
     setPayload({ base64: result.base64, mediaType: result.mediaType });
     setPreview(result.previewUrl);
@@ -260,7 +271,7 @@ export default function FeedComposer({
               open={albumSheetOpen}
               onClose={() => setAlbumSheetOpen(false)}
               onChooseLibrary={pickFromNativeLibrary}
-              onChooseFile={() => albumRef.current?.click()}
+              onChooseFile={pickFromNativeFiles}
             />
           </div>
         )}

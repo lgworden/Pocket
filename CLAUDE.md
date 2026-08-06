@@ -131,11 +131,17 @@ which is kept only for historical build-order context.** App name settled on
   2-option app-level sheet (Photo Library / Choose File) instead of going
   straight to the Camera plugin's Photos-only picker. Deliberate product
   choice to re-add a Files option on native, since `@capacitor/camera` has no
-  Files source of its own — "Choose File" falls back to the same plain
-  `<input type="file">` the web path uses, which Capacitor's WebView already
-  routes to the OS document picker with no extra plugin needed. Web is
-  unaffected: the sheet only renders when `isNativePlatform()` is true, so
-  "album" still opens the file input directly there, unchanged.
+  Files source of its own. "Choose File" is backed by
+  `@capawesome/capacitor-file-picker`'s `pickFiles()`, **not** the plain
+  `<input type="file">` — that was the first attempt, but on iOS a bare file
+  input's action sheet bundles in "Take Photo" too, duplicating the separate
+  capture button; `pickFiles()` opens the OS document picker
+  (`UIDocumentPickerViewController` / Storage Access Framework) with nothing
+  but Files. **Don't pass both `types` and `limit` to `pickFiles()`** — the
+  plugin's own type declares `types` is silently ignored whenever `limit` is
+  set, which would drop the `image/*` filter. Web is unaffected: the sheet
+  only renders when `isNativePlatform()` is true, so "album" still opens the
+  file input directly there, unchanged.
 - **Two invariants to preserve when touching a photo picker:**
   1. The native check (`isNativePlatform()`) must stay *synchronous* before the
      web `.click()` — awaiting first spends the transient user activation a

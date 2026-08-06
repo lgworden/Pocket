@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import { compressImage } from "@/lib/compressImage";
-import { isNativePlatform, pickNativePhoto } from "@/lib/nativePhoto";
+import { isNativePlatform, pickNativeFile, pickNativePhoto } from "@/lib/nativePhoto";
 import PhotoSourceSheet from "@/components/PhotoSourceSheet";
 import { celebrate } from "@/lib/confetti";
 import { CATEGORIES, OCCASIONS, PROVENANCES } from "@/lib/itemOptions";
@@ -72,6 +72,13 @@ export default function AddItemClient() {
   function pickFromNativeLibrary() {
     void (async () => {
       const result = await pickNativePhoto("album");
+      if (result.status === "photo") await draftFromPhoto(result);
+    })();
+  }
+
+  function pickFromNativeFiles() {
+    void (async () => {
+      const result = await pickNativeFile();
       if (result.status === "photo") await draftFromPhoto(result);
     })();
   }
@@ -207,7 +214,7 @@ export default function AddItemClient() {
             open={albumSheetOpen}
             onClose={() => setAlbumSheetOpen(false)}
             onChooseLibrary={pickFromNativeLibrary}
-            onChooseFile={() => libraryInputRef.current?.click()}
+            onChooseFile={pickFromNativeFiles}
           />
         </div>
       )}

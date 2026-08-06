@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { compressImage } from "@/lib/compressImage";
-import { isNativePlatform, pickNativePhoto } from "@/lib/nativePhoto";
+import { isNativePlatform, pickNativeFile, pickNativePhoto } from "@/lib/nativePhoto";
 import PhotoSourceSheet from "@/components/PhotoSourceSheet";
 
 // Compact tap target for items with no photo yet — deliberately not a blank
@@ -74,6 +74,13 @@ export default function AddPhotoButton({ itemId }: { itemId: string }) {
     })();
   }
 
+  function pickFromNativeFiles() {
+    void (async () => {
+      const result = await pickNativeFile();
+      if (result.status === "photo") await upload(result);
+    })();
+  }
+
   return (
     <div className="relative shrink-0" onClick={(e) => e.stopPropagation()}>
       <input
@@ -135,7 +142,7 @@ export default function AddPhotoButton({ itemId }: { itemId: string }) {
         open={albumSheetOpen}
         onClose={() => setAlbumSheetOpen(false)}
         onChooseLibrary={pickFromNativeLibrary}
-        onChooseFile={() => uploadInputRef.current?.click()}
+        onChooseFile={pickFromNativeFiles}
       />
     </div>
   );

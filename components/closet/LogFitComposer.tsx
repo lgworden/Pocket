@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Modal from "@/components/Modal";
 import { compressImage } from "@/lib/compressImage";
-import { isNativePlatform, pickNativePhoto } from "@/lib/nativePhoto";
+import { isNativePlatform, pickNativeFile, pickNativePhoto } from "@/lib/nativePhoto";
 import PhotoSourceSheet from "@/components/PhotoSourceSheet";
 import { celebrate } from "@/lib/confetti";
 
@@ -141,6 +141,17 @@ export default function LogFitComposer({
     void (async () => {
       try {
         const result = await pickNativePhoto("album");
+        if (result.status === "photo") acceptPhoto(result);
+      } catch {
+        setError("Couldn't read that photo — try another?");
+      }
+    })();
+  }
+
+  function pickFromNativeFiles() {
+    void (async () => {
+      try {
+        const result = await pickNativeFile();
         if (result.status === "photo") acceptPhoto(result);
       } catch {
         setError("Couldn't read that photo — try another?");
@@ -329,7 +340,7 @@ export default function LogFitComposer({
             open={albumSheetOpen}
             onClose={() => setAlbumSheetOpen(false)}
             onChooseLibrary={pickFromNativeLibrary}
-            onChooseFile={() => libraryFileRef.current?.click()}
+            onChooseFile={pickFromNativeFiles}
           />
 
           {/* Item tagging */}
