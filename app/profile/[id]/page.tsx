@@ -108,7 +108,7 @@ export default async function ProfilePage({ params }: { params: { id: string } }
       </div>
 
       {isSelf && (
-        <Link href="/preferences" className="btn-secondary inline-block">
+        <Link href="/preferences" className="text-[11px] text-ink/50 hover:text-ink transition">
           edit profile
         </Link>
       )}
