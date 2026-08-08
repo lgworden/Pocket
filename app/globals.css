@@ -76,31 +76,21 @@
   .floaty { animation: none; }
 }
 
-/* Pack My Bags: an airplane that banks across the screen while a trip's outfits
-   generate, trailing a little dashed vapor path. Purely decorative. */
-@keyframes fly-across {
-  0%   { transform: translateX(-20vw) translateY(6px) rotate(8deg); }
-  50%  { transform: translateX(40vw) translateY(-10px) rotate(-4deg); }
-  100% { transform: translateX(110vw) translateY(4px) rotate(6deg); }
+/* Pack My Bags: folded pieces settle into the carry-on one at a time while a
+   trip's outfits generate. Each piece gets a staggered animationDelay inline.
+   Purely decorative. */
+@keyframes pack-fold {
+  0%       { opacity: 0; transform: translateY(-18px); }
+  25%, 75% { opacity: 1; transform: translateY(0); }
+  100%     { opacity: 0; transform: translateY(0); }
 }
-@keyframes trail-dash {
-  from { stroke-dashoffset: 40; }
-  to   { stroke-dashoffset: 0; }
-}
-@keyframes cloud-drift {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-24px); }
-}
-.plane-fly {
-  animation: fly-across 2.8s ease-in-out infinite;
-}
-.plane-trail {
-  stroke-dasharray: 4 6;
-  animation: trail-dash 0.6s linear infinite;
-}
-.cloud-drift {
-  animation: cloud-drift 3s ease-in-out infinite alternate;
+.pack-fold {
+  /* fill-box keeps the transform in the rect's own box rather than the SVG
+     viewport's, which WebKit otherwise resolves differently. */
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pack-fold 2.4s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  .plane-fly, .plane-trail, .cloud-drift { animation: none; }
+  .pack-fold { animation: none; }
 }

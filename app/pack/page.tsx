@@ -15,7 +15,7 @@ export default async function PackPage() {
           <Link href="/stylist" className="text-xs font-ui text-slate/60 hover:text-slate">
             ← stylist
           </Link>
-          <h1 className="text-2xl mt-1">Pack my bags ✈️</h1>
+          <h1 className="text-2xl mt-1">Pack my bags</h1>
           <p className="text-sm text-ink/60 mt-1">
             One tiny carry-on, {user.display_name || user.name}. The 3·3·3 method turns a
             few pieces into a whole trip's worth of outfits.

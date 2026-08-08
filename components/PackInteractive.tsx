@@ -26,33 +26,68 @@ type Plan = {
 
 const activityLabel = (value: string) =>
   TRIP_ACTIVITIES.find((a) => a.value === value)?.label ?? value.replace(/_/g, " ");
-const activityEmoji = (value: string) =>
-  TRIP_ACTIVITIES.find((a) => a.value === value)?.emoji ?? "✨";
 
-// The airplane-flying takeover shown while a trip's outfits generate.
-function FlyingLoader() {
+// Shown while a trip's outfits generate: a line-drawn carry-on that folded
+// pieces settle into, one at a time. Same illustration idiom as
+// WeatherIllustration — caramel line art on the warm-neutral palette.
+function PackingLoader() {
   return (
-    <div className="card relative overflow-hidden bg-blue/10 border-blue/30 h-40 flex flex-col items-center justify-center">
-      {/* drifting clouds */}
-      <svg className="cloud-drift absolute top-4 left-8 text-cream/80" width="48" height="20" viewBox="0 0 48 20" fill="currentColor" aria-hidden>
-        <ellipse cx="14" cy="12" rx="14" ry="8" /><ellipse cx="30" cy="10" rx="12" ry="9" /><ellipse cx="40" cy="13" rx="8" ry="6" />
+    <div className="card flex flex-col items-center justify-center py-6">
+      <svg viewBox="0 0 200 140" className="w-36 h-auto" aria-hidden>
+        {/* handle */}
+        <path
+          d="M82 46V34a18 18 0 0 1 36 0v12"
+          fill="none"
+          stroke="#AD8A64"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        />
+        {/* the case */}
+        <rect
+          x="40"
+          y="46"
+          width="120"
+          height="80"
+          rx="14"
+          fill="#F3ECE1"
+          stroke="#AD8A64"
+          strokeWidth="2"
+        />
+        {/* folded pieces, stacking bottom-up */}
+        <rect className="pack-fold" x="58" y="98" width="84" height="14" rx="7" fill="#EADFCF" />
+        <rect
+          className="pack-fold"
+          style={{ animationDelay: "0.4s" }}
+          x="58"
+          y="80"
+          width="84"
+          height="14"
+          rx="7"
+          fill="#D9C7AE"
+        />
+        <rect
+          className="pack-fold"
+          style={{ animationDelay: "0.8s" }}
+          x="58"
+          y="62"
+          width="84"
+          height="14"
+          rx="7"
+          fill="#AD8A64"
+        />
+        {/* clasp, sitting on the top edge between the handle's legs */}
+        <rect
+          x="92"
+          y="40"
+          width="16"
+          height="12"
+          rx="3"
+          fill="#F3ECE1"
+          stroke="#AD8A64"
+          strokeWidth="2"
+        />
       </svg>
-      <svg className="cloud-drift absolute bottom-6 right-10 text-cream/70" width="40" height="16" viewBox="0 0 48 20" fill="currentColor" aria-hidden style={{ animationDelay: "0.6s" }}>
-        <ellipse cx="14" cy="12" rx="14" ry="8" /><ellipse cx="30" cy="10" rx="12" ry="9" /><ellipse cx="40" cy="13" rx="8" ry="6" />
-      </svg>
-
-      {/* the plane, banking across with a dashed vapor trail */}
-      <div className="plane-fly absolute top-1/2 left-0 -translate-y-1/2">
-        <svg width="90" height="34" viewBox="0 0 90 34" fill="none" aria-hidden>
-          <path className="plane-trail" d="M2 20 H50" stroke="#AD8A64" strokeWidth="2" strokeLinecap="round" />
-          <path
-            d="M52 6c5-2 12-3 18-1 4 1 6 3 5 5s-4 3-8 3l-9 1-8 9c-1 1-3 1-3-1l1-6-7 1-3 4c-1 1-3 1-3-1l1-5-1-5c0-2 2-3 3-2l3 4 7-1-2-6c0-2 2-3 3-2l14 5z"
-            fill="#7A5C3E"
-          />
-        </svg>
-      </div>
-
-      <p className="text-sm font-ui font-semibold text-ink mt-auto mb-2 z-10">packing your bags…</p>
+      <p className="text-xs text-slate/60 animate-pulse mt-2">packing your bags…</p>
     </div>
   );
 }
@@ -137,7 +172,7 @@ export default function PackInteractive() {
             >
               −
             </button>
-            <span className="text-lg font-display w-10 text-center">{days}</span>
+            <span className="text-lg font-ui font-medium w-10 text-center">{days}</span>
             <button
               className="btn-secondary w-9 h-9 flex items-center justify-center p-0"
               onClick={() => setDays((d) => Math.min(30, d + 1))}
@@ -159,7 +194,7 @@ export default function PackInteractive() {
                   onClick={() => toggleActivity(a.value)}
                   className={`tag transition-colors ${on ? "tag-blue" : "tag-outline"}`}
                 >
-                  {a.emoji} {a.label}
+                  {a.label}
                 </button>
               );
             })}
@@ -181,14 +216,14 @@ export default function PackInteractive() {
             onClick={pack}
             disabled={status === "loading"}
           >
-            {status === "loading" ? "packing…" : "pack my bags ✈️"}
+            {status === "loading" ? "packing…" : "pack my bags"}
           </button>
         </div>
       )}
 
       {error && <div className="card bg-rose/10 border-rose/30 text-sm text-rose">{error}</div>}
 
-      {status === "loading" && <FlyingLoader />}
+      {status === "loading" && <PackingLoader />}
 
       {status === "results" && plan && (
         <>
@@ -200,14 +235,14 @@ export default function PackInteractive() {
               {plan.weather.days === 1 ? "" : "s"} · {plan.weather.tempHighF}°/
               {plan.weather.tempLowF}° · {plan.weather.conditions.join(", ").toLowerCase()}
               {plan.weather.precipitationDays > 0
-                ? ` · ${plan.weather.precipitationDays} rainy day${plan.weather.precipitationDays === 1 ? "" : "s"} ☔`
+                ? ` · ${plan.weather.precipitationDays} rainy day${plan.weather.precipitationDays === 1 ? "" : "s"}`
                 : ""}
             </p>
             {activities.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-3">
                 {activities.map((a) => (
                   <span key={a} className="tag tag-pink">
-                    {activityEmoji(a)} {activityLabel(a)}
+                    {activityLabel(a)}
                   </span>
                 ))}
               </div>
@@ -217,7 +252,7 @@ export default function PackInteractive() {
 
           <div className="card">
             <p className="text-xs font-ui font-semibold text-slate tracking-wide">
-              🧳 What to pack — your 3·3·3 capsule
+              What to pack — your 3·3·3 capsule
             </p>
             <div className="mt-3 space-y-3">
               <div>
@@ -259,18 +294,19 @@ export default function PackInteractive() {
           </div>
 
           <p className="text-xs font-ui font-semibold text-slate tracking-wide px-1">
-            👗 {plan.outfits.length} outfits from one carry-on
+            {plan.outfits.length} outfits from one carry-on
           </p>
           {plan.outfits.map((outfit, i) => (
             <div key={i} className="card">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="text-lg font-display">{outfit.title}</h3>
+                <p className="text-xs font-ui font-semibold text-slate tracking-wide">
+                  Outfit {i + 1}
+                </p>
                 {outfit.activity && (
-                  <span className="tag tag-pink shrink-0">
-                    {activityEmoji(outfit.activity)} {activityLabel(outfit.activity)}
-                  </span>
+                  <span className="tag tag-pink shrink-0">{activityLabel(outfit.activity)}</span>
                 )}
               </div>
+              <h3 className="text-lg font-display mt-1">{outfit.title}</h3>
               <p className="font-display italic text-ink/80 mt-1">"{outfit.reasoning}"</p>
               <PieceChips pieces={outfit.items} />
             </div>
@@ -290,7 +326,7 @@ export default function PackInteractive() {
           )}
 
           <button className="btn-secondary w-full" onClick={reset}>
-            plan another trip ✈️
+            plan another trip
           </button>
         </>
       )}
