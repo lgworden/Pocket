@@ -11,6 +11,7 @@ import {
 } from "@/lib/feed";
 import type { Friend } from "@/lib/friends";
 import Modal from "@/components/Modal";
+import PhotoLightbox from "@/components/PhotoLightbox";
 import { celebrate } from "@/lib/confetti";
 
 // A single outfit post in the collage. The card background is tinted by
@@ -52,7 +53,11 @@ export default function FeedCard({
   const [resharePosting, setResharePosting] = useState(false);
   const [reshareError, setReshareError] = useState<string | null>(null);
   const [reshareCaption, setReshareCaption] = useState("");
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressMoved = useRef(false);
+  const longPressStart = useRef<{ x: number; y: number } | null>(null);
 
   // The browser starts fetching an SSR'd <img> before React hydrates, so a
   // fast local 404 can fire the (non-bubbling) error event before onError is
@@ -62,6 +67,8 @@ export default function FeedCard({
       setPhotoFailed(true);
     }
   }, []);
+
+  useEffect(() => cancelLongPress, []);
 
   async function react(reaction: FeedReactionType) {
     if (pending) return;
@@ -91,6 +98,34 @@ export default function FeedCard({
       setCounts(post.reaction_counts);
     } finally {
       setPending(null);
+    }
+  }
+
+  // Hold down on the photo to open it fullscreen. Tracks movement so a
+  // scroll/drag that happens to start on the photo doesn't accidentally
+  // trigger it, and cancels on release/leave before the threshold.
+  function startLongPress(x: number, y: number) {
+    longPressMoved.current = false;
+    longPressStart.current = { x, y };
+    longPressTimer.current = setTimeout(() => {
+      if (!longPressMoved.current) setLightboxOpen(true);
+    }, 450);
+  }
+
+  function moveLongPress(x: number, y: number) {
+    if (!longPressStart.current) return;
+    const dx = x - longPressStart.current.x;
+    const dy = y - longPressStart.current.y;
+    if (Math.hypot(dx, dy) > 10) {
+      longPressMoved.current = true;
+      cancelLongPress();
+    }
+  }
+
+  function cancelLongPress() {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
     }
   }
 
@@ -292,8 +327,15 @@ export default function FeedCard({
                 ref={imgRef}
                 src={post.photo}
                 alt={post.caption ?? "outfit"}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover select-none"
+                draggable={false}
                 onError={() => setPhotoFailed(true)}
+                onContextMenu={(e) => e.preventDefault()}
+                onPointerDown={(e) => startLongPress(e.clientX, e.clientY)}
+                onPointerMove={(e) => moveLongPress(e.clientX, e.clientY)}
+                onPointerUp={cancelLongPress}
+                onPointerLeave={cancelLongPress}
+                onPointerCancel={cancelLongPress}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-lg font-ui font-semibold text-ink/25 bg-ink/5">
@@ -597,6 +639,15 @@ export default function FeedCard({
           </div>
         </div>
       </Modal>
+
+      {post.photo && !photoFailed && (
+        <PhotoLightbox
+          src={post.photo}
+          alt={post.caption ?? "outfit"}
+          open={lightboxOpen}
+          onClose={() => setLightboxOpen(false)}
+        />
+      )}
     </div>
   );
 }
