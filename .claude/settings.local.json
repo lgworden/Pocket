@@ -67,7 +67,8 @@
       "Bash(.tools/node-v20.16.0-darwin-arm64/bin/node -e ' *)",
       "Bash(curl -s -c /tmp/cookies.txt -X POST http://localhost:57361/api/auth/register -H \"Content-Type: application/json\" -d '{\"username\":\"lightboxtest\",\"password\":\"testpass123\",\"location\":\"New York, NY\"}')",
       "Bash(git config *)",
-      "Bash(env)"
+      "Bash(env)",
+      "Bash(curl -s -c /tmp/cs_cookies.txt -X POST http://localhost:60107/api/auth/register -H \"Content-Type: application/json\" -d '{\"username\":\"qa_viewer2\",\"password\":\"QaViewer!2026\"}')"
     ]
   }
 }
