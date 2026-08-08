@@ -329,6 +329,7 @@ export default function FeedCard({
                 alt={post.caption ?? "outfit"}
                 className="w-full h-full object-cover select-none"
                 draggable={false}
+                style={{ WebkitTouchCallout: "none" }}
                 onError={() => setPhotoFailed(true)}
                 onContextMenu={(e) => e.preventDefault()}
                 onPointerDown={(e) => startLongPress(e.clientX, e.clientY)}
