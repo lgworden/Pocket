@@ -14,20 +14,24 @@ function distance(a: PointerEvent, b: PointerEvent) {
   return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
 }
 
-// Fullscreen photo viewer with pinch-to-zoom (touch), wheel-zoom (trackpad/
-// mouse), double-tap/double-click to zoom, and drag-to-pan once zoomed.
-// Renders as `fixed inset-0` in place — callers must not mount it inside an
-// ancestor with an active `transform` (FeedCard's flip container has one,
-// but only while flipped; this is rendered as a sibling of it, not a
-// descendant, so it stays anchored to the real viewport).
+// Fullscreen photo viewer, framed as a plain polaroid (nameplate + photo,
+// no reactions/comments/caption) floating on a dimmed backdrop. Supports
+// pinch-to-zoom (touch), wheel-zoom (trackpad/mouse), double-tap/double-click
+// to zoom, and drag-to-pan once zoomed. Renders as `fixed inset-0` in place —
+// callers must not mount it inside an ancestor with an active CSS `transform`
+// (FeedCard's flip container has one, but only while flipped; this is
+// rendered as a sibling of it, not a descendant, so it stays anchored to the
+// real viewport).
 export default function PhotoLightbox({
   src,
   alt,
+  authorName,
   open,
   onClose,
 }: {
   src: string;
   alt: string;
+  authorName: string;
   open: boolean;
   onClose: () => void;
 }) {
@@ -59,11 +63,15 @@ export default function PhotoLightbox({
 
   if (!open) return null;
 
+  // The photo frame is sized to fit the (unscaled) image exactly — see the
+  // "w-fit" card below — so the max pan offset that still keeps the scaled
+  // image covering the frame is just half of however much bigger than the
+  // frame the scaled image now is.
   function clampPan(nextScale: number, nextTx: number, nextTy: number) {
     const img = imgRef.current;
     if (!img) return { tx: nextTx, ty: nextTy };
-    const maxX = Math.max(0, (img.offsetWidth * nextScale - window.innerWidth) / 2);
-    const maxY = Math.max(0, (img.offsetHeight * nextScale - window.innerHeight) / 2);
+    const maxX = Math.max(0, (img.offsetWidth * (nextScale - 1)) / 2);
+    const maxY = Math.max(0, (img.offsetHeight * (nextScale - 1)) / 2);
     return { tx: clamp(nextTx, -maxX, maxX), ty: clamp(nextTy, -maxY, maxY) };
   }
 
@@ -143,7 +151,6 @@ export default function PhotoLightbox({
         lastTap.current = 0;
       } else {
         lastTap.current = now;
-        if (scale === 1) onClose();
       }
     }
   }
@@ -155,17 +162,16 @@ export default function PhotoLightbox({
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-ink/95 touch-none select-none"
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-      onWheel={handleWheel}
+      className="fixed inset-0 z-[100] bg-ink/90 flex items-center justify-center p-6"
+      onClick={onClose}
       onContextMenu={(e) => e.preventDefault()}
     >
       <button
         type="button"
-        onClick={onClose}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
         aria-label="Close"
         className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-cream/10 text-cream flex items-center justify-center backdrop-blur-sm"
       >
@@ -175,19 +181,38 @@ export default function PhotoLightbox({
         </svg>
       </button>
 
-      <div className="w-full h-full flex items-center justify-center overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          ref={imgRef}
-          src={src}
-          alt={alt}
-          draggable={false}
-          className="max-w-full max-h-full object-contain"
-          style={{
-            transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
-            transition: gesturing ? "none" : "transform 150ms ease-out",
-          }}
-        />
+      {/* The polaroid itself: cream nameplate + photo, sized to fit the
+          image (w-fit) rather than stretched — a plainer, bigger version
+          of FeedCard's card, with nothing but the poster's name on it. */}
+      <div
+        className="max-w-full max-h-full w-fit flex flex-col bg-cream rounded-2xl shadow-soft overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="shrink-0 px-3 py-2">
+          <span className="text-sm font-ui font-medium text-ink/70">{authorName}</span>
+        </div>
+
+        <div
+          className="relative overflow-hidden touch-none select-none"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          onWheel={handleWheel}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            ref={imgRef}
+            src={src}
+            alt={alt}
+            draggable={false}
+            className="block max-w-[85vw] max-h-[70vh] object-contain"
+            style={{
+              transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
+              transition: gesturing ? "none" : "transform 150ms ease-out",
+            }}
+          />
+        </div>
       </div>
     </div>
   );

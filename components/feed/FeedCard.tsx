@@ -645,6 +645,7 @@ export default function FeedCard({
         <PhotoLightbox
           src={post.photo}
           alt={post.caption ?? "outfit"}
+          authorName={post.author_name}
           open={lightboxOpen}
           onClose={() => setLightboxOpen(false)}
         />
