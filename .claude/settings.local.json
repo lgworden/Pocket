@@ -65,7 +65,9 @@
       "Bash(PATH=__TRACKED_VAR__/.tools/node-v20.16.0-darwin-arm64/bin:__TRACKED_VAR__ npx tsc --noEmit)",
       "Bash(PATH=__TRACKED_VAR__/.tools/node-v20.16.0-darwin-arm64/bin:__TRACKED_VAR__ npm run build)",
       "Bash(.tools/node-v20.16.0-darwin-arm64/bin/node -e ' *)",
-      "Bash(curl -s -c /tmp/cookies.txt -X POST http://localhost:57361/api/auth/register -H \"Content-Type: application/json\" -d '{\"username\":\"lightboxtest\",\"password\":\"testpass123\",\"location\":\"New York, NY\"}')"
+      "Bash(curl -s -c /tmp/cookies.txt -X POST http://localhost:57361/api/auth/register -H \"Content-Type: application/json\" -d '{\"username\":\"lightboxtest\",\"password\":\"testpass123\",\"location\":\"New York, NY\"}')",
+      "Bash(git config *)",
+      "Bash(env)"
     ]
   }
 }
