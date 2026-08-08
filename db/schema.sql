@@ -17,7 +17,7 @@ CREATE TABLE users (
   onboarding_completed BOOLEAN NOT NULL DEFAULT false, -- gates access until registration flow is done
   walkthrough_completed BOOLEAN NOT NULL DEFAULT false, -- gates access until the welcome carousel is seen/skipped
   notification_preferences JSONB DEFAULT '{}', -- { sync_gcal, friends_updates, daily_digest } from onboarding
-  influencer_since TIMESTAMPTZ, -- set once, first time follower count crosses the threshold (see lib/follows.ts)
+  designer_since TIMESTAMPTZ, -- granted out-of-band by an operator (scripts/designer.mjs); the only accounts that can be followed. Never surfaced in the UI — see lib/designers.ts
   created_at    TIMESTAMPTZ DEFAULT now()
 );
 
@@ -181,7 +181,10 @@ CREATE INDEX friendships_friend_idx ON friendships(friend_id);
 -- from `friendships` above. A row here means exactly one thing: follower_id
 -- follows followee_id. `friendships` stays the mutual, tiered grant that
 -- gates 'friends'/'close_friends' post visibility; `follows` gates the
--- 'public' tier and drives follower/following counts and influencer status.
+-- 'public' tier and drives follower counts. Only designers (see
+-- users.designer_since) can be followed at all — enforced in lib/follows.ts,
+-- not by a constraint here, since the grant can be revoked without wanting to
+-- destroy the existing rows.
 CREATE TABLE follows (
   follower_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   followee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,

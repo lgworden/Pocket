@@ -1,5 +1,5 @@
 import pool from "./db";
-import { getFollowerCount, getFollowingCount, isFollowing } from "./follows";
+import { getFollowerCount, isFollowing } from "./follows";
 
 export type ProfileUser = {
   id: string;
@@ -9,15 +9,18 @@ export type ProfileUser = {
   avatar: string | null;
   location: string | null;
   created_at: string;
-  influencer_since: string | null;
+  // Non-null = a designer: followable, and rendered with the warmer profile
+  // header. Never labelled as such in the UI — see lib/designers.ts.
+  designer_since: string | null;
 };
 
 export type ProfileStats = {
   item_count: number;
   outfit_count: number;
   friend_count: number;
+  // Only rendered on designer profiles — they're the only accounts that can be
+  // followed, so for everyone else this is structurally always 0.
   follower_count: number;
-  following_count: number;
   streak_days: number;
 };
 
@@ -49,7 +52,7 @@ export async function getProfileAccess(
 
 export async function getProfileUser(userId: string): Promise<ProfileUser | null> {
   const { rows } = await pool.query<ProfileUser>(
-    `SELECT id, name, display_name, bio, avatar, location, created_at, influencer_since
+    `SELECT id, name, display_name, bio, avatar, location, created_at, designer_since
        FROM users WHERE id = $1`,
     [userId]
   );
@@ -91,7 +94,7 @@ async function getOOTDStreak(userId: string): Promise<number> {
 }
 
 export async function getProfileStats(userId: string): Promise<ProfileStats> {
-  const [{ rows }, streak_days, follower_count, following_count] = await Promise.all([
+  const [{ rows }, streak_days, follower_count] = await Promise.all([
     pool.query<{ item_count: string; outfit_count: string; friend_count: string }>(
       `SELECT
          (SELECT COUNT(*) FROM items WHERE user_id = $1 AND status != 'archived') AS item_count,
@@ -101,14 +104,12 @@ export async function getProfileStats(userId: string): Promise<ProfileStats> {
     ),
     getOOTDStreak(userId),
     getFollowerCount(userId),
-    getFollowingCount(userId),
   ]);
   return {
     item_count: Number(rows[0]?.item_count ?? 0),
     outfit_count: Number(rows[0]?.outfit_count ?? 0),
     friend_count: Number(rows[0]?.friend_count ?? 0),
     follower_count,
-    following_count,
     streak_days,
   };
 }

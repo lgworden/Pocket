@@ -19,8 +19,10 @@ const config: Config = {
         rose: "#B97A66",   // muted terracotta — errors / secondary accent
         ink: "#2E2924",    // espresso, primary text
         slate: "#8F8577",  // warm stone, muted text / borders
-        azure: "#9BAAB4",  // dusty desaturated blue — influencer signal only,
-                           // the one deliberately cool color in an all-warm system
+        azure: "#9BAAB4",  // dusty desaturated blue — the one deliberately cool
+                           // color in an all-warm system. Currently unused: it
+                           // marked the old "influencer" badge, which the
+                           // designer status replaced with a caramel wash.
       },
       fontFamily: {
         display: ["Georgia", "'Iowan Old Style'", "serif"], // quiet italic accents only

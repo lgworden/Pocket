@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-// Standalone follow/unfollow toggle for a profile — separate from the
-// existing "add friend" flow in FriendsModal, which stays a stronger, mutual
-// action. Following is the lightweight, one-way action: anyone can follow
-// anyone (see SOCIAL_PIVOT_PLAN.md), no approval needed.
+// Standalone follow/unfollow toggle — separate from the "add friend" flow in
+// FriendsModal, which stays a stronger, mutual action. Following is the
+// lightweight, one-way action, and only designer accounts can receive it
+// (lib/designers.ts): the profile page renders this button on nothing else,
+// and POST /api/follows/:id rejects the rest server-side anyway.
 export default function FollowButton({
   profileUserId,
   initialFollowing,

@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { requireOnboarded } from "@/lib/auth";
 import { getProfileAccess, getProfileUser, getProfileStats } from "@/lib/profile";
-import { isFollowing, INFLUENCER_THRESHOLD } from "@/lib/follows";
+import { isFollowing } from "@/lib/follows";
+import { getFriends } from "@/lib/friends";
 import { getFeedPosts } from "@/lib/feedQueries";
 import BottomNav from "@/components/BottomNav";
 import FeedCard from "@/components/feed/FeedCard";
 import AvatarUpload from "@/components/AvatarUpload";
 import FollowButton from "@/components/FollowButton";
+import FriendCountButton from "@/components/FriendCountButton";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +47,7 @@ export default async function ProfilePage({ params }: { params: { id: string } }
   }
 
   const isSelf = viewer.id === profileUser.id;
-  const [access, stats, posts, viewerFollows] = await Promise.all([
+  const [access, stats, posts, viewerFollows, friends] = await Promise.all([
     isSelf ? Promise.resolve("self" as const) : getProfileAccess(viewer.id, profileUser.id),
     getProfileStats(profileUser.id),
     // Visibility is enforced by the query itself (friends/close_friends → the
@@ -53,58 +55,55 @@ export default async function ProfilePage({ params }: { params: { id: string } }
     // gets back zero rows, no separate check needed here.
     getFeedPosts(viewer.id, { authorId: profileUser.id }),
     isSelf ? Promise.resolve(false) : isFollowing(viewer.id, profileUser.id),
+    getFriends(profileUser.id),
   ]);
 
   const name = profileUser.display_name || profileUser.name;
-  const isInfluencer = !!profileUser.influencer_since;
+
+  // Designer accounts (lib/designers.ts) are the only followable ones, and the
+  // only ones that show a follower count. Nothing here names the status or
+  // hints at how it's granted — the warmer header and the follow button are
+  // the whole of what a user ever sees.
+  const isDesigner = !!profileUser.designer_since;
 
   return (
     <main className="px-4 pt-6 pb-24 space-y-6">
       <div
         className={`rounded-2xl border p-4 shadow-soft-sm ${
-          isInfluencer ? "bg-azure/10 border-azure/40" : "bg-panel border-slate/10"
+          isDesigner ? "bg-blue/25 border-blue/40" : "bg-panel border-slate/10"
         }`}
       >
         <div className="flex items-center gap-4">
           <AvatarUpload avatar={profileUser.avatar} name={name} editable={isSelf} />
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5">
-              <h1 className="text-xl truncate">{name}</h1>
-              {isInfluencer && (
-                <span
-                  className="text-[10px] font-ui font-semibold uppercase tracking-wide text-azure bg-azure/15 rounded-full px-2 py-0.5 shrink-0"
-                  title="Reached the follower threshold"
-                >
-                  influencer
-                </span>
-              )}
-            </div>
+            <h1 className="text-xl truncate">{name}</h1>
             {profileUser.bio && <p className="text-sm text-ink/60 mt-0.5">{profileUser.bio}</p>}
           </div>
-          {!isSelf && (
+          {!isSelf && isDesigner && (
             <FollowButton profileUserId={profileUser.id} initialFollowing={viewerFollows} />
           )}
         </div>
 
         <div className="flex items-center divide-x divide-slate/15 mt-4">
+          {isDesigner && (
+            <div className="flex-1">
+              <Stat value={stats.follower_count} label="followers" />
+            </div>
+          )}
           <div className="flex-1">
-            <Stat value={stats.follower_count} label="followers" />
+            <FriendCountButton
+              count={stats.friend_count}
+              friends={friends}
+              ownerName={name}
+              isSelf={isSelf}
+            />
           </div>
           <div className="flex-1">
-            <Stat value={stats.following_count} label="following" />
+            <Stat value={stats.streak_days} label="day streak" />
           </div>
           <div className="flex-1">
-            <Stat value={stats.friend_count} label="friends" />
+            <Stat value={stats.outfit_count} label="outfits logged" />
           </div>
-        </div>
-      </div>
-
-      <div className="flex items-center divide-x divide-slate/15">
-        <div className="flex-1">
-          <Stat value={stats.streak_days} label="day streak" />
-        </div>
-        <div className="flex-1">
-          <Stat value={stats.outfit_count} label="outfits logged" />
         </div>
       </div>
 

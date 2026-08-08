@@ -81,12 +81,20 @@ Run date: ____________  Commit/deploy: ____________  Tester: ____________
 - [ ] React to a post with each of the 3 emoji reactions; reacting twice
       toggles off rather than double-counting.
 - [ ] Share card renders and downloads/shares correctly from a feed post.
-- [ ] Follow another user — their posts (per visibility) start appearing in
-      feed; unfollow removes them.
+- [ ] Follow a designer account — their posts (per visibility) start appearing
+      in feed; unfollow removes them.
+- [ ] A non-designer profile shows **no** follow button, and a hand-rolled
+      `POST /api/follows/<their-id>` (curl/devtools) comes back 403 with no
+      row written. The status must never be named or explained in the UI.
 - [ ] Friend search finds an existing user by username; sending/accepting a
       friend request updates both accounts' friend lists.
 - [ ] Visit another user's profile (`/profile/[id]`) — shows their public
       info only, no private data leak (e.g. no full closet if not a friend).
+- [ ] Designer profile shows 4 stats (followers / friends / day streak /
+      outfits logged) on the caramel-washed header; every other profile shows
+      3 (no followers) on the standard panel.
+- [ ] Tapping the friends count on either profile type opens a modal listing
+      that person's mutual friends; each name links to their profile.
 - [ ] Generate an invite link (`/invite`), open it signed out in a new
       session, and confirm it lands in signup pre-filled/linked correctly.
 

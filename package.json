@@ -10,6 +10,9 @@
     "db:migrate": "node db/migrate.js",
     "db:seed": "node db/seed.js",
     "cron:tick": "node scripts/cron-tick.mjs",
+    "designer:grant": "node scripts/designer.mjs grant",
+    "designer:revoke": "node scripts/designer.mjs revoke",
+    "designer:list": "node scripts/designer.mjs list",
     "native:sync": "cap sync",
     "native:android": "cap open android",
     "native:ios": "cap open ios"

@@ -80,9 +80,26 @@ which is kept only for historical build-order context.** App name settled on
   tier is toggled by an SVG heart in `FriendsModal`: white = friend,
   red = close friend, with a transient "@user is now your close friend"
   confirmation on promotion.
+- **Following is designer-only.** `users.designer_since` (see `lib/designers.ts`)
+  is a hidden, operator-granted status: it is the one thing that makes an
+  account followable, and it is deliberately never named, labelled, or
+  explained anywhere in the UI — there is no advertised way to earn it. It
+  replaced an earlier `influencer_since` that was auto-awarded at 50 followers
+  and rendered as a visible chip (migration `025_add_designer_status.sql`
+  drops that column and its semantics). Grant/revoke out of band:
+  `npm run designer:grant -- <username|email>` (also `:revoke`, `:list`).
+  The follow button only renders on designer profiles and
+  `POST /api/follows/:id` 403s for everyone else, so the gate survives a
+  hand-rolled request. **When touching this, keep the status invisible** —
+  no badge, no progress hint, no admin toggle.
+- `app/profile/[id]` serves both own and others' profiles. A designer's header
+  gets a caramel wash (`bg-blue/25`) and 4 stats — followers, friends, day
+  streak, outfits logged; everyone else keeps the standard panel and 3 (no
+  followers, which for a non-designer is structurally always 0). The friends
+  count is a `FriendCountButton` that opens a read-only list of that person's
+  mutual friends — managing friends stays in `FriendsModal` off the feed.
 - `BottomNav` hides itself on scroll-down and reappears (fully opaque) on
   scroll-up; always shown near the top of the page.
-- `app/profile`, `app/profile/[id]` — own and others' profiles.
 - `app/invite`, `app/invite/[code]` — generic invite links (not tied to a
   specific channel), `InviteLinkCard`.
 
