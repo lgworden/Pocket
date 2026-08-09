@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { MomentWithMembers } from "@/lib/moments";
+import MomentPhotoButton from "./MomentPhotoButton";
 
 function formatWhen(iso: string): string {
   const d = new Date(iso);
@@ -43,7 +44,14 @@ export default function MomentCard({
   const [busy, setBusy] = useState(false);
   const canEdit = moment.user_role === "creator" || moment.user_role === "collaborator";
   const isPendingInvite = moment.user_role !== null && moment.user_status === "pending";
-  const isAcceptedInvitee = moment.user_role === "invitee" && moment.user_status === "accepted";
+  // Any accepted participant (creator/collaborator/accepted invitee) can pin
+  // inspo and add their own fit.
+  const isParticipant = moment.user_status === "accepted";
+
+  async function deleteInspo(inspoId: string) {
+    const res = await fetch(`/api/moments/${moment.id}/inspo/${inspoId}`, { method: "DELETE" });
+    if (res.ok) onChanged?.(await res.json());
+  }
 
   async function respond(status: "accepted" | "declined") {
     setBusy(true);
@@ -126,6 +134,65 @@ export default function MomentCard({
         </span>
       </div>
 
+      {(moment.fit_inspo.length > 0 || isParticipant) && (
+        <div>
+          <p className="text-xs font-ui text-slate/80 mb-1">moodboard</p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {moment.fit_inspo.map((i) => {
+              const canRemove =
+                i.uploaded_by_id === currentUserId || moment.user_role === "creator";
+              return (
+                <div key={i.id} className="relative shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={i.image_url}
+                    alt="inspo"
+                    className="w-14 h-14 rounded-xl object-cover"
+                  />
+                  {canRemove && (
+                    <button
+                      onClick={() => deleteInspo(i.id)}
+                      aria-label="remove"
+                      className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-ink text-cream text-[10px] leading-none flex items-center justify-center"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+            {isParticipant && onChanged && (
+              <MomentPhotoButton
+                endpoint={`/api/moments/${moment.id}/inspo`}
+                label="+ inspo"
+                onUploaded={onChanged}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {(moment.fits.length > 0 || isParticipant) && (
+        <div>
+          <p className="text-xs font-ui text-slate/80 mb-1">fits</p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {moment.fits.map((f) => (
+              <div key={f.id} className="shrink-0" title={f.author_name}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={f.photo} alt={f.author_name} className="w-14 h-14 rounded-xl object-cover" />
+              </div>
+            ))}
+            {isParticipant && onChanged && (
+              <MomentPhotoButton
+                endpoint={`/api/moments/${moment.id}/fits`}
+                label="+ your fit"
+                onUploaded={onChanged}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center gap-2 pt-1">
         {isPendingInvite && (
           <>
@@ -148,15 +215,6 @@ export default function MomentCard({
         {canEdit && onEdit && (
           <button onClick={() => onEdit(moment)} className="btn-secondary">
             edit
-          </button>
-        )}
-        {isAcceptedInvitee && (
-          <button
-            disabled
-            title="Coming soon"
-            className="btn-secondary opacity-50"
-          >
-            add your fit
           </button>
         )}
       </div>

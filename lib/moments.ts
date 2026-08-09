@@ -37,6 +37,16 @@ export type MomentFitInspo = {
   uploaded_by_id: string;
 };
 
+// A member's own outfit candidate for the moment — a feed_posts row carrying
+// moment_id, deliberately kept out of the public feed.
+export type MomentFit = {
+  id: string;
+  photo: string;
+  author_id: string;
+  author_name: string;
+  author_username: string | null;
+};
+
 export type MomentWithMembers = {
   id: string;
   event_name: string;
@@ -53,6 +63,7 @@ export type MomentWithMembers = {
   collaborators: MomentMember[];
   members: MomentMember[]; // every member incl. creator + collaborators + invitees
   fit_inspo: MomentFitInspo[];
+  fits: MomentFit[]; // members' outfit candidates (moment-linked feed posts)
   user_role: MomentRole | null;
   user_status: MomentStatus | null;
 };
@@ -165,6 +176,16 @@ async function loadMoments(
     [ids]
   );
 
+  const { rows: fits } = await pool.query(
+    `SELECT fp.id, fp.moment_id, fp.photo, fp.user_id AS author_id,
+            COALESCE(u.display_name, u.name) AS author_name, u.username
+       FROM feed_posts fp
+       JOIN users u ON u.id = fp.user_id
+      WHERE fp.moment_id = ANY($1::uuid[])
+      ORDER BY fp.created_at ASC`,
+    [ids]
+  );
+
   return moments.map((mo) => {
     const mine = members.filter((m) => m.moment_id === mo.id);
     const viewer = mine.find((m) => m.user_id === viewerId);
@@ -192,7 +213,20 @@ async function loadMoments(
       members: mine.map(toMember),
       fit_inspo: inspo
         .filter((i) => i.moment_id === mo.id)
-        .map((i) => ({ id: i.id, image_url: i.image_url, uploaded_by_id: i.uploaded_by_id })),
+        .map((i) => ({
+          id: i.id as string,
+          image_url: i.image_url as string,
+          uploaded_by_id: i.uploaded_by_id as string,
+        })),
+      fits: fits
+        .filter((f) => f.moment_id === mo.id)
+        .map((f) => ({
+          id: f.id as string,
+          photo: f.photo as string,
+          author_id: f.author_id as string,
+          author_name: f.author_name as string,
+          author_username: (f.username as string) ?? null,
+        })),
       user_role: viewer ? (viewer.role as MomentRole) : null,
       user_status: viewer ? (viewer.status as MomentStatus) : null,
     };
@@ -477,6 +511,83 @@ export async function deleteMoment(userId: string, momentId: string): Promise<vo
     `UPDATE moments SET deleted_at = now() WHERE id = $1 AND deleted_at IS NULL`,
     [momentId]
   );
+}
+
+// ---- Fit inspo + outfit candidates (Phase 2) ----------------------------
+
+// Any accepted participant (creator, collaborator, or an invitee who accepted)
+// may attach inspo/fits. A pending or declined invitee cannot.
+async function assertAcceptedMember(momentId: string, userId: string): Promise<void> {
+  const { rows } = await pool.query(
+    `SELECT 1
+       FROM moment_members mm
+       JOIN moments mo ON mo.id = mm.moment_id
+      WHERE mm.moment_id = $1 AND mm.user_id = $2
+        AND mm.status = 'accepted' AND mo.deleted_at IS NULL`,
+    [momentId, userId]
+  );
+  if (rows.length === 0) {
+    throw new MomentError("You're not a participant in this moment", 403);
+  }
+}
+
+// Pin a reference image to the moment's moodboard.
+export async function addFitInspo(
+  userId: string,
+  momentId: string,
+  imageUrl: string
+): Promise<MomentFitInspo> {
+  await assertAcceptedMember(momentId, userId);
+  const { rows } = await pool.query<{ id: string }>(
+    `INSERT INTO moment_fit_inspo (moment_id, image_url, uploaded_by_id)
+     VALUES ($1, $2, $3) RETURNING id`,
+    [momentId, imageUrl, userId]
+  );
+  return { id: rows[0].id, image_url: imageUrl, uploaded_by_id: userId };
+}
+
+// Remove a reference image — only the uploader or the moment's creator.
+export async function deleteFitInspo(userId: string, inspoId: string): Promise<void> {
+  const { rows } = await pool.query<{ user_id: string }>(
+    `DELETE FROM moment_fit_inspo mfi
+      USING moments mo
+      WHERE mfi.id = $1 AND mo.id = mfi.moment_id
+        AND (mfi.uploaded_by_id = $2 OR mo.creator_id = $2)
+      RETURNING mfi.uploaded_by_id AS user_id`,
+    [inspoId, userId]
+  );
+  if (rows.length === 0) {
+    throw new MomentError("Can't remove this image", 403);
+  }
+}
+
+// Add the caller's own outfit candidate: a feed post tagged with moment_id, so
+// it shows inside the moment but never in the public feed. Visibility is set to
+// 'private' — the moment_id filter is what actually gates it, and 'private'
+// keeps it out of any author-scoped feed query as a belt-and-braces default.
+export async function addFit(
+  userId: string,
+  momentId: string,
+  photo: string,
+  caption?: string | null
+): Promise<MomentFit> {
+  await assertAcceptedMember(momentId, userId);
+  const { rows } = await pool.query<{ id: string }>(
+    `INSERT INTO feed_posts (user_id, photo, caption, visibility, moment_id)
+     VALUES ($1, $2, $3, 'private', $4) RETURNING id`,
+    [userId, photo, caption?.trim() || null, momentId]
+  );
+  const { rows: who } = await pool.query<{ name: string; username: string | null }>(
+    "SELECT COALESCE(display_name, name) AS name, username FROM users WHERE id = $1",
+    [userId]
+  );
+  return {
+    id: rows[0].id,
+    photo,
+    author_id: userId,
+    author_name: who[0]?.name ?? "You",
+    author_username: who[0]?.username ?? null,
+  };
 }
 
 // ---- Notifications ------------------------------------------------------

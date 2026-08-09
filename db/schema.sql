@@ -114,6 +114,7 @@ CREATE TABLE feed_posts (
   outfit_log_id   UUID REFERENCES outfit_logs(id) ON DELETE SET NULL,
   location        TEXT,                            -- free-text place the photo was taken
   tagged_user_ids UUID[] NOT NULL DEFAULT '{}',    -- friends tagged in the photo (see 015)
+  moment_id       UUID,                            -- if set, a moment outfit candidate — kept out of the feed (see 027)
   created_at      TIMESTAMPTZ DEFAULT now()
 );
 CREATE INDEX idx_feed_posts_user ON feed_posts(user_id);
@@ -285,6 +286,15 @@ CREATE TABLE moment_fit_inspo (
   created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX idx_moment_inspo_moment ON moment_fit_inspo(moment_id);
+
+-- feed_posts.moment_id FK — declared here, after `moments` exists (the column
+-- itself is on feed_posts above). A moment-linked post is a member's outfit
+-- candidate, kept out of the feed; ON DELETE SET NULL keeps posts if a moment
+-- is hard-deleted. See 027_add_moment_posts.sql.
+ALTER TABLE feed_posts
+  ADD CONSTRAINT feed_posts_moment_id_fkey
+  FOREIGN KEY (moment_id) REFERENCES moments(id) ON DELETE SET NULL;
+CREATE INDEX idx_feed_posts_moment ON feed_posts(moment_id);
 
 -- Wear count / last-worn are derived views, never stored redundantly (per build plan)
 CREATE VIEW item_wear_stats AS

@@ -4,7 +4,22 @@ import { DEFAULT_TIMEZONE, getZonedDayBoundsRFC3339 } from "./time";
 const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
-const SCOPE = "https://www.googleapis.com/auth/calendar.readonly";
+// Read every calendar's events (calendar.readonly, needed to list across all of
+// the user's calendars) + write events (calendar.events, for Moments GCal
+// write-back). Users connected before write-back shipped only granted
+// calendar.readonly; a write will 403 until they reconnect (prompt=consent
+// re-issues the grant with both scopes). See upsertCalendarEvent's 403 handling.
+const SCOPE =
+  "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events";
+
+// Thrown when the connected grant predates write-back (calendar.readonly only),
+// so the caller can tell the user to reconnect rather than showing a raw 403.
+export class CalendarScopeError extends Error {
+  constructor() {
+    super("Google Calendar is connected read-only — reconnect to enable writing.");
+    this.name = "CalendarScopeError";
+  }
+}
 
 type TokenResponse = {
   access_token: string;
@@ -232,4 +247,60 @@ export async function getTodayEventsSummary(userId: string): Promise<string[] | 
       : "all day";
     return `${e.summary} - ${time}`;
   });
+}
+
+// ---- Write-back (Moments Phase 3) ---------------------------------------
+
+export type CalendarEventInput = {
+  summary: string;
+  description?: string;
+  location?: string | null;
+  startIso: string; // RFC3339 with offset (our timestamptz columns serialize with Z)
+  endIso: string;
+  existingEventId?: string | null;
+};
+
+// Create or update an event on the user's primary calendar. Returns the event
+// id, or null if the user hasn't connected a calendar at all. Throws
+// CalendarScopeError if the grant lacks the write scope (connected read-only).
+// One-directional by design (Pocket → GCal); we never read edits back.
+export async function upsertCalendarEvent(
+  userId: string,
+  input: CalendarEventInput
+): Promise<string | null> {
+  const accessToken = await getValidAccessToken(userId);
+  if (!accessToken) return null; // not connected
+
+  // dateTime carries its own Z offset, so no timeZone field (which would only
+  // matter for offset-less times); passing both risks an ambiguous instant.
+  const body = {
+    summary: input.summary,
+    description: input.description,
+    location: input.location ?? undefined,
+    start: { dateTime: input.startIso },
+    end: { dateTime: input.endIso },
+  };
+
+  const base = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
+  const url = input.existingEventId
+    ? `${base}/${encodeURIComponent(input.existingEventId)}`
+    : base;
+  const res = await fetch(url, {
+    method: input.existingEventId ? "PATCH" : "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  // A linked event deleted in GCal → recreate fresh instead of failing.
+  if (res.status === 404 && input.existingEventId) {
+    return upsertCalendarEvent(userId, { ...input, existingEventId: null });
+  }
+  if (res.status === 403) throw new CalendarScopeError();
+  if (!res.ok) throw new Error(`Google event write failed: ${await res.text()}`);
+
+  const data = await res.json();
+  return data.id as string;
 }

@@ -103,7 +103,8 @@ export async function getFeedPosts(
        ) AS comments
      FROM feed_posts p
      JOIN users u ON u.id = p.user_id
-     WHERE (
+     WHERE p.moment_id IS NULL
+     AND (
        p.user_id = $1
         OR (
           p.visibility <> 'private'

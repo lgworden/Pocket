@@ -128,11 +128,18 @@ which is kept only for historical build-order context.** App name settled on
   inline from `lib/moments.ts`; `moment_expiring` (~48h out) and the expiry
   soft-delete sweep run every `app/api/cron/tick` via `runMomentMaintenance()`.
   All deep-link to `/stylist?moment=<id>`.
-- **Deferred:** fit-inspo uploads + linking outfit posts to a moment
-  (`feed_posts.moment_id`, exclude from feed) are Phase 2 — the composer's inspo
-  uploader and the card's "add your fit" are present but disabled. Google
-  Calendar **write-back** is Phase 3 (needs a separate `calendar.events`
-  consent); the "add to Google Calendar" checkbox is present but disabled.
+- **Fit inspo + fits (Phase 2, shipped):** each `MomentCard` has a **moodboard**
+  strip (reference images → `moment_fit_inspo`, `app/api/moments/[id]/inspo`) and
+  a **fits** strip (a member's own outfit candidate → a `feed_posts` row tagged
+  with `moment_id`, `app/api/moments/[id]/fits`). Both use `MomentPhotoButton`
+  (compress + native picker + POST). Only accepted participants can add;
+  inspo is removable by its uploader or the creator. Migration `027` adds
+  `feed_posts.moment_id`; `getFeedPosts` filters `moment_id IS NULL` so moment
+  fits **never surface in the feed** (the ootd/weekly-summary counters skip them
+  too). Uses `visibility='private'` on the fit post as a belt-and-braces default.
+- **Deferred:** Google Calendar **write-back** is Phase 3 (needs a separate
+  `calendar.events` consent); the "add to Google Calendar" checkbox in the
+  composer is present but disabled.
 
 **Notifications**
 - In-app notifications, 10 types, `app/notifications` + `NotificationsList` /

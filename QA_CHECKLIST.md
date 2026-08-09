@@ -88,9 +88,17 @@ Run date: ____________  Commit/deploy: ____________  Tester: ____________
 - [ ] Moment past `expires_at` drops out of `/stylist`; the cron tick soft-
       deletes it and (≤48h out, accepted members only) sends one non-duplicated
       "expires in 2 days" notification.
-- [ ] A moment never appears in the main feed, and the "add to Google Calendar"
-      checkbox + "add your fit" / fit-inspo controls read as disabled
-      (deferred phases), not broken.
+- [ ] Moodboard: an accepted participant can add a reference image (+ inspo) and
+      it appears in the strip; the uploader or the creator can remove it, a
+      different member cannot (no × control; hand-rolled DELETE 403s).
+- [ ] "+ your fit": an accepted participant uploads an outfit candidate and it
+      appears in the fits strip. A pending/declined invitee cannot add inspo or
+      fits (hand-rolled POST 403s).
+- [ ] A moment fit **never** appears in the main feed (`/`) for the author or
+      anyone else, and posting one doesn't suppress the day's OOTD reminder or
+      count in the weekly feed summary.
+- [ ] The "add to Google Calendar" checkbox in the composer reads as disabled
+      (Phase 3), not broken.
 
 ## 4. Feed & social
 - [ ] Home feed (`/`) loads the masonry collage without layout breakage at

@@ -179,7 +179,7 @@ export async function generateWeeklyFeedSummary(user: UserRow): Promise<boolean>
 
   const { rows: postRows } = await pool.query(
     `SELECT COUNT(*)::int AS count FROM feed_posts
-     WHERE user_id = $1 AND created_at >= now() - INTERVAL '7 days'`,
+     WHERE user_id = $1 AND moment_id IS NULL AND created_at >= now() - INTERVAL '7 days'`,
     [user.id]
   );
   const postCount = postRows[0].count;
@@ -214,12 +214,12 @@ export async function generateOotdReminder(user: UserRow): Promise<boolean> {
 
   const { rows } = await pool.query(
     `SELECT 1 FROM feed_posts
-     WHERE user_id = $1
+     WHERE user_id = $1 AND moment_id IS NULL
        AND (created_at AT TIME ZONE $2)::date = (now() AT TIME ZONE $2)::date
      LIMIT 1`,
     [user.id, DEFAULT_TIMEZONE]
   );
-  if (rows.length > 0) return false; // already posted today
+  if (rows.length > 0) return false; // already posted today (moment fits don't count)
 
   await createNotification(
     user.id,
