@@ -12,7 +12,11 @@ export type NotificationType =
   | "weekly_feed_summary"
   | "ootd_reminder"
   | "new_follower"
-  | "new_friend";
+  | "new_friend"
+  | "moment_invite"
+  | "moment_accepted"
+  | "moment_cohost"
+  | "moment_expiring";
 
 export type NotificationRow = {
   id: string;

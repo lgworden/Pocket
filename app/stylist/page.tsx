@@ -2,10 +2,13 @@ import { requireOnboarded, getCurrentUserId } from "@/lib/auth";
 import { getTodayWeather } from "@/lib/weather";
 import { isCalendarConnected } from "@/lib/googleCalendar";
 import { getTimeOfDayGreeting } from "@/lib/time";
+import { getCreatedMoments, getInvitedMoments } from "@/lib/moments";
+import { isDesigner } from "@/lib/designers";
 import pool from "@/lib/db";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 import TodayInteractive from "@/components/TodayInteractive";
+import MomentsSection from "@/components/MomentsSection";
 import NotificationButton from "@/components/NotificationButton";
 
 export const dynamic = "force-dynamic";
@@ -32,11 +35,15 @@ export default async function TodayPage({
 }) {
   const [user, userId] = await Promise.all([requireOnboarded(), getCurrentUserId()]);
   const recId = typeof searchParams.recId === "string" ? searchParams.recId : undefined;
-  const [weather, calendarConnected, initialRecommendation] = await Promise.all([
-    getTodayWeather(user.location).catch(() => null),
-    isCalendarConnected(userId),
-    getInitialRecommendation(userId, recId),
-  ]);
+  const [weather, calendarConnected, initialRecommendation, createdMoments, invitedMoments, designer] =
+    await Promise.all([
+      getTodayWeather(user.location).catch(() => null),
+      isCalendarConnected(userId),
+      getInitialRecommendation(userId, recId),
+      getCreatedMoments(userId),
+      getInvitedMoments(userId),
+      isDesigner(userId),
+    ]);
 
   const calendarStatus = searchParams.calendar;
 
@@ -66,6 +73,13 @@ export default async function TodayPage({
       )}
 
       <TodayInteractive calendarConnected={calendarConnected} initialRecommendation={initialRecommendation} />
+
+      <MomentsSection
+        currentUserId={userId}
+        isDesigner={designer}
+        initialCreated={createdMoments}
+        initialInvited={invitedMoments}
+      />
 
       <Link
         href="/pack"

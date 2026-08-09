@@ -8,6 +8,7 @@ import {
   generateWeeklyFeedSummary,
   generateOotdReminder,
 } from "@/lib/notifications";
+import { runMomentMaintenance } from "@/lib/moments";
 
 // Fixed weekly slots (America/New_York, see lib/time.ts) — not user-configurable
 // yet, unlike daily_digest_time. Sunday evening, spaced 1hr apart so the two
@@ -94,5 +95,15 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ nowHHMM, weekday, results });
+  // Moment upkeep — independent of per-user notification prefs and time slots:
+  // send expiring-soon reminders and soft-delete expired moments every tick.
+  let moments: { expiringNotified: number; expired: number } | null = null;
+  try {
+    moments = await runMomentMaintenance();
+  } catch (err) {
+    console.error("[cron] moment maintenance failed:", err);
+    results.errors.push("moment_maintenance");
+  }
+
+  return NextResponse.json({ nowHHMM, weekday, results, moments });
 }

@@ -10,7 +10,12 @@ export type EventType =
   | "user_followed"
   | "feed_post_created"
   | "onboarding_completed"
-  | "walkthrough_completed";
+  | "walkthrough_completed"
+  | "moment_created"
+  | "moment_member_added"
+  | "moment_invite_responded"
+  | "moment_updated"
+  | "moment_deleted";
 
 // Fire-and-forget — never await this. Matches the existing
 // analyzeUserBehavior(...) pattern used elsewhere in the app, but swallows its

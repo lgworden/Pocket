@@ -65,6 +65,7 @@ async function main() {
     path.join(__dirname, "023_add_push_subscriptions.sql"),
     path.join(__dirname, "024_add_new_friend_notification.sql"),
     path.join(__dirname, "025_add_designer_status.sql"),
+    path.join(__dirname, "026_add_moments.sql"),
   ];
 
   for (const migrationPath of migrations) {

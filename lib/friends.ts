@@ -28,6 +28,23 @@ export async function getFriends(userId: string): Promise<Friend[]> {
   return rows;
 }
 
+// True when `a` and `b` are mutual friends. Friendships are always written as
+// both directed rows together (acceptInvite / addFriend), so one row implies
+// the pair — but check both directions to stay correct even if that ever
+// changes. Used to gate Moment invites: a mutual friend is auto-accepted, a
+// non-mutual can only be invited (as pending) by a designer.
+export async function areMutualFriends(a: string, b: string): Promise<boolean> {
+  const { rows } = await pool.query(
+    `SELECT 1 FROM friendships f1
+       JOIN friendships f2
+         ON f2.user_id = f1.friend_id AND f2.friend_id = f1.user_id
+      WHERE f1.user_id = $1 AND f1.friend_id = $2
+      LIMIT 1`,
+    [a, b]
+  );
+  return rows.length > 0;
+}
+
 // Tell `recipientId` that `actorId` just friended them. Best-effort: a failure
 // here must never fail the friending itself. createNotification also fires the
 // web push, so this covers both in-app and on-device delivery.

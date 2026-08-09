@@ -146,7 +146,11 @@ CREATE TYPE notification_type AS ENUM (
   'weekly_feed_summary',
   'ootd_reminder',
   'new_follower',
-  'new_friend'
+  'new_friend',
+  'moment_invite',
+  'moment_accepted',
+  'moment_cohost',
+  'moment_expiring'
 );
 
 CREATE TABLE notifications (
@@ -230,6 +234,57 @@ CREATE TABLE events (
 );
 CREATE INDEX idx_events_type_created ON events(event_type, created_at);
 CREATE INDEX idx_events_user_created ON events(user_id, created_at);
+
+-- Moments — private, occasion-scoped outfit-coordination plans on the Today
+-- screen (app/stylist). Invitation-only, expire 24h after the event ends, never
+-- posted to the feed. See 026_add_moments.sql. role/status are CHECK-constrained
+-- VARCHARs (not ENUMs) to keep the sets editable without an ALTER TYPE dance.
+CREATE TABLE moments (
+  id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  creator_id       UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  event_name       VARCHAR(255) NOT NULL,
+  description      TEXT,
+  location         VARCHAR(255),
+  google_maps_link VARCHAR(1024),
+  vibe_words       TEXT[] NOT NULL DEFAULT '{}',
+  formality_level  SMALLINT,
+  event_date_time  TIMESTAMPTZ NOT NULL,
+  event_end_time   TIMESTAMPTZ,
+  expires_at       TIMESTAMPTZ NOT NULL,
+  gcal_event_id    VARCHAR(512),
+  gcal_written_at  TIMESTAMPTZ,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  deleted_at       TIMESTAMPTZ,
+  CHECK (formality_level IS NULL OR (formality_level BETWEEN 1 AND 10))
+);
+CREATE INDEX idx_moments_creator ON moments(creator_id);
+CREATE INDEX idx_moments_expires ON moments(expires_at);
+CREATE INDEX idx_moments_deleted ON moments(deleted_at);
+
+CREATE TABLE moment_members (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  moment_id   UUID NOT NULL REFERENCES moments(id) ON DELETE CASCADE,
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role        VARCHAR(20) NOT NULL CHECK (role IN ('creator', 'collaborator', 'invitee')),
+  status      VARCHAR(20) NOT NULL DEFAULT 'pending'
+                CHECK (status IN ('pending', 'accepted', 'declined')),
+  invited_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  accepted_at TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (moment_id, user_id)
+);
+CREATE INDEX idx_moment_members_user ON moment_members(user_id);
+CREATE INDEX idx_moment_members_status ON moment_members(status);
+CREATE INDEX idx_moment_members_role ON moment_members(role);
+
+CREATE TABLE moment_fit_inspo (
+  id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  moment_id      UUID NOT NULL REFERENCES moments(id) ON DELETE CASCADE,
+  image_url      VARCHAR(1024) NOT NULL,
+  uploaded_by_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_moment_inspo_moment ON moment_fit_inspo(moment_id);
 
 -- Wear count / last-worn are derived views, never stored redundantly (per build plan)
 CREATE VIEW item_wear_stats AS

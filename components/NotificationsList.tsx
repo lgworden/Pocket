@@ -11,7 +11,11 @@ export type Notification = {
     | "weekly_feed_summary"
     | "ootd_reminder"
     | "new_follower"
-    | "new_friend";
+    | "new_friend"
+    | "moment_invite"
+    | "moment_accepted"
+    | "moment_cohost"
+    | "moment_expiring";
   title: string;
   body: string;
   link: string | null;
@@ -26,6 +30,10 @@ const TYPE_ICON: Record<Notification["type"], string> = {
   ootd_reminder: "📣",
   new_follower: "👋",
   new_friend: "🤝",
+  moment_invite: "✨",
+  moment_accepted: "✅",
+  moment_cohost: "🤝",
+  moment_expiring: "⏳",
 };
 
 function timeAgo(iso: string): string {

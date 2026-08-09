@@ -103,12 +103,44 @@ which is kept only for historical build-order context.** App name settled on
 - `app/invite`, `app/invite/[code]` — generic invite links (not tied to a
   specific channel), `InviteLinkCard`.
 
+**Moments** (`app/stylist` — the Today/Digest screen)
+- Private, occasion-scoped outfit-coordination plans layered onto the Today
+  screen (there is no separate "Digest" tab — the spec's Digest concept maps to
+  `app/stylist`). A moment is invitation-only, tied to a date/time, expires 24h
+  after the event ends (`expires_at`), soft-deletes, and **never posts to the
+  feed**. Tables `moments` / `moment_members` / `moment_fit_inspo` (migration
+  `026`); all data logic in `lib/moments.ts`, thin routes under
+  `app/api/moments/**` (create/list, patch/delete, members add, member
+  accept/decline). UI: `MomentsSection` (Created by you / Invites / You're
+  going), `MomentCard`, `MomentComposer`.
+- **Role model** creator / collaborator / invitee (CHECK-constrained VARCHARs,
+  not enums). Edit + add-members = creator or collaborator; add co-hosts +
+  delete = creator only; accept/decline = the invited user's own row.
+- **Invite gating** reuses the friend graph + designer status: inviting a mutual
+  friend (`areMutualFriends` in `lib/friends.ts`) auto-accepts; a non-mutual can
+  only be invited (as `pending`) by a designer (`isDesigner`); a regular user
+  inviting a non-mutual is rejected (400) — and `createMoment` runs in a
+  transaction so that rejection rolls back rather than orphaning the moment.
+- User search for the composer extends `app/api/users/search` with a `scope`
+  param: `mutual` (anyone, mutual friends only) vs `all` (designer-only, 403
+  otherwise); the no-scope call is unchanged for `FriendSearch`.
+- Notifications: `moment_invite` / `moment_accepted` / `moment_cohost` fire
+  inline from `lib/moments.ts`; `moment_expiring` (~48h out) and the expiry
+  soft-delete sweep run every `app/api/cron/tick` via `runMomentMaintenance()`.
+  All deep-link to `/stylist?moment=<id>`.
+- **Deferred:** fit-inspo uploads + linking outfit posts to a moment
+  (`feed_posts.moment_id`, exclude from feed) are Phase 2 — the composer's inspo
+  uploader and the card's "add your fit" are present but disabled. Google
+  Calendar **write-back** is Phase 3 (needs a separate `calendar.events`
+  consent); the "add to Google Calendar" checkbox is present but disabled.
+
 **Notifications**
-- In-app notifications, 6 types, `app/notifications` + `NotificationsList` /
+- In-app notifications, 10 types, `app/notifications` + `NotificationsList` /
   `NotificationsModal` / `NotificationButton`; the scheduled ones are
-  delivered via Railway-cron hitting `app/api/cron/tick`, while `new_follower`
-  and `new_friend` fire inline from `lib/follows.ts` / `lib/friends.ts` at the
-  moment the relationship is created.
+  delivered via Railway-cron hitting `app/api/cron/tick`, while `new_follower`,
+  `new_friend`, and the `moment_*` invite/accept/cohost types fire inline from
+  `lib/follows.ts` / `lib/friends.ts` / `lib/moments.ts` at the moment the
+  relationship or invite is created.
 - Web push (home-screen push) on top of in-app: `public/sw.js` service
   worker, VAPID keys, `PushNotificationSetup` component, `app/api/push`
   subscribe/unsubscribe. **Not yet fully live** — prod needs its own VAPID

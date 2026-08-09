@@ -66,6 +66,32 @@ Run date: ____________  Commit/deploy: ____________  Tester: ____________
 - [ ] Self-styled logging: tap an item that isn't yet in the closet →
       prompted to add it (gap detection) rather than silently failing.
 
+## 3b. Moments (on the Today/Digest screen)
+- [ ] `/stylist` shows the Moments block with a "+ new" button; with no
+      moments it shows the empty "plan a group fit…" copy, not a broken list.
+- [ ] "+ new" opens the composer; creating with a name + start time (and some
+      vibe chips / formality) makes the moment appear under "Created by you"
+      with an expiry pill, without a page reload.
+- [ ] Regular user: composer search is labelled "mutual friends" and only
+      returns mutual friends. Designer account: labelled "invite anyone" and
+      returns all users.
+- [ ] Invite a **mutual** friend → they appear accepted immediately. Regular
+      user inviting a **non-mutual** → error, and no orphaned moment is left
+      behind (nothing new under "Created by you").
+- [ ] Designer inviting a non-mutual → the invitee sees it under "Invites"
+      (pending) with accept / decline; accepting moves it to "You're going"
+      live; declining removes it.
+- [ ] Edit as creator or collaborator → changes reflected. Edit affordance is
+      absent for a plain invitee (no edit button, and a hand-rolled PATCH 403s).
+- [ ] Delete as the creator → the moment disappears from every list; a
+      non-creator cannot delete (no control; hand-rolled DELETE 403s).
+- [ ] Moment past `expires_at` drops out of `/stylist`; the cron tick soft-
+      deletes it and (≤48h out, accepted members only) sends one non-duplicated
+      "expires in 2 days" notification.
+- [ ] A moment never appears in the main feed, and the "add to Google Calendar"
+      checkbox + "add your fit" / fit-inspo controls read as disabled
+      (deferred phases), not broken.
+
 ## 4. Feed & social
 - [ ] Home feed (`/`) loads the masonry collage without layout breakage at
       mobile width.
