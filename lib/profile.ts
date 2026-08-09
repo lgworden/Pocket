@@ -71,11 +71,10 @@ async function getOOTDStreak(userId: string): Promise<number> {
   if (rows.length === 0) return 0;
 
   // Work with dates as strings (YYYY-MM-DD) to avoid timezone confusion.
-  // Compare consecutive dates to see if they're exactly 1 day apart.
+  // The database returns dates as Date objects; convert them to ISO strings.
   const dateStrings = rows.map(r => {
-    if (typeof r.date === 'string') return r.date;
-    if (r.date instanceof Date) return r.date.toISOString().split('T')[0];
-    return (r.date as any).toString().split(' ')[0];
+    const d = r.date as unknown as Date;
+    return d.toISOString().split('T')[0];
   });
 
   const today = new Date().toISOString().split('T')[0];
