@@ -35,7 +35,26 @@ const EMPTY_COPY: Record<string, string> = {
 
 export default async function ProfilePage({ params }: { params: { id: string } }) {
   const viewer = await requireOnboarded();
-  const profileUser = await getProfileUser(params.id);
+  let profileUser = null;
+
+  // Try UUID lookup first
+  try {
+    profileUser = await getProfileUser(params.id);
+  } catch {
+    // Not a valid UUID, try username lookup
+  }
+
+  // If UUID lookup fails, try looking up by username
+  if (!profileUser) {
+    const pool = (await import("@/lib/db")).default;
+    const { rows } = await pool.query<{ id: string }>(
+      "SELECT id FROM users WHERE name = $1",
+      [params.id]
+    );
+    if (rows.length > 0) {
+      profileUser = await getProfileUser(rows[0].id);
+    }
+  }
 
   if (!profileUser) {
     return (

@@ -65,26 +65,38 @@ export async function getProfileUser(userId: string): Promise<ProfileUser | null
 // yesterday, resets the streak to 0.
 async function getOOTDStreak(userId: string): Promise<number> {
   const { rows } = await pool.query<{ date: string }>(
-    "SELECT DISTINCT date::text AS date FROM outfit_logs WHERE user_id = $1 ORDER BY date DESC",
+    "SELECT DISTINCT date FROM outfit_logs WHERE user_id = $1 ORDER BY date DESC LIMIT 100",
     [userId]
   );
   if (rows.length === 0) return 0;
 
-  const oneDay = 24 * 60 * 60 * 1000;
-  const dayMs = (s: string) => Date.parse(`${s}T00:00:00Z`);
-  const today = Date.UTC(
-    new Date().getUTCFullYear(),
-    new Date().getUTCMonth(),
-    new Date().getUTCDate()
-  );
+  // Work with dates as strings (YYYY-MM-DD) to avoid timezone confusion.
+  // Compare consecutive dates to see if they're exactly 1 day apart.
+  const dateStrings = rows.map(r => {
+    if (typeof r.date === 'string') return r.date;
+    if (r.date instanceof Date) return r.date.toISOString().split('T')[0];
+    return (r.date as any).toString().split(' ')[0];
+  });
 
-  const mostRecent = dayMs(rows[0].date);
-  if (today - mostRecent > oneDay) return 0;
+  const today = new Date().toISOString().split('T')[0];
+  const mostRecent = dateStrings[0];
+
+  // Streak is broken if the most recent log is older than yesterday
+  const isToday = mostRecent === today;
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const isYesterday = mostRecent === yesterday;
+
+  if (!isToday && !isYesterday) return 0;
 
   let streak = 1;
-  for (let i = 1; i < rows.length; i++) {
-    const gap = dayMs(rows[i - 1].date) - dayMs(rows[i].date);
-    if (gap === oneDay) {
+  for (let i = 1; i < dateStrings.length; i++) {
+    const curr = dateStrings[i - 1];
+    const prev = dateStrings[i];
+    const currDate = new Date(curr);
+    const prevDate = new Date(prev);
+    const daysDiff = Math.round((currDate.getTime() - prevDate.getTime()) / (24 * 60 * 60 * 1000));
+
+    if (daysDiff === 1) {
       streak++;
     } else {
       break;
