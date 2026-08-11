@@ -12,11 +12,13 @@ import MomentComposer from "./MomentComposer";
 export default function MomentsSection({
   currentUserId,
   isDesigner,
+  calendarConnected,
   initialCreated,
   initialInvited,
 }: {
   currentUserId: string;
   isDesigner: boolean;
+  calendarConnected: boolean;
   initialCreated: MomentWithMembers[];
   initialInvited: MomentWithMembers[];
 }) {
@@ -144,6 +146,7 @@ export default function MomentsSection({
         onSaved={handleSaved}
         onDeleted={editing?.user_role === "creator" ? handleDeleted : undefined}
         isDesigner={isDesigner}
+        calendarConnected={calendarConnected}
         editing={editing}
       />
     </section>

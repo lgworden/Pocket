@@ -137,9 +137,20 @@ which is kept only for historical build-order context.** App name settled on
   `feed_posts.moment_id`; `getFeedPosts` filters `moment_id IS NULL` so moment
   fits **never surface in the feed** (the ootd/weekly-summary counters skip them
   too). Uses `visibility='private'` on the fit post as a belt-and-braces default.
-- **Deferred:** Google Calendar **write-back** is Phase 3 (needs a separate
-  `calendar.events` consent); the "add to Google Calendar" checkbox in the
-  composer is present but disabled.
+- **Google Calendar write-back (Phase 3, shipped):** the composer's "Add to
+  Google Calendar" checkbox is live when the user's calendar is connected
+  (otherwise it shows a "Connect Google Calendar" link to the existing
+  `/api/auth/google?mode=calendar` flow). Checking it on save calls
+  `POST /api/moments/[id]/gcal-sync {write:true}` → `syncMomentToGcal` in
+  `lib/moments.ts` → `upsertCalendarEvent` in `lib/googleCalendar.ts`
+  (create/update on the user's `primary` calendar; event description carries
+  vibe/formality/attendees + a deep link back). One-directional (Pocket → GCal,
+  never read back); unchecking a linked moment unlinks (`write:false`) without
+  deleting from GCal. Only creator/collaborator may sync. **Scope change:** the
+  calendar-connect grant now requests `calendar.readonly` **and**
+  `calendar.events`; accounts connected before this shipped are read-only and
+  hit `CalendarScopeError` (surfaced as "reconnect to enable writing") until
+  they reconnect (`prompt=consent` re-issues both scopes).
 
 **Notifications**
 - In-app notifications, 10 types, `app/notifications` + `NotificationsList` /

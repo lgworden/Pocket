@@ -97,8 +97,15 @@ Run date: ____________  Commit/deploy: ____________  Tester: ____________
 - [ ] A moment fit **never** appears in the main feed (`/`) for the author or
       anyone else, and posting one doesn't suppress the day's OOTD reminder or
       count in the weekly feed summary.
-- [ ] The "add to Google Calendar" checkbox in the composer reads as disabled
-      (Phase 3), not broken.
+- [ ] Composer GCal control: when the calendar isn't connected it shows a
+      "Connect Google Calendar" link (not a dead checkbox); when connected it's a
+      live checkbox, pre-checked only when editing an already-linked moment.
+- [ ] Checking "Add to Google Calendar" on save creates/updates a primary-calendar
+      event (title, time, location, description w/ vibe/formality/attendees + a
+      /stylist?moment= back-link); unchecking a linked moment unlinks it without
+      deleting from GCal. Only creator/collaborator can sync (invitee POST 403s).
+- [ ] An account connected before write-back shipped (read-only grant) gets a
+      "reconnect to enable writing" message on write, and reconnecting fixes it.
 
 ## 4. Feed & social
 - [ ] Home feed (`/`) loads the masonry collage without layout breakage at

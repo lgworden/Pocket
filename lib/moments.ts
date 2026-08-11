@@ -1,7 +1,9 @@
+import { headers } from "next/headers";
 import pool from "./db";
 import { createNotification } from "./notifications";
 import { isDesigner } from "./designers";
 import { areMutualFriends } from "./friends";
+import { upsertCalendarEvent, CalendarScopeError } from "./googleCalendar";
 
 // Moments — private, occasion-scoped outfit-coordination plans (see
 // 026_add_moments.sql + the Moments spec). All data logic lives here; the API
@@ -588,6 +590,112 @@ export async function addFit(
     author_name: who[0]?.name ?? "You",
     author_username: who[0]?.username ?? null,
   };
+}
+
+// ---- Google Calendar write-back (Phase 3) -------------------------------
+
+// Absolute URL back to the moment, built from the incoming request host so the
+// link in the calendar event works on whatever origin serves the app (mirrors
+// inviteUrlFor in lib/friends.ts).
+function absoluteMomentUrl(momentId: string): string {
+  const h = headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";
+  const proto = h.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https");
+  return `${proto}://${host}/stylist?moment=${momentId}`;
+}
+
+// Push a moment to the creator/collaborator's Google Calendar (create or update
+// the linked event), or unlink it (`write=false`) without deleting from GCal.
+// One-directional — Pocket never reads calendar edits back.
+export async function syncMomentToGcal(
+  userId: string,
+  momentId: string,
+  write: boolean
+): Promise<MomentWithMembers> {
+  await requireEditor(momentId, userId);
+
+  if (!write) {
+    // Unlink only — leave the event in the user's calendar (their choice to remove).
+    await pool.query(
+      "UPDATE moments SET gcal_event_id = NULL, gcal_written_at = NULL WHERE id = $1",
+      [momentId]
+    );
+    const m = await getMomentForViewer(momentId, userId);
+    if (!m) throw new MomentError("Failed to load moment", 500);
+    return m;
+  }
+
+  const { rows } = await pool.query<{
+    event_name: string;
+    location: string | null;
+    google_maps_link: string | null;
+    vibe_words: string[];
+    formality_level: number | null;
+    event_date_time: Date;
+    event_end_time: Date | null;
+    gcal_event_id: string | null;
+  }>(
+    `SELECT event_name, location, google_maps_link, vibe_words, formality_level,
+            event_date_time, event_end_time, gcal_event_id
+       FROM moments WHERE id = $1 AND deleted_at IS NULL`,
+    [momentId]
+  );
+  const mo = rows[0];
+  if (!mo) throw new MomentError("Moment not found", 404);
+
+  const { rows: attendees } = await pool.query<{ label: string }>(
+    `SELECT COALESCE('@' || u.username, u.display_name, u.name) AS label
+       FROM moment_members mm
+       JOIN users u ON u.id = mm.user_id
+      WHERE mm.moment_id = $1 AND mm.role <> 'creator' AND mm.status <> 'declined'
+      ORDER BY label`,
+    [momentId]
+  );
+
+  const start = new Date(mo.event_date_time);
+  const end = mo.event_end_time
+    ? new Date(mo.event_end_time)
+    : new Date(start.getTime() + 3 * 60 * 60 * 1000);
+
+  const description = [
+    "📅 Planning your fit for this event in Pocket!",
+    mo.vibe_words.length ? `Vibe: ${mo.vibe_words.join(", ")}` : null,
+    mo.formality_level != null ? `Formality: ${mo.formality_level}/10` : null,
+    attendees.length ? `Attendees: ${attendees.map((a) => a.label).join(", ")}` : null,
+    `👗 Add your outfit: ${absoluteMomentUrl(momentId)}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  let eventId: string | null;
+  try {
+    eventId = await upsertCalendarEvent(userId, {
+      summary: mo.event_name,
+      description,
+      location: mo.location ?? mo.google_maps_link ?? undefined,
+      startIso: start.toISOString(),
+      endIso: end.toISOString(),
+      existingEventId: mo.gcal_event_id,
+    });
+  } catch (err) {
+    if (err instanceof CalendarScopeError) {
+      throw new MomentError(err.message, 400);
+    }
+    throw err;
+  }
+
+  if (!eventId) {
+    throw new MomentError("Connect your Google Calendar first", 400);
+  }
+
+  await pool.query(
+    "UPDATE moments SET gcal_event_id = $2, gcal_written_at = now() WHERE id = $1",
+    [momentId, eventId]
+  );
+
+  const m = await getMomentForViewer(momentId, userId);
+  if (!m) throw new MomentError("Failed to load moment", 500);
+  return m;
 }
 
 // ---- Notifications ------------------------------------------------------

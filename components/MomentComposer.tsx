@@ -43,6 +43,7 @@ export default function MomentComposer({
   onSaved,
   onDeleted,
   isDesigner,
+  calendarConnected,
   editing,
 }: {
   open: boolean;
@@ -50,6 +51,7 @@ export default function MomentComposer({
   onSaved: (m: MomentWithMembers) => void;
   onDeleted?: (id: string) => void;
   isDesigner: boolean;
+  calendarConnected: boolean;
   editing?: MomentWithMembers | null;
 }) {
   const isEdit = !!editing;
@@ -64,6 +66,7 @@ export default function MomentComposer({
   const [pending, setPending] = useState<PendingMember[]>([]);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchUser[]>([]);
+  const [writeToGcal, setWriteToGcal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -75,13 +78,15 @@ export default function MomentComposer({
     setMapsLink(editing?.google_maps_link ?? "");
     setStart(toLocalInput(editing?.event_date_time ?? null));
     setEnd(toLocalInput(editing?.event_end_time ?? null));
+    // Default the GCal box on only when editing an already-linked moment.
+    setWriteToGcal(calendarConnected && !!editing?.gcal_event_id);
     setVibes(editing?.vibe_words ?? []);
     setFormality(editing?.formality_level ?? 5);
     setPending([]);
     setQuery("");
     setResults([]);
     setError(null);
-  }, [open, editing]);
+  }, [open, editing, calendarConnected]);
 
   // Debounced member search, scoped by designer status.
   useEffect(() => {
@@ -179,6 +184,25 @@ export default function MomentComposer({
         if (!res.ok) throw new Error((await res.json()).error || "Couldn't create moment");
         saved = await res.json();
       }
+
+      // Google Calendar write-back: push when the box is checked, or unlink when
+      // an already-linked moment gets it unchecked. A sync failure must not lose
+      // the just-saved moment, so propagate it before surfacing the error.
+      const wasLinked = !!editing?.gcal_event_id;
+      if (writeToGcal || (isEdit && wasLinked && !writeToGcal)) {
+        const sres = await fetch(`/api/moments/${saved.id}/gcal-sync`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ write: writeToGcal }),
+        });
+        if (sres.ok) {
+          saved = await sres.json();
+        } else {
+          onSaved(saved);
+          throw new Error((await sres.json()).error || "Saved, but Google Calendar sync failed");
+        }
+      }
+
       onSaved(saved);
       onClose();
     } catch (e) {
@@ -362,12 +386,27 @@ export default function MomentComposer({
           )}
         </div>
 
-        {/* Google Calendar write-back lands in a later phase (needs a separate
-            calendar.events consent) — surfaced but disabled so the intent is clear. */}
-        <label className="flex items-center gap-2 text-sm text-slate/60">
-          <input type="checkbox" disabled className="accent-ink" />
-          Add to Google Calendar <span className="text-xs">(coming soon)</span>
-        </label>
+        {/* Google Calendar write-back — enabled once the user's calendar is
+            connected (with the write scope). Not connected → point them at the
+            existing connect flow rather than a dead checkbox. */}
+        {calendarConnected ? (
+          <label className="flex items-center gap-2 text-sm text-ink">
+            <input
+              type="checkbox"
+              checked={writeToGcal}
+              onChange={(e) => setWriteToGcal(e.target.checked)}
+              className="accent-ink"
+            />
+            Add to Google Calendar
+          </label>
+        ) : (
+          <p className="text-sm text-slate/70">
+            <a href="/api/auth/google?mode=calendar" className="text-blue underline underline-offset-2">
+              Connect Google Calendar
+            </a>{" "}
+            to add moments to your calendar.
+          </p>
+        )}
 
         {error && <p className="text-sm text-rose">{error}</p>}
 

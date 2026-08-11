@@ -77,6 +77,7 @@ export default async function TodayPage({
       <MomentsSection
         currentUserId={userId}
         isDesigner={designer}
+        calendarConnected={calendarConnected}
         initialCreated={createdMoments}
         initialInvited={invitedMoments}
       />
