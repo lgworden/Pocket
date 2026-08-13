@@ -116,11 +116,10 @@ which is kept only for historical build-order context.** App name settled on
   count is a `FriendCountButton` that opens a read-only list of that person's
   mutual friends — managing friends stays in `FriendsModal` off the feed.
 - `BottomNav` hides itself on scroll-down and reappears (fully opaque) on
-  scroll-up; always shown near the top of the page. It is bottom-docked on a
-  phone and **top-docked from `md` up** — the edge, the rounded/bordered side,
-  and the direction it slides when hiding all mirror at that breakpoint. Every
-  page that renders it reserves the top strip with `md:pt-24` (the name is now
-  a slight misnomer; it's kept because the component is imported in 8 places).
+  scroll-up; always shown near the top of the page. Bottom-docked at every
+  breakpoint. On the feed (`/`) it widens at `md`/`lg` to match the feed's own
+  wider content column (`max-w-[640px]`/`max-w-[760px]`) instead of the
+  app-wide `max-w-md` every other page uses.
 - `app/invite`, `app/invite/[code]` — generic invite links (not tied to a
   specific channel), `InviteLinkCard`.
 

@@ -20,9 +20,9 @@ export default function BottomNav() {
   const [hidden, setHidden] = useState(false);
   const lastY = useRef(0);
 
-  // Scrolling down slides the whole bar off-screen (downward on mobile, upward
-  // on desktop, where the bar is docked to the top); scrolling up brings it
-  // back, fully opaque. Near the top of the page it's always shown.
+  // Scrolling down slides the whole bar off-screen (downward, since it's
+  // bottom-docked); scrolling up brings it back, fully opaque. Near the top
+  // of the page it's always shown.
   useEffect(() => {
     lastY.current = window.scrollY;
 
@@ -55,17 +55,19 @@ export default function BottomNav() {
         : "text-slate/60 hover:text-slate"
     }`;
 
+  // The feed's content column is wider than the app-wide max-w-md body from
+  // `md` up (see app/page.tsx) — match it there so the bar spans the same
+  // width as the collage above it instead of looking stranded in the middle.
+  const isFeed = pathname === "/";
+
   return (
-    // Docked to the bottom on a phone, where it sits under the thumb, and to
-    // the top from `md` up, where a bottom bar on a tall desktop window is a
-    // long way from anything the eye is on. The whole bar mirrors: which edge
-    // it sticks to, which side is rounded and bordered, and which way it slides
-    // when it hides. Pages that render this leave `md:pt-24` for it.
+    // Docked to the bottom at every breakpoint, where it sits under the thumb
+    // on a phone and stays anchored to the content it belongs to on desktop.
     <nav
       aria-hidden={hidden}
-      className={`fixed bottom-0 md:bottom-auto md:top-0 left-0 right-0 z-40 max-w-md mx-auto bg-panel opacity-100 border-t md:border-t-0 md:border-b border-slate/25 rounded-t-2xl md:rounded-t-none md:rounded-b-2xl shadow-soft flex items-center justify-around py-3 px-4 will-change-transform transition-transform duration-200 ease-out ${
-        hidden ? "translate-y-full md:-translate-y-full pointer-events-none" : "translate-y-0"
-      }`}
+      className={`fixed bottom-0 left-0 right-0 z-40 mx-auto bg-panel opacity-100 border-t border-slate/25 rounded-t-2xl shadow-soft flex items-center justify-around py-3 px-4 will-change-transform transition-transform duration-200 ease-out ${
+        isFeed ? "max-w-md md:max-w-[640px] lg:max-w-[760px]" : "max-w-md"
+      } ${hidden ? "translate-y-full pointer-events-none" : "translate-y-0"}`}
     >
       {ITEMS.map((item) => (
         <Link key={item.href} href={item.href} className={tabClass(item.href)}>

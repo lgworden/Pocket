@@ -58,7 +58,7 @@ export default async function ProfilePage({ params }: { params: { id: string } }
 
   if (!profileUser) {
     return (
-      <main className="px-4 pt-6 md:pt-24 pb-24">
+      <main className="px-4 pt-6 pb-24">
         <p className="text-sm text-ink/60">This profile doesn't exist.</p>
         <BottomNav />
       </main>
@@ -86,7 +86,7 @@ export default async function ProfilePage({ params }: { params: { id: string } }
   const isDesigner = !!profileUser.designer_since;
 
   return (
-    <main className="px-4 pt-6 md:pt-24 pb-24 space-y-6">
+    <main className="px-4 pt-6 pb-24 space-y-6">
       <div
         className={`rounded-2xl border p-4 shadow-soft-sm ${
           isDesigner ? "bg-blue/25 border-blue/40" : "bg-panel border-slate/10"

@@ -24,9 +24,8 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      {/* pb-20 clears the bottom-docked nav; from md up that bar moves to the
-          top (see BottomNav) and each page reserves the space with md:pt-24. */}
-      <body className="max-w-md mx-auto min-h-screen pb-20 md:pb-0">{children}</body>
+      {/* pb-20 clears the bottom-docked nav (see BottomNav). */}
+      <body className="max-w-md mx-auto min-h-screen pb-20">{children}</body>
     </html>
   );
 }

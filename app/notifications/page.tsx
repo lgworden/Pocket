@@ -10,7 +10,7 @@ export default async function NotificationsPage() {
   const notifications = await listNotifications(user.id);
 
   return (
-    <main className="px-4 pt-6 md:pt-24 pb-24 space-y-6">
+    <main className="px-4 pt-6 pb-24 space-y-6">
       <header>
         <p className="text-xs font-ui font-semibold text-slate tracking-wide">Alerts</p>
         <h1 className="text-2xl mt-1">Notifications</h1>
