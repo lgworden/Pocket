@@ -11,7 +11,7 @@ export default async function PreferencesPage() {
   const invite = await getInviteUsage(user.id);
 
   return (
-    <main className="px-4 pt-6 space-y-6 pb-24">
+    <main className="px-4 pt-6 md:pt-24 space-y-6 pb-24">
       <header>
         <p className="text-xs font-ui font-semibold text-slate tracking-wide">
           Settings

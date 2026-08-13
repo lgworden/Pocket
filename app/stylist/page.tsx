@@ -48,7 +48,7 @@ export default async function TodayPage({
   const calendarStatus = searchParams.calendar;
 
   return (
-    <main className="px-4 pt-6 space-y-6">
+    <main className="px-4 pt-6 md:pt-24 space-y-6">
       <header className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl">{getTimeOfDayGreeting()}, {user.display_name || user.name}</h1>

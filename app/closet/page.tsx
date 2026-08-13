@@ -156,7 +156,7 @@ export default async function ClosetPage({
       : "Your closet";
 
   return (
-    <main className="px-4 pt-6 space-y-4">
+    <main className="px-4 pt-6 md:pt-24 space-y-4">
       <header>
         <p className="text-xs font-ui font-semibold text-slate tracking-wide">
           Closet

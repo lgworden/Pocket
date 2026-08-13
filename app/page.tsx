@@ -26,7 +26,7 @@ export default async function HomePage({
     // overlays FeedCard renders (Modal, PhotoLightbox).
     // 640px at md, 760px at lg — a single wide step would have left the column
     // all but touching the window edges on a 768px tablet.
-    <main className="px-4 pt-6 pb-32 md:mx-[calc(50%-320px)] lg:mx-[calc(50%-380px)]">
+    <main className="px-4 pt-6 md:pt-24 pb-32 md:mx-[calc(50%-320px)] lg:mx-[calc(50%-380px)]">
       {/* The wider column leaves real estate either side of the collage. A
           fine dot lattice keeps that from reading as dead space — pinned to
           the viewport so it doesn't scroll with the posts, and only on the

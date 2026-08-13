@@ -65,7 +65,7 @@ export default async function ItemDetailPage({ params }: { params: { id: string 
     item.cost && wearCount > 0 ? (Number(item.cost) / wearCount).toFixed(2) : null;
 
   return (
-    <main className="px-4 pt-6 space-y-4">
+    <main className="px-4 pt-6 md:pt-24 space-y-4">
       <Link href="/closet" className="text-sm text-slate">
         ← Back to closet
       </Link>
