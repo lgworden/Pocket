@@ -26,16 +26,12 @@ function estimateChromeHeight(post: FeedPost) {
   return post.caption ? 100 : 78;
 }
 
-// 2 across on a phone (the layout the feed is designed around), then one more
-// column per step up as the viewport widens — on desktop the collage runs the
-// full width of the window, so without extra columns the polaroids would blow
-// up to poster size.
+// 2 across on a phone (the layout the feed is designed around), 3 on desktop
+// and no more: the column the feed renders into is a fixed width (see
+// app/page.tsx), so a wider window buys more backdrop, not more polaroids —
+// which keeps a tile about the same size everywhere.
 function columnsForWidth(width: number) {
-  if (width < 560) return 2;
-  if (width < 840) return 3;
-  if (width < 1120) return 4;
-  if (width < 1440) return 5;
-  return 6;
+  return width < 560 ? 2 : 3;
 }
 
 // Greedy shortest-column packing: walk the posts in date order (already
@@ -210,14 +206,17 @@ export default function FeedCollage({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-ui font-semibold text-slate tracking-wide">
+      {/* The desktop column is nearly twice the phone's width, so the header
+          scales with it — at phone sizing it read as a caption stranded above
+          a much bigger grid. */}
+      <div className="flex items-center justify-between md:pb-1">
+        <p className="text-xs md:text-base font-ui font-semibold text-slate tracking-wide">
           Feed
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 md:gap-3">
           <button
             aria-label="Friends"
-            className="icon-btn bg-panel border border-slate/20 text-ink hover:bg-ink/5 transition"
+            className="icon-btn md:w-12 md:h-12 bg-panel border border-slate/20 text-ink hover:bg-ink/5 transition"
             onClick={() => setFriendsOpen(true)}
           >
             {/* people glyph */}
@@ -229,7 +228,7 @@ export default function FeedCollage({
           </button>
           <button
             aria-label="share fit"
-            className="icon-btn bg-panel border border-slate/20 text-ink hover:bg-ink/5 transition"
+            className="icon-btn md:w-12 md:h-12 bg-panel border border-slate/20 text-ink hover:bg-ink/5 transition"
             onClick={() => setComposerOpen(true)}
           >
             <CameraIcon />
@@ -239,7 +238,7 @@ export default function FeedCollage({
 
       {/* Color legend doubles as a filter: tap a tier to show only those
           posts, tap the active one again to clear it. */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 md:gap-4">
         {VISIBILITY_OPTIONS.map((opt) => {
           const isActive = activeFilter === opt.value;
           const isDimmed = activeFilter !== null && !isActive;
@@ -254,10 +253,10 @@ export default function FeedCollage({
               } ${isDimmed ? "opacity-40" : ""}`}
             >
               <span
-                className={`w-2.5 h-2.5 rounded-full border shrink-0 ${VISIBILITY_STYLES[opt.value].card}`}
+                className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full border shrink-0 ${VISIBILITY_STYLES[opt.value].card}`}
               />
               <span
-                className={`text-[11px] ${isActive ? "text-ink font-semibold" : "text-ink/50"}`}
+                className={`text-[11px] md:text-[13px] ${isActive ? "text-ink font-semibold" : "text-ink/50"}`}
               >
                 {VISIBILITY_LEGEND_LABELS[opt.value]}
               </span>
@@ -284,14 +283,9 @@ export default function FeedCollage({
         // date. Packing by hand puts post 0 top-left and post 1 in the next
         // column — flush at the top by construction — then keeps feeding each
         // post to the shortest column so the bottom edge stays level too.
-        //
-        // `mx-[calc(50%-50vw)]` on md+ escapes the app-wide `max-w-md` phone
-        // column (see app/layout.tsx) so the polaroids run edge to edge on a
-        // desktop window, while the header and legend above stay in the
-        // readable column.
         <div
           ref={measureGrid}
-          className="flex items-start md:mx-[calc(50%-50vw)]"
+          className="flex items-start"
           style={{ gap: GAP }}
         >
           {columns.map((column, col) => (

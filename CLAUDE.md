@@ -78,14 +78,17 @@ which is kept only for historical build-order context.** App name settled on
   server-side), so tile heights vary. Columns are packed in JS, shortest-column
   first, against *measured* card heights (a `ResizeObserver` per card) rather
   than CSS `columns-N`, which fills column 1 before column 2 and leaves a
-  ragged bottom. Column count is width-driven: 2 on mobile, up to 6 on a wide
-  desktop. On `md+` the grid escapes the app-wide `max-w-md` body column via
-  `mx-[calc(50%-50vw)]` so the polaroids run edge to edge — a negative-margin
-  bleed, deliberately *not* a transform, since `FeedCard` renders `fixed`
-  overlays (Modal, `PhotoLightbox`) that a transformed ancestor would break.
-  `html { overflow-x: hidden }` in `globals.css` absorbs the scrollbar
-  overshoot that 100vw causes. Repacking moves cards between columns, which
-  remounts them, so the known ratio is fed back down as `photoRatioHint`.
+  ragged bottom. 2 columns on mobile, 3 from `md` up and never more: the feed
+  page gets its own fixed-width column (`md:mx-[calc(50%-320px)]` → 640px,
+  `lg:` → 760px in `app/page.tsx`) that escapes the app-wide `max-w-md` body
+  clamp, so a wider window buys backdrop rather than bigger polaroids. That
+  bleed is a negative margin and deliberately *not* a transform, since
+  `FeedCard` renders `fixed` overlays (Modal, `PhotoLightbox`) that a
+  transformed ancestor would break. The space either side is filled by
+  `.feed-backdrop` (globals.css) — a fixed, `md`-only dot lattice. Repacking
+  moves cards between columns, which remounts them, so the known ratio is fed
+  back down as `photoRatioHint`. The header/legend scale up at `md` to match
+  the wider column.
 - `FeedComposer` photo step offers both camera capture and album pick (two
   file inputs — `capture="environment"` opens the camera but suppresses the
   album picker, so each source needs its own input).
