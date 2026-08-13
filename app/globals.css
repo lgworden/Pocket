@@ -5,6 +5,13 @@
 @tailwind utilities;
 
 @layer base {
+  /* The feed's collage breaks out of the app-wide `max-w-md` column with a
+     100vw negative-margin bleed (see FeedCollage). Where a classic scrollbar
+     takes real width, 100vw overshoots the visible page by that much — clip it
+     here rather than on <body>, which would clip the bleed itself. */
+  html {
+    @apply overflow-x-hidden;
+  }
   body {
     /* Clean-girl typography: everything renders lowercase for a soft, uniform
        voice. Purely visual (text-transform) — stored values keep their case. */

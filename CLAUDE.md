@@ -72,6 +72,20 @@ which is kept only for historical build-order context.** App name settled on
 - `app/page.tsx` (home) — color-coded masonry `FeedCollage` of shareable
   outfit posts, 3-tier visibility (friends / close friends / private), 3
   emoji reactions, share-card rendering (`ShareCardButton`).
+- **Collage layout:** every polaroid keeps its photo's own aspect ratio
+  (measured client-side from the loaded `<img>`, clamped to a polaroid-ish
+  band by `clampPhotoRatio` in `lib/feed.ts` — nothing stores dimensions
+  server-side), so tile heights vary. Columns are packed in JS, shortest-column
+  first, against *measured* card heights (a `ResizeObserver` per card) rather
+  than CSS `columns-N`, which fills column 1 before column 2 and leaves a
+  ragged bottom. Column count is width-driven: 2 on mobile, up to 6 on a wide
+  desktop. On `md+` the grid escapes the app-wide `max-w-md` body column via
+  `mx-[calc(50%-50vw)]` so the polaroids run edge to edge — a negative-margin
+  bleed, deliberately *not* a transform, since `FeedCard` renders `fixed`
+  overlays (Modal, `PhotoLightbox`) that a transformed ancestor would break.
+  `html { overflow-x: hidden }` in `globals.css` absorbs the scrollbar
+  overshoot that 100vw causes. Repacking moves cards between columns, which
+  remounts them, so the known ratio is fed back down as `photoRatioHint`.
 - `FeedComposer` photo step offers both camera capture and album pick (two
   file inputs — `capture="environment"` opens the camera but suppresses the
   album picker, so each source needs its own input).

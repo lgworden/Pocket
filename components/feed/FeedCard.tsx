@@ -3,8 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
+  DEFAULT_PHOTO_RATIO,
   REACTIONS,
   VISIBILITY_STYLES,
+  clampPhotoRatio,
   type FeedComment,
   type FeedPost,
   type FeedReactionType,
@@ -29,10 +31,19 @@ export default function FeedCard({
   // render a working card, just without mention suggestions.
   friends = [],
   onDeleted,
+  // Reported once the photo's real dimensions are known, so a masonry parent
+  // can repack its columns against the tile's actual height.
+  onPhotoRatio,
+  // The ratio that parent already knows, if any. Repacking moves cards between
+  // columns, which remounts them — without this the tile would snap back to the
+  // default shape for a frame each time, and shift the whole column with it.
+  photoRatioHint,
 }: {
   post: FeedPost;
   friends?: Friend[];
   onDeleted?: (id: string) => void;
+  onPhotoRatio?: (postId: string, ratio: number) => void;
+  photoRatioHint?: number;
 }) {
   const style = VISIBILITY_STYLES[post.visibility];
   const [counts, setCounts] = useState(post.reaction_counts);
@@ -59,13 +70,33 @@ export default function FeedCard({
   const longPressMoved = useRef(false);
   const longPressStart = useRef<{ x: number; y: number } | null>(null);
 
+  // The tile keeps the photo's own shape (see DEFAULT_PHOTO_RATIO) — measured
+  // from the loaded image, since nothing stores the dimensions server-side.
+  const [photoRatio, setPhotoRatio] = useState(photoRatioHint ?? DEFAULT_PHOTO_RATIO);
+  const onPhotoRatioRef = useRef(onPhotoRatio);
+  onPhotoRatioRef.current = onPhotoRatio;
+
+  function measurePhoto() {
+    const img = imgRef.current;
+    if (!img?.naturalWidth || !img.naturalHeight) return;
+    const ratio = clampPhotoRatio(img.naturalWidth, img.naturalHeight);
+    setPhotoRatio(ratio);
+    onPhotoRatioRef.current?.(post.id, ratio);
+  }
+
   // The browser starts fetching an SSR'd <img> before React hydrates, so a
   // fast local 404 can fire the (non-bubbling) error event before onError is
-  // attached — catch that already-failed case on mount too.
+  // attached — catch that already-failed case on mount too. A cached image can
+  // likewise have finished loading before onLoad is attached, so measure here
+  // as well rather than waiting for an event that already fired.
   useEffect(() => {
-    if (imgRef.current?.complete && imgRef.current.naturalWidth === 0) {
+    if (!imgRef.current?.complete) return;
+    if (imgRef.current.naturalWidth === 0) {
       setPhotoFailed(true);
+    } else {
+      measurePhoto();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => cancelLongPress, []);
@@ -313,7 +344,10 @@ export default function FeedCard({
         </Link>
       </div>
 
-      <div className="relative w-full aspect-[4/5] [perspective:1000px]">
+      <div
+        className="relative w-full [perspective:1000px]"
+        style={{ aspectRatio: photoRatio }}
+      >
         <div
           className={`relative w-full h-full transition-transform duration-500 [transform-style:preserve-3d] ${
             flipped ? "[transform:rotateY(180deg)]" : ""
@@ -330,6 +364,7 @@ export default function FeedCard({
                 className="w-full h-full object-cover select-none"
                 draggable={false}
                 style={{ WebkitTouchCallout: "none" }}
+                onLoad={measurePhoto}
                 onError={() => setPhotoFailed(true)}
                 onContextMenu={(e) => e.preventDefault()}
                 onPointerDown={(e) => startLongPress(e.clientX, e.clientY)}

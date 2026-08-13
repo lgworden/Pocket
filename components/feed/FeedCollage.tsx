@@ -1,12 +1,75 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import FeedCard from "./FeedCard";
 import FeedComposer from "./FeedComposer";
 import FriendsModal from "./FriendsModal";
-import { VISIBILITY_OPTIONS, VISIBILITY_STYLES, type FeedPost, type FeedVisibility } from "@/lib/feed";
+import {
+  DEFAULT_PHOTO_RATIO,
+  VISIBILITY_OPTIONS,
+  VISIBILITY_STYLES,
+  type FeedPost,
+  type FeedVisibility,
+} from "@/lib/feed";
 import type { Friend } from "@/lib/friends";
+
+// Gap between polaroids, in px. Deliberately tight — the collage should read
+// as a packed mosaic, not a list of spaced-out cards.
+const GAP = 6;
+
+// Everything on a card that isn't the photo: the name strip above it and the
+// reaction/caption row below. Only used for the very first pack, before the
+// cards have been measured for real — a caption that wraps to two lines makes
+// this a guess, which is why measured heights take over as soon as they exist.
+function estimateChromeHeight(post: FeedPost) {
+  return post.caption ? 100 : 78;
+}
+
+// 2 across on a phone (the layout the feed is designed around), then one more
+// column per step up as the viewport widens — on desktop the collage runs the
+// full width of the window, so without extra columns the polaroids would blow
+// up to poster size.
+function columnsForWidth(width: number) {
+  if (width < 560) return 2;
+  if (width < 840) return 3;
+  if (width < 1120) return 4;
+  if (width < 1440) return 5;
+  return 6;
+}
+
+// Greedy shortest-column packing: walk the posts in date order (already
+// newest-first) and drop each one into whichever column is currently shortest.
+// This is what keeps the bottom edge close to level instead of leaving a long
+// tail of white space under the short column — which a fixed left/right split
+// can't do once every tile has its own height.
+function packColumns(
+  posts: FeedPost[],
+  columnCount: number,
+  columnWidth: number,
+  ratios: Record<string, number>,
+  measured: Record<string, number>,
+): FeedPost[][] {
+  const columns: FeedPost[][] = Array.from({ length: columnCount }, () => []);
+  const heights = new Array<number>(columnCount).fill(0);
+
+  for (const post of posts) {
+    let target = 0;
+    for (let i = 1; i < columnCount; i++) {
+      if (heights[i] < heights[target]) target = i;
+    }
+    columns[target].push(post);
+    // A card's height doesn't depend on which column it lands in (every column
+    // is the same width), so feeding the measured height back into the pack
+    // settles instead of oscillating.
+    const ratio = ratios[post.id] ?? DEFAULT_PHOTO_RATIO;
+    const height =
+      measured[post.id] ?? columnWidth / ratio + estimateChromeHeight(post);
+    heights[target] += height + GAP;
+  }
+
+  return columns;
+}
 
 // Brief per-tier descriptions for the stacked color legend.
 const VISIBILITY_LEGEND_LABELS: Record<FeedVisibility, string> = {
@@ -31,9 +94,10 @@ function CameraIcon() {
   );
 }
 
-// Client shell for the feed: hosts the composer modal and renders posts in a
-// two-column masonry — cards keep their natural photo height, split left/right
-// by date (see the render below for why this isn't CSS `columns-2`).
+// Client shell for the feed: hosts the composer modal and renders posts as a
+// masonry of polaroids — every tile keeps its photo's own aspect ratio, and
+// columns are packed shortest-first so heights stay balanced (see the render
+// below for why this isn't CSS `columns-N`).
 export default function FeedCollage({
   posts,
   friends,
@@ -56,6 +120,83 @@ export default function FeedCollage({
   const visiblePosts = activeFilter
     ? livePosts.filter((p) => p.visibility === activeFilter)
     : livePosts;
+
+  // Photo shapes aren't stored anywhere, so cards report them as their images
+  // load and the columns repack. Until then everything falls back to the old
+  // fixed 4:5, which is what the server renders too — so the first paint is
+  // stable and only genuinely off-ratio photos shift.
+  const [gridWidth, setGridWidth] = useState(0);
+  const [ratios, setRatios] = useState<Record<string, number>>({});
+
+  // A callback ref, not an effect on a plain ref: the grid isn't in the tree at
+  // all while the feed is empty, so an on-mount effect would never see it and
+  // the first post would land in a stale column count.
+  const gridObserver = useRef<ResizeObserver | null>(null);
+  const measureGrid = useCallback((el: HTMLDivElement | null) => {
+    gridObserver.current?.disconnect();
+    gridObserver.current = null;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    setGridWidth(el.clientWidth);
+    const observer = new ResizeObserver(() => setGridWidth(el.clientWidth));
+    observer.observe(el);
+    gridObserver.current = observer;
+  }, []);
+
+  const columnCount = columnsForWidth(gridWidth || 0);
+  const columnWidth = gridWidth
+    ? (gridWidth - GAP * (columnCount - 1)) / columnCount
+    : 0;
+
+  // Rendered card heights, keyed by post id. The photo ratio alone doesn't
+  // predict a tile's height — a caption may wrap, a flipped card may not match
+  // — so each card is measured and the pack re-runs against the real numbers,
+  // which is what actually levels the bottom edge.
+  const [cardHeights, setCardHeights] = useState<Record<string, number>>({});
+  const observedCards = useRef(new Map<string, Element>());
+  const cardObserver = useRef<ResizeObserver | null>(null);
+
+  useEffect(() => {
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver((entries) => {
+      setCardHeights((prev) => {
+        let next = prev;
+        for (const entry of entries) {
+          const id = (entry.target as HTMLElement).dataset.postId;
+          if (!id) continue;
+          const height = entry.target.getBoundingClientRect().height;
+          // Ignore sub-pixel noise, or every scroll-driven reflow repacks.
+          if (Math.abs((prev[id] ?? 0) - height) < 1) continue;
+          if (next === prev) next = { ...prev };
+          next[id] = height;
+        }
+        return next;
+      });
+    });
+    cardObserver.current = observer;
+    for (const el of observedCards.current.values()) observer.observe(el);
+    return () => {
+      observer.disconnect();
+      cardObserver.current = null;
+    };
+  }, []);
+
+  // Cards move between columns as the pack settles, which remounts them — so
+  // the element is re-registered under the same post id each time.
+  function registerCard(postId: string, el: HTMLDivElement | null) {
+    const previous = observedCards.current.get(postId);
+    if (previous && previous !== el) cardObserver.current?.unobserve(previous);
+    if (el) {
+      observedCards.current.set(postId, el);
+      cardObserver.current?.observe(el);
+    } else {
+      observedCards.current.delete(postId);
+    }
+  }
+
+  const columns = useMemo(
+    () => packColumns(visiblePosts, columnCount, columnWidth, ratios, cardHeights),
+    [visiblePosts, columnCount, columnWidth, ratios, cardHeights],
+  );
 
   // The nav's persistent compose button links here with ?compose=1 so it can
   // open the modal from any screen. Strip the query once we've consumed it so
@@ -136,27 +277,46 @@ export default function FeedCollage({
           )}
         </div>
       ) : (
-        // Explicit two-column split rather than CSS `columns-2`: a CSS
-        // multi-column layout fills the left column completely before
-        // touching the right one (and re-balances unpredictably as posts are
-        // added), so newer posts piled up on the left instead of alternating
-        // by date. Splitting visiblePosts (already newest-first) by index
-        // parity puts post 0 top-left and post 1 top-right — flush at the
-        // top by construction — then keeps alternating left/right in date
-        // order all the way down.
-        <div className="flex gap-2 items-start">
-          {[0, 1].map((col) => (
-            <div key={col} className="flex-1 space-y-2">
-              {visiblePosts
-                .filter((_, i) => i % 2 === col)
-                .map((post) => (
+        // Explicit JS-packed columns rather than CSS `columns-N`: a CSS
+        // multi-column layout fills the first column completely before
+        // touching the next (and re-balances unpredictably as posts are
+        // added), so newer posts piled up on the left instead of spreading by
+        // date. Packing by hand puts post 0 top-left and post 1 in the next
+        // column — flush at the top by construction — then keeps feeding each
+        // post to the shortest column so the bottom edge stays level too.
+        //
+        // `mx-[calc(50%-50vw)]` on md+ escapes the app-wide `max-w-md` phone
+        // column (see app/layout.tsx) so the polaroids run edge to edge on a
+        // desktop window, while the header and legend above stay in the
+        // readable column.
+        <div
+          ref={measureGrid}
+          className="flex items-start md:mx-[calc(50%-50vw)]"
+          style={{ gap: GAP }}
+        >
+          {columns.map((column, col) => (
+            <div
+              key={col}
+              className="flex-1 min-w-0 flex flex-col"
+              style={{ gap: GAP }}
+            >
+              {column.map((post) => (
+                <div
+                  key={post.id}
+                  data-post-id={post.id}
+                  ref={(el) => registerCard(post.id, el)}
+                >
                   <FeedCard
-                    key={post.id}
                     post={post}
                     friends={friends}
                     onDeleted={(id) => setLivePosts((ps) => ps.filter((p) => p.id !== id))}
+                    onPhotoRatio={(id, ratio) =>
+                      setRatios((r) => (r[id] === ratio ? r : { ...r, [id]: ratio }))
+                    }
+                    photoRatioHint={ratios[post.id]}
                   />
-                ))}
+                </div>
+              ))}
             </div>
           ))}
         </div>

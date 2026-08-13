@@ -106,3 +106,20 @@ export type FeedPost = {
   comment_count: number;
   comments: FeedComment[];
 };
+
+// Photo tiles keep their own shape in the collage rather than a uniform crop,
+// so the masonry reads as a pile of real polaroids. Ratios are width/height.
+// The default is the old fixed 4:5 — used for the first paint and for any
+// photo whose dimensions we haven't measured yet.
+export const DEFAULT_PHOTO_RATIO = 4 / 5;
+
+// Clamp to a polaroid-ish band: a panorama or an extreme 9:16 phone shot would
+// otherwise leave one tile absurdly short or tall next to its neighbours.
+// Anything outside the band is cropped by object-cover, not letterboxed.
+const MIN_PHOTO_RATIO = 0.62; // taller than ~5:8
+const MAX_PHOTO_RATIO = 1.35; // wider than ~4:3
+
+export function clampPhotoRatio(width: number, height: number): number {
+  if (!width || !height) return DEFAULT_PHOTO_RATIO;
+  return Math.min(MAX_PHOTO_RATIO, Math.max(MIN_PHOTO_RATIO, width / height));
+}
