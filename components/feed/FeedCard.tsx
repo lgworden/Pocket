@@ -66,9 +66,6 @@ export default function FeedCard({
   const [reshareCaption, setReshareCaption] = useState("");
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressMoved = useRef(false);
-  const longPressStart = useRef<{ x: number; y: number } | null>(null);
 
   // The tile keeps the photo's own shape (see DEFAULT_PHOTO_RATIO) — measured
   // from the loaded image, since nothing stores the dimensions server-side.
@@ -99,8 +96,6 @@ export default function FeedCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => cancelLongPress, []);
-
   async function react(reaction: FeedReactionType) {
     if (pending) return;
     setPending(reaction);
@@ -129,34 +124,6 @@ export default function FeedCard({
       setCounts(post.reaction_counts);
     } finally {
       setPending(null);
-    }
-  }
-
-  // Hold down on the photo to open it fullscreen. Tracks movement so a
-  // scroll/drag that happens to start on the photo doesn't accidentally
-  // trigger it, and cancels on release/leave before the threshold.
-  function startLongPress(x: number, y: number) {
-    longPressMoved.current = false;
-    longPressStart.current = { x, y };
-    longPressTimer.current = setTimeout(() => {
-      if (!longPressMoved.current) setLightboxOpen(true);
-    }, 450);
-  }
-
-  function moveLongPress(x: number, y: number) {
-    if (!longPressStart.current) return;
-    const dx = x - longPressStart.current.x;
-    const dy = y - longPressStart.current.y;
-    if (Math.hypot(dx, dy) > 10) {
-      longPressMoved.current = true;
-      cancelLongPress();
-    }
-  }
-
-  function cancelLongPress() {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
     }
   }
 
@@ -361,17 +328,12 @@ export default function FeedCard({
                 ref={imgRef}
                 src={post.photo}
                 alt={post.caption ?? "outfit"}
-                className="w-full h-full object-cover select-none"
+                className="w-full h-full object-cover select-none cursor-pointer"
                 draggable={false}
                 style={{ WebkitTouchCallout: "none" }}
                 onLoad={measurePhoto}
                 onError={() => setPhotoFailed(true)}
-                onContextMenu={(e) => e.preventDefault()}
-                onPointerDown={(e) => startLongPress(e.clientX, e.clientY)}
-                onPointerMove={(e) => moveLongPress(e.clientX, e.clientY)}
-                onPointerUp={cancelLongPress}
-                onPointerLeave={cancelLongPress}
-                onPointerCancel={cancelLongPress}
+                onClick={() => setLightboxOpen(true)}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-lg font-ui font-semibold text-ink/25 bg-ink/5">

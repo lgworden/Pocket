@@ -206,7 +206,7 @@ export default function PhotoLightbox({
             src={src}
             alt={alt}
             draggable={false}
-            className="block max-w-[85vw] max-h-[70vh] object-contain"
+            className="block max-w-[min(85vw,420px)] max-h-[min(70vh,600px)] object-contain"
             style={{
               transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
               transition: gesturing ? "none" : "transform 150ms ease-out",
