@@ -11,7 +11,7 @@ import { track } from "@/lib/analytics";
 // credit and drop out of tomorrow's recommendations automatically.
 export async function POST(req: NextRequest) {
   const userId = await getCurrentUserId();
-  const { image, mediaType, itemIds, notes } = await req.json();
+  const { image, mediaType, itemIds, notes, isFavorite } = await req.json();
 
   if (!image || !mediaType) {
     return NextResponse.json({ error: "image and mediaType are required" }, { status: 400 });
@@ -28,14 +28,20 @@ export async function POST(req: NextRequest) {
 
   const photo = await saveBase64Photo(image, mediaType);
 
+  const favorite = isFavorite === true;
+
   const { rows } = await pool.query(
-    `INSERT INTO outfit_logs (user_id, item_ids, photo, source, visibility, notes)
-     VALUES ($1, $2, $3, 'self_styled', 'private', $4)
-     RETURNING id, photo, created_at`,
-    [userId, taggedItemIds, photo, notes?.trim() || null]
+    `INSERT INTO outfit_logs (user_id, item_ids, photo, source, visibility, notes, is_favorite)
+     VALUES ($1, $2, $3, 'self_styled', 'private', $4, $5)
+     RETURNING id, photo, created_at, is_favorite`,
+    [userId, taggedItemIds, photo, notes?.trim() || null, favorite]
   );
 
-  track(userId, "outfit_logged", { source: "self_styled", taggedItemCount: taggedItemIds.length });
+  track(userId, "outfit_logged", {
+    source: "self_styled",
+    taggedItemCount: taggedItemIds.length,
+    favorite,
+  });
 
   if (taggedItemIds.length > 0) {
     analyzeUserBehavior(userId).catch((err) =>

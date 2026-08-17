@@ -15,7 +15,8 @@ export type EventType =
   | "moment_member_added"
   | "moment_invite_responded"
   | "moment_updated"
-  | "moment_deleted";
+  | "moment_deleted"
+  | "feedback_submitted";
 
 // Fire-and-forget — never await this. Matches the existing
 // analyzeUserBehavior(...) pattern used elsewhere in the app, but swallows its

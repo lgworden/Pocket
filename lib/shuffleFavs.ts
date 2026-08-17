@@ -18,7 +18,14 @@ type Combo = {
   weatherBucket: string | null;
   timesWorn: number;
   lastWorn: string;
+  isFavorite: boolean;
 };
+
+// How much an explicitly favourited fit (the "save this to my favs" checkbox on
+// the closet's add-to-closet modal) outweighs a plain one wear in the random
+// pick. Deliberately a boost, not a filter — a favourite that doesn't suit
+// today's weather still loses to the weather tiering below.
+const FAVORITE_WEIGHT = 4;
 
 // One row per historical outfit_logs entry whose items are ALL still active in
 // the closet (an item getting archived/donated retires every combo it was part
@@ -29,9 +36,10 @@ async function getActiveWornCombos(userId: string): Promise<Combo[]> {
     date: string;
     occasion: string | null;
     weather_snapshot: { tempLowF?: number; precipitationSumIn?: number } | null;
+    is_favorite: boolean;
     items: { display_id: string; name: string }[];
   }>(
-    `SELECT l.id as log_id, l.date, l.occasion, l.weather_snapshot,
+    `SELECT l.id as log_id, l.date, l.occasion, l.weather_snapshot, l.is_favorite,
             json_agg(json_build_object('display_id', i.display_id, 'name', i.name) ORDER BY i.category) as items
      FROM outfit_logs l
      JOIN items i ON i.id = ANY(l.item_ids) AND i.status = 'active'
@@ -58,6 +66,8 @@ async function getActiveWornCombos(userId: string): Promise<Combo[]> {
     const existing = byCombo.get(key);
     if (existing) {
       existing.timesWorn += 1;
+      // Favouriting any one wearing favourites the combo.
+      existing.isFavorite ||= row.is_favorite;
       if (row.date > existing.lastWorn) existing.lastWorn = row.date;
     } else {
       byCombo.set(key, {
@@ -67,6 +77,7 @@ async function getActiveWornCombos(userId: string): Promise<Combo[]> {
         weatherBucket,
         timesWorn: 1,
         lastWorn: row.date,
+        isFavorite: row.is_favorite,
       });
     }
   }
@@ -84,6 +95,7 @@ function relativeDate(dateStr: string): string {
 }
 
 function buildTitle(combo: Combo, eventType: string): string {
+  if (combo.isFavorite) return "One of your favorites";
   if (combo.timesWorn > 2) return "One of your go-tos";
   if (eventType !== "none" && eventType !== "casual") {
     return `A past ${eventType} favorite`;
@@ -92,22 +104,30 @@ function buildTitle(combo: Combo, eventType: string): string {
 }
 
 function buildReasoning(combo: Combo, tier: "exact" | "weather" | "any", weather: TodayWeather): string {
-  const worn =
-    combo.timesWorn > 1
-      ? `You've worn this ${combo.timesWorn} times, most recently ${relativeDate(combo.lastWorn)}.`
-      : `You wore this ${relativeDate(combo.lastWorn)}.`;
+  const worn = combo.isFavorite
+    ? combo.timesWorn > 1
+      ? `You saved this to your favs and have worn it ${combo.timesWorn} times, most recently ${relativeDate(combo.lastWorn)}.`
+      : `You saved this to your favs when you wore it ${relativeDate(combo.lastWorn)}.`
+    : combo.timesWorn > 1
+    ? `You've worn this ${combo.timesWorn} times, most recently ${relativeDate(combo.lastWorn)}.`
+    : `You wore this ${relativeDate(combo.lastWorn)}.`;
   if (tier === "exact") return `${worn} Matches today's weather and plans.`;
   if (tier === "weather") return `${worn} Fits today's ${weather.condition.toLowerCase()} weather.`;
   return `${worn} Pulling from your history since nothing quite matches today's weather.`;
 }
 
-// Weighted random pick — combos worn more often (the actual "favorites") are
-// more likely to come up, but anything in the tier has a shot.
+// Weighted random pick — combos worn more often, plus any the user explicitly
+// saved to their favs, are more likely to come up, but anything in the tier has
+// a shot.
+function comboWeight(combo: Combo): number {
+  return combo.timesWorn + (combo.isFavorite ? FAVORITE_WEIGHT : 0);
+}
+
 function weightedPick(combos: Combo[]): Combo {
-  const totalWeight = combos.reduce((sum, c) => sum + c.timesWorn, 0);
+  const totalWeight = combos.reduce((sum, c) => sum + comboWeight(c), 0);
   let r = Math.random() * totalWeight;
   for (const combo of combos) {
-    r -= combo.timesWorn;
+    r -= comboWeight(combo);
     if (r <= 0) return combo;
   }
   return combos[combos.length - 1];

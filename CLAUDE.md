@@ -17,7 +17,7 @@ which is kept only for historical build-order context.** App name settled on
 - `db/schema.sql` — Postgres schema covering users, items, outfit_logs,
   recommendations, badges, vision_boards, feed_posts, feed_reactions,
   feed_comments, notifications, friendships, follows, invites,
-  invite_redemptions, events, plus a derived `item_wear_stats` view. Run
+  invite_redemptions, events, feedback, plus a derived `item_wear_stats` view. Run
   `npm run db:migrate` against `DATABASE_URL` to apply it. **Note:** the
   `badges` and `vision_boards` tables exist in the schema but have no
   application code reading/writing them yet — original Phase 3/4 items that
@@ -42,13 +42,33 @@ which is kept only for historical build-order context.** App name settled on
 **Closet**
 - `app/closet` — split layout: filter rail (category/occasion/color/
   provenance/status) on the left, scrollable recent-fits reel on the right,
-  icon-only add buttons up top. Category index → per-category list → detail,
-  never a blank photo placeholder (uses `AddPhotoButton`).
+  **one** icon-only add button up top. Category index → per-category list →
+  detail, never a blank photo placeholder (uses `AddPhotoButton`).
+- **"add to closet" sheet (`AddToClosetModal`)** — the dress icon is the single
+  add entry point on the closet tab. It opens a bottom sheet titled "add to
+  closet" that first asks *what* you're adding ("a single piece" / "a whole
+  fit") and then renders that branch inline, with a back link to the chooser.
+  Before this the two flows were separate unlabelled icon buttons (a dress
+  linking off to the `/add-item` page and a camera opening the log-fit modal),
+  which never explained the difference. The branches are `AddPieceForm` and
+  `LogFitForm` — both chrome-free so the sheet owns the title and the
+  `/add-item` page can still host the piece flow standalone. The empty
+  "your fits show up here" field opens the sheet straight on the fit branch
+  (`initialMode`). A saved piece calls `router.refresh()` since the item lists
+  and category counts are server-rendered.
 - `app/closet/[id]` — item detail: photo, display_id, all fields, wear
   history + cost-per-wear from `item_wear_stats`.
 - `app/add-item` — camera-first capture → `draftItemFromPhoto()` → editable
   confirm form → provenance → insert into `items`. Client-side photo
-  compression before upload.
+  compression before upload. The page is now a thin shell around
+  `AddPieceForm`, shared with the sheet above.
+- **Logging a fit** (`LogFitForm`) — photo → optional multi-select item tagging
+  → notes → **"save this fit to my favs"** checkbox → `POST /api/outfit-logs`.
+  The checkbox writes `outfit_logs.is_favorite` (migration `029`), which
+  `lib/shuffleFavs.ts` adds to a combo's pick weight (`FAVORITE_WEIGHT`, a
+  boost — weather/occasion tiering still wins) and surfaces in the card's
+  title/reasoning. Before it, "favourite" was inferred purely from repeat
+  wears; that still counts, this is just an explicit second signal.
 - `app/add-item/from-outfit` ("log my items") — upload an outfit photo,
   Claude decomposes it into multiple draft items with crops, user
   reviews/skips/saves each into the closet.
@@ -173,7 +193,7 @@ which is kept only for historical build-order context.** App name settled on
   they reconnect (`prompt=consent` re-issues both scopes).
 
 **Notifications**
-- In-app notifications, 10 types, `app/notifications` + `NotificationsList` /
+- In-app notifications, 11 types, `app/notifications` + `NotificationsList` /
   `NotificationsModal` / `NotificationButton`; the scheduled ones are
   delivered via Railway-cron hitting `app/api/cron/tick`, while `new_follower`,
   `new_friend`, and the `moment_*` invite/accept/cohost types fire inline from
@@ -183,6 +203,27 @@ which is kept only for historical build-order context.** App name settled on
   worker, VAPID keys, `PushNotificationSetup` component, `app/api/push`
   subscribe/unsubscribe. **Not yet fully live** — prod needs its own VAPID
   key pair set on Railway.
+
+**Feedback** (`app/feedback`)
+- Free-text note + optional one-tap sentiment (love / meh / bug / idea) →
+  `POST /api/feedback` → `submitFeedback()` in `lib/feedback.ts`. Every
+  submission is **stored in the `feedback` table first** and *then* emailed to
+  the operator inbox, so a mail outage costs the notification, never the
+  feedback; the send result is written back to `emailed_at` / `email_error` on
+  the row. Migration `028`.
+- Email goes out through `lib/email.ts` — Resend's REST API over plain `fetch`,
+  no SDK dependency. `RESEND_API_KEY` unset is a supported state (logs + no-ops).
+  Recipient is `FEEDBACK_EMAIL_TO`, defaulting to the operator address in code
+  so feedback reaches a human without any env setup. `reply_to` is set only when
+  the sender has an email (username accounts don't).
+- **Weekly Monday nudge:** a `feedback_request` notification fires from
+  `app/api/cron/tick` at 09:00 ET every Monday, deep-linking to
+  `/feedback?from=weekly` (which is what gets stored as the row's `source`, so
+  you can tell whether the nudge is working). Unlike every other generator in
+  `lib/notifications.ts` this one is **not gated on
+  `notification_preferences`** — it goes to every user, deliberately. Its
+  `hasNotificationThisWeek` guard makes a replayed tick a no-op.
+- Entry points: the notification, and a "Send feedback" row on `/preferences`.
 
 **Pack My Bags** (`app/pack`)
 - 3-3-3 method vacation packing planner: destination multi-day weather,

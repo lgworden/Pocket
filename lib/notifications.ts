@@ -16,7 +16,8 @@ export type NotificationType =
   | "moment_invite"
   | "moment_accepted"
   | "moment_cohost"
-  | "moment_expiring";
+  | "moment_expiring"
+  | "feedback_request";
 
 export type NotificationRow = {
   id: string;
@@ -206,6 +207,23 @@ export async function generateWeeklyFeedSummary(user: UserRow): Promise<boolean>
   const body = `You posted ${postCount} outfit${postCount === 1 ? "" : "s"} to the feed this week and got ${reactionLine}.`;
 
   await createNotification(user.id, "weekly_feed_summary", "Your feed this week", body, "/");
+  return true;
+}
+
+// Weekly Monday-morning "how's it going?" nudge. Unlike every other generator
+// here, this one is NOT gated on notification_preferences — it goes to every
+// user, by product decision: it's the one channel the operator has for hearing
+// back, and it fires once a week at most.
+export async function generateFeedbackRequest(user: UserRow): Promise<boolean> {
+  if (await hasNotificationThisWeek(user.id, "feedback_request")) return false;
+
+  await createNotification(
+    user.id,
+    "feedback_request",
+    "how's pckt going?",
+    "Got a minute? Tell us what's working and what isn't — it goes straight to the maker.",
+    "/feedback?from=weekly"
+  );
   return true;
 }
 

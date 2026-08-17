@@ -7,6 +7,7 @@ import {
   generateWeeklyStyleAnalysis,
   generateWeeklyFeedSummary,
   generateOotdReminder,
+  generateFeedbackRequest,
 } from "@/lib/notifications";
 import { runMomentMaintenance } from "@/lib/moments";
 
@@ -16,6 +17,7 @@ import { runMomentMaintenance } from "@/lib/moments";
 const WEEKLY_STYLE_ANALYSIS_TIME = "18:00";
 const WEEKLY_FEED_SUMMARY_TIME = "19:00";
 const OOTD_REMINDER_TIME = "11:00"; // 11am ET, per product spec
+const FEEDBACK_REQUEST_TIME = "09:00"; // Monday 9am ET — see the Monday block below
 
 // Railway cron should hit this every 15 minutes: `*/15 * * * *` →
 // `curl -X POST https://<app-domain>/api/cron/tick -H "Authorization: Bearer $CRON_SECRET"`
@@ -38,6 +40,7 @@ export async function POST(req: NextRequest) {
     weekly_style_analysis: [],
     weekly_feed_summary: [],
     ootd_reminder: [],
+    feedback_request: [],
     errors: [],
   };
 
@@ -65,6 +68,18 @@ export async function POST(req: NextRequest) {
       } catch (err) {
         console.error(`[cron] ootd_reminder failed for ${user.id}:`, err);
         results.errors.push(`ootd_reminder:${user.id}`);
+      }
+    }
+
+    // Weekly feedback nudge — every user, no preference gate (see
+    // generateFeedbackRequest). Its own once-a-week guard means a replayed or
+    // overlapping tick can't double-send.
+    if (weekday === "mon" && isTimeDue(FEEDBACK_REQUEST_TIME, nowHHMM)) {
+      try {
+        if (await generateFeedbackRequest(user)) results.feedback_request.push(user.id);
+      } catch (err) {
+        console.error(`[cron] feedback_request failed for ${user.id}:`, err);
+        results.errors.push(`feedback_request:${user.id}`);
       }
     }
 

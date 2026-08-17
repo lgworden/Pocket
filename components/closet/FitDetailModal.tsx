@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Modal from "@/components/Modal";
 import { VISIBILITY_OPTIONS, type FeedVisibility } from "@/lib/feed";
-import type { LoggedFit } from "@/components/closet/LogFitComposer";
+import type { LoggedFit } from "@/components/closet/LogFitForm";
 
 const SHARE_OPTIONS = VISIBILITY_OPTIONS.filter((o) => o.value !== "private");
 

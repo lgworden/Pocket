@@ -5,7 +5,7 @@ import ClosetFilters from "@/components/ClosetFilters";
 import BottomNav from "@/components/BottomNav";
 import AddPhotoButton from "@/components/AddPhotoButton";
 import ClosetHub from "@/components/closet/ClosetHub";
-import type { LoggedFit } from "@/components/closet/LogFitComposer";
+import type { LoggedFit } from "@/components/closet/LogFitForm";
 
 export const dynamic = "force-dynamic";
 

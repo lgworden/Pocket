@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Link from "next/link";
-import LogFitComposer, { type LoggedFit } from "@/components/closet/LogFitComposer";
+import { useRouter } from "next/navigation";
+import type { LoggedFit } from "@/components/closet/LogFitForm";
+import AddToClosetModal from "@/components/closet/AddToClosetModal";
 import FitDetailModal from "@/components/closet/FitDetailModal";
 
 function DressIcon() {
@@ -20,24 +21,11 @@ function DressIcon() {
   );
 }
 
-function CameraIcon() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 20 20" fill="none">
-      <path
-        d="M7 5.5 8 3.5h4l1 2h2.5A1.5 1.5 0 0 1 17 5v9a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 3 14V5a1.5 1.5 0 0 1 1.5-1.5H7Z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-      />
-      <circle cx="10" cy="9.5" r="2.75" stroke="currentColor" strokeWidth="1.4" />
-    </svg>
-  );
-}
-
-// Closet tab shell: icon-only add actions up top, a sticky vertical filter
-// rail on the left (categoryNav), and a scrollable right pane that shows the
-// recent-fits reel by default or the filtered item list (children) once a
-// category is chosen.
+// Closet tab shell: one icon-only add action up top (the dress button, which
+// opens the combined "add to closet" sheet — a piece or a whole fit), a sticky
+// vertical filter rail on the left (categoryNav), and a scrollable right pane
+// that shows the recent-fits reel by default or the filtered item list
+// (children) once a category is chosen.
 export default function ClosetHub({
   initialFits,
   showMoodBoard,
@@ -51,8 +39,12 @@ export default function ClosetHub({
   intro?: ReactNode;
   children: ReactNode;
 }) {
+  const router = useRouter();
   const [fits, setFits] = useState<LoggedFit[]>(initialFits);
   const [composerOpen, setComposerOpen] = useState(false);
+  // Which branch the sheet lands on: the toolbar button asks, the empty fits
+  // field already knows.
+  const [composerMode, setComposerMode] = useState<"choose" | "fit">("choose");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const selected = fits.find((f) => f.id === selectedId) ?? null;
@@ -76,20 +68,16 @@ export default function ClosetHub({
       <div className="flex items-center justify-between gap-3">
         {intro && <div className="flex-1">{intro}</div>}
         <div className="flex items-center gap-2 shrink-0">
-          <Link
-            href="/add-item"
+          <button
+            type="button"
             aria-label="add to closet"
+            onClick={() => {
+              setComposerMode("choose");
+              setComposerOpen(true);
+            }}
             className="icon-btn bg-panel border border-slate/20 text-ink"
           >
             <DressIcon />
-          </Link>
-          <button
-            type="button"
-            aria-label="log fit"
-            onClick={() => setComposerOpen(true)}
-            className="icon-btn bg-panel border border-slate/20 text-ink"
-          >
-            <CameraIcon />
           </button>
         </div>
       </div>
@@ -110,7 +98,10 @@ export default function ClosetHub({
                 // get posted their photos fill it in from the top.
                 <button
                   type="button"
-                  onClick={() => setComposerOpen(true)}
+                  onClick={() => {
+                    setComposerMode("fit");
+                    setComposerOpen(true);
+                  }}
                   className="w-full min-h-[70vh] rounded-3xl bg-pink flex items-end justify-center p-6 text-sm text-brown/70"
                 >
                   your fits show up here
@@ -141,10 +132,14 @@ export default function ClosetHub({
         </div>
       </div>
 
-      <LogFitComposer
+      <AddToClosetModal
         open={composerOpen}
         onClose={() => setComposerOpen(false)}
-        onSaved={handleSaved}
+        initialMode={composerMode}
+        onFitSaved={handleSaved}
+        // Items are server-rendered (category counts, lists), so a saved piece
+        // needs the route re-fetched rather than local state patched.
+        onPieceSaved={() => router.refresh()}
       />
       <FitDetailModal
         fit={selected}

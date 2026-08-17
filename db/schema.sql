@@ -62,6 +62,7 @@ CREATE TABLE outfit_logs (
   source            log_source DEFAULT 'self_styled',
   visibility        log_visibility DEFAULT 'private',
   notes             TEXT,
+  is_favorite       BOOLEAN NOT NULL DEFAULT FALSE,  -- user-flagged favourite, boosts shuffle favs (see 029)
   created_at        TIMESTAMPTZ DEFAULT now()
 );
 CREATE INDEX idx_logs_user_date ON outfit_logs(user_id, date);
@@ -151,7 +152,8 @@ CREATE TYPE notification_type AS ENUM (
   'moment_invite',
   'moment_accepted',
   'moment_cohost',
-  'moment_expiring'
+  'moment_expiring',
+  'feedback_request'
 );
 
 CREATE TABLE notifications (
@@ -295,6 +297,22 @@ ALTER TABLE feed_posts
   ADD CONSTRAINT feed_posts_moment_id_fkey
   FOREIGN KEY (moment_id) REFERENCES moments(id) ON DELETE SET NULL;
 CREATE INDEX idx_feed_posts_moment ON feed_posts(moment_id);
+
+-- User feedback (see 028_add_feedback.sql). Stored durably here and emailed to
+-- the operator inbox; user_id is SET NULL on delete so the note outlives the
+-- account that sent it.
+CREATE TABLE feedback (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID REFERENCES users(id) ON DELETE SET NULL,
+  message     TEXT NOT NULL,
+  sentiment   TEXT CHECK (sentiment IN ('love', 'meh', 'bug', 'idea')),
+  source      TEXT,
+  emailed_at  TIMESTAMPTZ,
+  email_error TEXT,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX idx_feedback_created ON feedback(created_at DESC);
+CREATE INDEX idx_feedback_user ON feedback(user_id, created_at DESC);
 
 -- Wear count / last-worn are derived views, never stored redundantly (per build plan)
 CREATE VIEW item_wear_stats AS

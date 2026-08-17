@@ -29,9 +29,27 @@ Run date: ____________  Commit/deploy: ____________  Tester: ____________
       grid correctly (and combine correctly together).
 - [ ] Category with zero items shows the "add photo" affordance, never a
       blank/broken placeholder.
-- [ ] Add item via `/add-item`: photo capture → AI draft fields populate →
-      edit any field → save → item appears in closet under the right
-      category. Time it — should feel well under 15s for a simple item.
+- [ ] The dress icon is the *only* add button on `/closet`, and it opens a
+      bottom sheet titled "add to closet" asking "a single piece" vs
+      "a whole fit".
+- [ ] Both branches show a "← what are you adding?" link back to the chooser;
+      the × closes the whole sheet and nothing is left half-filled on reopen.
+- [ ] "a single piece" in the sheet: capture → AI draft → save → the new item
+      shows up in the closet behind the sheet without a manual reload, and the
+      category count on the rail goes up.
+- [ ] "a whole fit" in the sheet: photo → tag items → save → the fit appears
+      at the top of the recent-fits reel.
+- [ ] With no fits yet, tapping the "your fits show up here" field opens the
+      sheet directly on the fit branch (not the chooser).
+- [ ] Tick "save this fit to my favs" and save → run "shuffle favs" on
+      `/stylist` a few times; the favourited combo comes up noticeably often
+      and its card reads "One of your favorites" / mentions the fav.
+- [ ] Leave the favs box unticked → the fit still logs and still counts as
+      normal shuffle-favs history (weighted by wears only).
+- [ ] Add item via `/add-item` (the standalone page, same flow): photo capture
+      → AI draft fields populate → edit any field → save → item appears in
+      closet under the right category. Time it — should feel well under 15s
+      for a simple item.
 - [ ] Add item with cost left blank — saves fine, no validation error.
 - [ ] `/add-item/from-outfit`: upload a photo with multiple visible items →
       Claude proposes multiple draft items with crops → skip one, save the
@@ -153,6 +171,21 @@ Run date: ____________  Commit/deploy: ____________  Tester: ____________
       confirm a real OS-level push arrives (prod only once VAPID keys are
       set — mark N/A on environments without them configured).
 - [ ] Push opt-out (`/api/push/unsubscribe`) actually stops further pushes.
+
+## 5b. Feedback
+- [ ] `/feedback` (reached from the "Send feedback" row on `/preferences`)
+      submits a note; the success state appears and "send another" resets it.
+- [ ] Submitting with no message is blocked (button disabled / 400 from the API).
+- [ ] The submission lands in the `feedback` table with the right `user_id`,
+      `sentiment`, and `source` (`weekly_reminder` when arriving from the
+      notification link, `app` otherwise).
+- [ ] With `RESEND_API_KEY` set, the email arrives at `FEEDBACK_EMAIL_TO` and
+      the row's `emailed_at` is populated.
+- [ ] With `RESEND_API_KEY` unset, the submission still succeeds for the user
+      and the row records `email_error` — feedback is never lost.
+- [ ] Monday 09:00 ET cron tick creates one `feedback_request` notification per
+      user, for *every* user regardless of notification preferences, and a
+      second tick the same week creates no duplicates.
 
 ## 6. Pack My Bags
 - [ ] `/pack`: enter a destination + date range → multi-day weather loads for

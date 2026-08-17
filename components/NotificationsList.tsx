@@ -15,7 +15,8 @@ export type Notification = {
     | "moment_invite"
     | "moment_accepted"
     | "moment_cohost"
-    | "moment_expiring";
+    | "moment_expiring"
+    | "feedback_request";
   title: string;
   body: string;
   link: string | null;
@@ -34,6 +35,7 @@ const TYPE_ICON: Record<Notification["type"], string> = {
   moment_accepted: "✅",
   moment_cohost: "🤝",
   moment_expiring: "⏳",
+  feedback_request: "💬",
 };
 
 function timeAgo(iso: string): string {

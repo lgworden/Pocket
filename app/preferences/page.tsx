@@ -26,6 +26,19 @@ export default async function PreferencesPage() {
         joinedCount={invite.joinedCount}
       />
 
+      <a href="/feedback" className="card flex items-center gap-3 hover:border-blue/40">
+        <span className="w-9 h-9 rounded-full bg-cream border border-slate/15 flex items-center justify-center text-base leading-none shrink-0">
+          💬
+        </span>
+        <span className="flex-1">
+          <span className="block text-sm font-ui font-semibold text-ink">Send feedback</span>
+          <span className="block text-xs text-ink/60 mt-0.5">
+            Tell us what&apos;s working and what isn&apos;t — it goes straight to the maker.
+          </span>
+        </span>
+        <span className="text-slate/40 text-lg leading-none">›</span>
+      </a>
+
       <div className="pt-2 text-center">
         {/* Username accounts have no email — show the handle instead. */}
         <p className="text-xs text-ink/40 mb-2">
