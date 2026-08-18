@@ -104,7 +104,82 @@ function PieceChips({ pieces }: { pieces: PieceRef[] }) {
   );
 }
 
-export default function PackInteractive() {
+// The export panel that closes out a finished plan: mails the whole thing to
+// the user as a boarding pass. Self-send only — the field prefills from the
+// account email when there is one (username accounts have none), and the copy
+// promises we won't mail anyone else.
+function EmailPassCard({ planId, defaultEmail }: { planId: string; defaultEmail: string }) {
+  const [email, setEmail] = useState(defaultEmail);
+  const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  async function send() {
+    setState("sending");
+    setError(null);
+    try {
+      const res = await fetch("/api/pack/email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId, email }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "couldn't send that — try again?");
+      setState("sent");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "something went wrong");
+      setState("idle");
+    }
+  }
+
+  if (state === "sent") {
+    return (
+      <div className="card bg-blue/10 border-blue/30 text-center">
+        <p className="text-2xl" aria-hidden>
+          ✈
+        </p>
+        <p className="text-sm font-ui font-semibold text-brown mt-1">boarding pass sent</p>
+        <p className="text-xs text-slate/70 mt-1">check {email} — it's on its way.</p>
+        <button
+          className="text-xs font-ui text-slate/60 hover:text-slate underline mt-3"
+          onClick={() => setState("idle")}
+        >
+          send it again
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="card">
+      <p className="text-xs font-ui font-semibold text-slate tracking-wide">
+        take it with you
+      </p>
+      <p className="text-sm text-ink/70 mt-1">
+        we'll package this whole plan as a boarding pass and email it to you.
+      </p>
+      <input
+        type="email"
+        inputMode="email"
+        autoComplete="email"
+        className="w-full mt-3 bg-transparent border border-slate/20 rounded-lg p-2 text-sm"
+        placeholder="you@example.com"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <button
+        className="btn-primary w-full mt-3"
+        onClick={send}
+        disabled={state === "sending" || !email.trim()}
+      >
+        {state === "sending" ? "sending…" : "✈ send my boarding pass"}
+      </button>
+      {error && <p className="text-xs text-rose mt-2">{error}</p>}
+      <p className="text-[11px] text-slate/60 mt-2">we'll only ever mail this to you.</p>
+    </div>
+  );
+}
+
+export default function PackInteractive({ defaultEmail = "" }: { defaultEmail?: string }) {
   const [destination, setDestination] = useState("");
   const [days, setDays] = useState(4);
   const [activities, setActivities] = useState<string[]>([]);
@@ -324,6 +399,8 @@ export default function PackInteractive() {
               </ul>
             </div>
           )}
+
+          <EmailPassCard planId={plan.id} defaultEmail={defaultEmail} />
 
           <button className="btn-secondary w-full" onClick={reset}>
             plan another trip

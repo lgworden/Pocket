@@ -5,6 +5,7 @@ export type EventType =
   | "outfit_logged"
   | "recommendation_requested"
   | "packing_plan_generated"
+  | "packing_plan_emailed"
   | "invite_accepted"
   | "friend_added"
   | "user_followed"

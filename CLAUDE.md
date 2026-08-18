@@ -229,6 +229,31 @@ which is kept only for historical build-order context.** App name settled on
 - 3-3-3 method vacation packing planner: destination multi-day weather,
   activity chips, airplane-fly animation, generates a packing list from the
   closet.
+- **Email export ("take it with you"):** a finished plan can be mailed to the
+  user as a **PCKT AIRWAYS boarding pass** — trip as flight details (passenger /
+  destination / duration / forecast, plus a deterministic flight number and a
+  `tops·bottoms·shoes` "seat"), the capsule as a carry-on allowance row, and
+  each outfit as a numbered itinerary card. Renderer in `lib/packEmail.ts`,
+  route `app/api/pack/email`, UI is `EmailPassCard` inside `PackInteractive`.
+  Goes out via the existing `lib/email.ts` (Resend) — no new dependency.
+- **Self-send only.** The field prefills from `users.email` but is editable,
+  since `email` is only set for Google-provisioned accounts and username signup
+  (the primary path) leaves it null. There is deliberately no way to mail the
+  plan to a third party, so the app can't be turned into a way to mail strangers.
+- **The request carries only a plan id.** `emailPackingPlan()` re-reads the plan
+  from the `recommendations` row keyed on `(id, user_id)` and requires
+  `options.trip`, so a hand-rolled POST can't push attacker-authored strings
+  through our sender, can't mail someone else's plan, and can't mail a daily
+  outfit rec. Every Claude-authored string is `escapeHtml`'d into the HTML part.
+- Two email-HTML constraints worth keeping: a 600px table **cannot** shrink via
+  `max-width:100%` alone (its own max-width resolves against a container the
+  table is what's sizing), so narrow screens depend on the `@media` override on
+  `.pass-shell`; and row widths must be all-percentage — mixing fixed-px spacer
+  cells into a percentage row pushes it past 100% and reintroduces a hard
+  minimum width.
+- **Deployment caveat:** delivery to real users needs `EMAIL_FROM` on a verified
+  domain. The default `onboarding@resend.dev` sender only delivers to the
+  address that owns the Resend account.
 
 **Preferences & profile management** (`app/preferences`)
 - Editable "Your info" / "Notifications" popups (shared pickers, not inline).

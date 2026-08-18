@@ -194,6 +194,14 @@ Run date: ____________  Commit/deploy: ____________  Tester: ____________
 - [ ] Generated list follows the 3-3-3 method constraints and only pulls from
       real closet items.
 - [ ] Fly animation plays without blocking interaction/errors in console.
+- [ ] "take it with you" card appears under a finished plan; the email field
+      prefills for a Google account and is blank-but-editable for a username
+      account.
+- [ ] Sending mails a boarding pass that matches the on-screen plan (capsule
+      counts, every outfit, don't-forget list) and renders correctly on a phone.
+- [ ] Bad address is rejected client-side-ish (400) with a readable message; a
+      server with no `RESEND_API_KEY` says so rather than silently succeeding.
+- [ ] Success state replaces the form and "send it again" returns to it.
 
 ## 7. Preferences & profile
 - [ ] Update "Your info" (including location) from `/preferences` — new

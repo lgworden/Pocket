@@ -23,7 +23,7 @@ export default async function PackPage() {
         </div>
       </header>
 
-      <PackInteractive />
+      <PackInteractive defaultEmail={user.email ?? ""} />
 
       <BottomNav />
     </main>
