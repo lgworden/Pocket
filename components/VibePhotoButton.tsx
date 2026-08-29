@@ -6,14 +6,14 @@ import { isNativePlatform, pickNativePhoto } from "@/lib/nativePhoto";
 import type { MomentWithMembers } from "@/lib/moments";
 
 // Small "+ add" affordance that captures/picks a photo (compressed client-side),
-// POSTs it to `endpoint`, and hands the refreshed moment back to `onUploaded`.
+// POSTs it to `endpoint`, and hands the refreshed vibe back to `onUploaded`.
 // Shared by the moodboard (inspo) and "add your fit" (candidate) strips.
 //
 // Preserves the two photo-picker invariants (see lib/nativePhoto.ts):
 //   1. the native check is synchronous, before the web input's click, so the
 //      transient user-activation a file picker needs isn't spent on an await;
 //   2. no static @capacitor import — pickNativePhoto dynamic-imports it.
-export default function MomentPhotoButton({
+export default function VibePhotoButton({
   endpoint,
   label,
   onUploaded,

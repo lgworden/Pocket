@@ -131,7 +131,7 @@ async function requireEditor(
 ): Promise<MomentRole> {
   const role = await getRole(momentId, userId, db);
   if (role !== "creator" && role !== "collaborator") {
-    throw new MomentError("Not allowed to edit this moment", 403);
+    throw new MomentError("Not allowed to edit this vibe", 403);
   }
   return role;
 }
@@ -396,7 +396,7 @@ export async function addMembers(
     } else if (designer) {
       resolved.push({ ...t, status: "pending" });
     } else {
-      throw new MomentError("You can only invite mutual friends to a moment", 400);
+      throw new MomentError("You can only invite mutual friends to a vibe", 400);
     }
   }
 
@@ -507,7 +507,7 @@ export async function updateMoment(
 export async function deleteMoment(userId: string, momentId: string): Promise<void> {
   const role = await getRole(momentId, userId);
   if (role !== "creator") {
-    throw new MomentError("Only the creator can delete this moment", 403);
+    throw new MomentError("Only the creator can delete this vibe", 403);
   }
   await pool.query(
     `UPDATE moments SET deleted_at = now() WHERE id = $1 AND deleted_at IS NULL`,
@@ -529,7 +529,7 @@ async function assertAcceptedMember(momentId: string, userId: string): Promise<v
     [momentId, userId]
   );
   if (rows.length === 0) {
-    throw new MomentError("You're not a participant in this moment", 403);
+    throw new MomentError("You're not a participant in this vibe", 403);
   }
 }
 
@@ -641,7 +641,7 @@ export async function syncMomentToGcal(
     [momentId]
   );
   const mo = rows[0];
-  if (!mo) throw new MomentError("Moment not found", 404);
+  if (!mo) throw new MomentError("Vibe not found", 404);
 
   const { rows: attendees } = await pool.query<{ label: string }>(
     `SELECT COALESCE('@' || u.username, u.display_name, u.name) AS label
@@ -714,7 +714,7 @@ async function momentName(momentId: string): Promise<string> {
     "SELECT event_name FROM moments WHERE id = $1",
     [momentId]
   );
-  return rows[0]?.event_name ?? "a moment";
+  return rows[0]?.event_name ?? "a vibe";
 }
 
 async function notifyInvited(
@@ -737,7 +737,7 @@ async function notifyInvited(
     await createNotification(
       recipientId,
       "moment_invite",
-      "New moment",
+      "New vibe",
       `${label} added you to ${name}.`,
       link
     );
@@ -806,7 +806,7 @@ export async function runMomentMaintenance(): Promise<{
     await createNotification(
       r.user_id,
       "moment_expiring",
-      "Moment expiring soon",
+      "Vibe expiring soon",
       `${r.event_name} expires in 2 days — add your fit.`,
       momentLink(r.id)
     ).catch((err) => console.error("moment_expiring notification failed:", err));

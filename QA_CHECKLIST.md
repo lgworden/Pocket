@@ -84,12 +84,19 @@ Run date: ____________  Commit/deploy: ____________  Tester: ____________
 - [ ] Self-styled logging: tap an item that isn't yet in the closet →
       prompted to add it (gap detection) rather than silently failing.
 
-## 3b. Moments (on the Today/Digest screen)
-- [ ] `/stylist` shows the Moments block with a "+ new" button; with no
-      moments it shows the empty "plan a group fit…" copy, not a broken list.
-- [ ] "+ new" opens the composer; creating with a name + start time (and some
-      vibe chips / formality) makes the moment appear under "Created by you"
-      with an expiry pill, without a page reload.
+## 3b. Vibe check (on the Today/Digest screen)
+- [ ] `/stylist` shows a compact "vibe check" card (blue wash, like the "where
+      to next?" card); tapping it opens a modal titled "vibe check" with a
+      "+ new vibe" button. With nothing planned the modal shows the empty
+      "plan a group fit…" copy, not a broken list.
+- [ ] A `/stylist?moment=<id>` link (e.g. from a notification) opens the vibe
+      check modal automatically on load.
+- [ ] Pending invites show a rose count badge on the card and an "N invites
+      waiting" subtitle.
+- [ ] "+ new vibe" opens the composer (the list modal hides while it's up and
+      reappears on close); creating with a name + start time (and some vibe
+      chips / formality) makes the vibe appear under "Created by you" with an
+      expiry pill, without a page reload.
 - [ ] Regular user: composer search is labelled "mutual friends" and only
       returns mutual friends. Designer account: labelled "invite anyone" and
       returns all users.

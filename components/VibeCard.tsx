@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { MomentWithMembers } from "@/lib/moments";
-import MomentPhotoButton from "./MomentPhotoButton";
+import VibePhotoButton from "./VibePhotoButton";
 
 function formatWhen(iso: string): string {
   const d = new Date(iso);
@@ -30,7 +30,7 @@ function initials(name: string): string {
   return name.trim().slice(0, 1).toUpperCase() || "?";
 }
 
-export default function MomentCard({
+export default function VibeCard({
   moment,
   currentUserId,
   onEdit,
@@ -162,7 +162,7 @@ export default function MomentCard({
               );
             })}
             {isParticipant && onChanged && (
-              <MomentPhotoButton
+              <VibePhotoButton
                 endpoint={`/api/moments/${moment.id}/inspo`}
                 label="+ inspo"
                 onUploaded={onChanged}
@@ -183,7 +183,7 @@ export default function MomentCard({
               </div>
             ))}
             {isParticipant && onChanged && (
-              <MomentPhotoButton
+              <VibePhotoButton
                 endpoint={`/api/moments/${moment.id}/fits`}
                 label="+ your fit"
                 onUploaded={onChanged}

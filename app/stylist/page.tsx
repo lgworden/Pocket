@@ -8,7 +8,7 @@ import pool from "@/lib/db";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 import TodayInteractive from "@/components/TodayInteractive";
-import MomentsSection from "@/components/MomentsSection";
+import VibeCheckSection from "@/components/VibeCheckSection";
 import NotificationButton from "@/components/NotificationButton";
 
 export const dynamic = "force-dynamic";
@@ -74,12 +74,13 @@ export default async function TodayPage({
 
       <TodayInteractive calendarConnected={calendarConnected} initialRecommendation={initialRecommendation} />
 
-      <MomentsSection
+      <VibeCheckSection
         currentUserId={userId}
         isDesigner={designer}
         calendarConnected={calendarConnected}
         initialCreated={createdMoments}
         initialInvited={invitedMoments}
+        autoOpen={typeof searchParams.moment === "string"}
       />
 
       <Link

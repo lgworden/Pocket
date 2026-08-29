@@ -143,16 +143,29 @@ which is kept only for historical build-order context.** App name settled on
 - `app/invite`, `app/invite/[code]` — generic invite links (not tied to a
   specific channel), `InviteLinkCard`.
 
-**Moments** (`app/stylist` — the Today/Digest screen)
+**Vibe check** (`app/stylist` — the Today/Digest screen)
 - Private, occasion-scoped outfit-coordination plans layered onto the Today
   screen (there is no separate "Digest" tab — the spec's Digest concept maps to
-  `app/stylist`). A moment is invitation-only, tied to a date/time, expires 24h
-  after the event ends (`expires_at`), soft-deletes, and **never posts to the
-  feed**. Tables `moments` / `moment_members` / `moment_fit_inspo` (migration
-  `026`); all data logic in `lib/moments.ts`, thin routes under
-  `app/api/moments/**` (create/list, patch/delete, members add, member
-  accept/decline). UI: `MomentsSection` (Created by you / Invites / You're
-  going), `MomentCard`, `MomentComposer`.
+  `app/stylist`). User-facing this is a **"vibe check"** and each plan is **"a
+  vibe"**; the DB tables, API routes, `lib/moments.ts`, `Moment*` types, and
+  `moment_*` notification-type slugs all still use the original "moment" naming
+  (the 2026-08-29 rebrand was UI + component names only, no migration). A vibe is
+  invitation-only, tied to a date/time, expires 24h after the event ends
+  (`expires_at`), soft-deletes, and **never posts to the feed**. Tables
+  `moments` / `moment_members` / `moment_fit_inspo` (migration `026`); all data
+  logic in `lib/moments.ts`, thin routes under `app/api/moments/**`
+  (create/list, patch/delete, members add, member accept/decline).
+- **UI is a modal, not an inline block.** `VibeCheckSection` renders a compact
+  entry card on `app/stylist` — same idiom as the "where to next?" card beneath
+  it, `card bg-blue/10 border-blue/30`, subtitle surfaces pending-invite count
+  → plan count → first-run pitch, with a rose count badge for pending invites.
+  Tapping it opens a `Modal` titled "vibe check" holding the Invites / Created
+  by you / You're going lists + a "+ new vibe" button. The list `Modal` is
+  passed `open={open && !composerOpen}` so it hides (one overlay / one Escape
+  handler at a time) while `VibeComposer` is up and reappears on close.
+  `/stylist?moment=<id>` deep links (from notifications) set `autoOpen` so the
+  modal opens on load. Components: `VibeCheckSection`, `VibeCard`,
+  `VibeComposer`, `VibePhotoButton`.
 - **Role model** creator / collaborator / invitee (CHECK-constrained VARCHARs,
   not enums). Edit + add-members = creator or collaborator; add co-hosts +
   delete = creator only; accept/decline = the invited user's own row.
@@ -168,10 +181,10 @@ which is kept only for historical build-order context.** App name settled on
   inline from `lib/moments.ts`; `moment_expiring` (~48h out) and the expiry
   soft-delete sweep run every `app/api/cron/tick` via `runMomentMaintenance()`.
   All deep-link to `/stylist?moment=<id>`.
-- **Fit inspo + fits (Phase 2, shipped):** each `MomentCard` has a **moodboard**
+- **Fit inspo + fits (Phase 2, shipped):** each `VibeCard` has a **moodboard**
   strip (reference images → `moment_fit_inspo`, `app/api/moments/[id]/inspo`) and
   a **fits** strip (a member's own outfit candidate → a `feed_posts` row tagged
-  with `moment_id`, `app/api/moments/[id]/fits`). Both use `MomentPhotoButton`
+  with `moment_id`, `app/api/moments/[id]/fits`). Both use `VibePhotoButton`
   (compress + native picker + POST). Only accepted participants can add;
   inspo is removable by its uploader or the creator. Migration `027` adds
   `feed_posts.moment_id`; `getFeedPosts` filters `moment_id IS NULL` so moment

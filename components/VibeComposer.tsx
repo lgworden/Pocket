@@ -37,7 +37,7 @@ function toLocalInput(iso: string | null): string {
   return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
 }
 
-export default function MomentComposer({
+export default function VibeComposer({
   open,
   onClose,
   onSaved,
@@ -70,7 +70,7 @@ export default function MomentComposer({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // (Re)seed the form whenever the modal opens or the target moment changes.
+  // (Re)seed the form whenever the modal opens or the target vibe changes.
   useEffect(() => {
     if (!open) return;
     setEventName(editing?.event_name ?? "");
@@ -78,7 +78,7 @@ export default function MomentComposer({
     setMapsLink(editing?.google_maps_link ?? "");
     setStart(toLocalInput(editing?.event_date_time ?? null));
     setEnd(toLocalInput(editing?.event_end_time ?? null));
-    // Default the GCal box on only when editing an already-linked moment.
+    // Default the GCal box on only when editing an already-linked vibe.
     setWriteToGcal(calendarConnected && !!editing?.gcal_event_id);
     setVibes(editing?.vibe_words ?? []);
     setFormality(editing?.formality_level ?? 5);
@@ -139,7 +139,7 @@ export default function MomentComposer({
 
   async function handleSave() {
     setError(null);
-    if (!eventName.trim()) return setError("Give your moment a name.");
+    if (!eventName.trim()) return setError("Give your vibe a name.");
     if (!start) return setError("Pick a date and time.");
     setSaving(true);
     try {
@@ -181,7 +181,7 @@ export default function MomentComposer({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...details, invitee_user_ids, collaborator_user_ids }),
         });
-        if (!res.ok) throw new Error((await res.json()).error || "Couldn't create moment");
+        if (!res.ok) throw new Error((await res.json()).error || "Couldn't create vibe");
         saved = await res.json();
       }
 
@@ -214,7 +214,7 @@ export default function MomentComposer({
 
   async function handleDelete() {
     if (!editing || !onDeleted) return;
-    if (!confirm("Delete this moment? This can't be undone.")) return;
+    if (!confirm("Delete this vibe? This can't be undone.")) return;
     setSaving(true);
     try {
       const res = await fetch(`/api/moments/${editing.id}`, { method: "DELETE" });
@@ -231,7 +231,7 @@ export default function MomentComposer({
   const existingMembers = editing?.members.filter((m) => m.role !== "creator") ?? [];
 
   return (
-    <Modal open={open} onClose={onClose} title={isEdit ? "Edit moment" : "New moment"}>
+    <Modal open={open} onClose={onClose} title={isEdit ? "Edit vibe" : "New vibe"}>
       <div className="space-y-4">
         <div>
           <label className="text-xs font-ui text-slate">Event name</label>
@@ -404,7 +404,7 @@ export default function MomentComposer({
             <a href="/api/auth/google?mode=calendar" className="text-blue underline underline-offset-2">
               Connect Google Calendar
             </a>{" "}
-            to add moments to your calendar.
+            to add vibes to your calendar.
           </p>
         )}
 
@@ -412,7 +412,7 @@ export default function MomentComposer({
 
         <div className="flex items-center gap-2 pt-1">
           <button onClick={handleSave} disabled={saving} className="btn-primary disabled:opacity-50">
-            {saving ? "saving..." : isEdit ? "save changes" : "create moment"}
+            {saving ? "saving..." : isEdit ? "save changes" : "create vibe"}
           </button>
           {isEdit && onDeleted && (
             <button

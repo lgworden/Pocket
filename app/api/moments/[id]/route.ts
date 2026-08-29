@@ -25,7 +25,7 @@ export async function PATCH(
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error("Failed to update moment:", err);
-    return NextResponse.json({ error: "Failed to update moment" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to update vibe" }, { status: 500 });
   }
 }
 
@@ -45,6 +45,6 @@ export async function DELETE(
       return NextResponse.json({ error: err.message }, { status: err.status });
     }
     console.error("Failed to delete moment:", err);
-    return NextResponse.json({ error: "Failed to delete moment" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to delete vibe" }, { status: 500 });
   }
 }
