@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Modal from "@/components/Modal";
+import PhotoCropper from "@/components/feed/PhotoCropper";
 import PhotoEditor from "@/components/feed/PhotoEditor";
 import PhotoSourceSheet from "@/components/PhotoSourceSheet";
 import { compressImage } from "@/lib/compressImage";
@@ -33,9 +34,12 @@ export default function FeedComposer({
   const albumRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [payload, setPayload] = useState<{ base64: string; mediaType: string } | null>(null);
-  // Unfiltered source (data URL) kept around so re-editing starts from the original,
-  // not an already-baked frame. `editing` toggles the filter step.
+  // Unfiltered source (data URL) kept around so re-cropping/re-editing starts from
+  // the original, not an already-baked frame. `cropping` and `editing` toggle the
+  // crop and filter steps, which run in that order: crop first, then filters.
   const [origSrc, setOrigSrc] = useState<string | null>(null);
+  const [croppedSrc, setCroppedSrc] = useState<string | null>(null);
+  const [cropping, setCropping] = useState(false);
   const [editing, setEditing] = useState(false);
   const [visibility, setVisibility] = useState<FeedVisibility>("friends");
   const [caption, setCaption] = useState("");
@@ -49,6 +53,8 @@ export default function FeedComposer({
     setPreview(null);
     setPayload(null);
     setOrigSrc(null);
+    setCroppedSrc(null);
+    setCropping(false);
     setEditing(false);
     setVisibility("friends");
     setCaption("");
@@ -76,12 +82,13 @@ export default function FeedComposer({
     onClose();
   }
 
-  // Hand the compressed original to the filter step; the baked result becomes
-  // the actual upload payload once the user picks a look. Shared by the web
-  // file-input path and the native picker so both land in the same flow.
+  // Hand the compressed original to the crop step; the baked result becomes the
+  // actual upload payload once the user crops and picks a look. Shared by the
+  // web file-input path and the native picker so both land in the same flow.
   function acceptPhoto(compressed: { base64: string; mediaType: string }) {
     setOrigSrc(`data:${compressed.mediaType};base64,${compressed.base64}`);
-    setEditing(true);
+    setCroppedSrc(null);
+    setCropping(true);
   }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -148,6 +155,12 @@ export default function FeedComposer({
     })();
   }
 
+  function handleCropped(dataUrl: string) {
+    setCroppedSrc(dataUrl);
+    setCropping(false);
+    setEditing(true);
+  }
+
   function handleEdited(result: { base64: string; mediaType: string; previewUrl: string }) {
     setPayload({ base64: result.base64, mediaType: result.mediaType });
     setPreview(result.previewUrl);
@@ -182,18 +195,37 @@ export default function FeedComposer({
     }
   }
 
-  // Filter/edit step takes over the whole modal while active.
-  if (editing && origSrc) {
+  // Crop, then filter/edit — each takes over the whole modal while active.
+  if (cropping && origSrc) {
     return (
-      <Modal open={open} onClose={close} title="Edit photo">
-        <PhotoEditor
+      <Modal open={open} onClose={close} title="Crop photo">
+        <PhotoCropper
           src={origSrc}
           onCancel={() => {
-            setEditing(false);
+            setCropping(false);
             // No baked result yet → drop back to the empty picker.
             if (!payload) {
               setOrigSrc(null);
+              setCroppedSrc(null);
               clearInputs();
+            }
+          }}
+          onDone={handleCropped}
+        />
+      </Modal>
+    );
+  }
+
+  if (editing && (croppedSrc || origSrc)) {
+    return (
+      <Modal open={open} onClose={close} title="Edit photo">
+        <PhotoEditor
+          src={croppedSrc ?? origSrc!}
+          onCancel={() => {
+            setEditing(false);
+            // No baked result yet → step back to crop rather than the empty picker.
+            if (!payload) {
+              setCropping(true);
             }
           }}
           onDone={handleEdited}
@@ -212,6 +244,14 @@ export default function FeedComposer({
             <img src={preview} alt="outfit preview" className="w-full rounded-xl object-cover" />
             <button
               type="button"
+              onClick={() => setCropping(true)}
+              className="absolute bottom-2 left-2 bg-ink/70 text-cream rounded-full px-3 h-8 flex items-center justify-center text-xs font-medium gap-1"
+              aria-label="Crop photo"
+            >
+              ▢ Crop
+            </button>
+            <button
+              type="button"
               onClick={() => setEditing(true)}
               className="absolute bottom-2 right-2 bg-ink/70 text-cream rounded-full px-3 h-8 flex items-center justify-center text-xs font-medium gap-1"
               aria-label="Edit photo"
@@ -224,6 +264,7 @@ export default function FeedComposer({
                 setPreview(null);
                 setPayload(null);
                 setOrigSrc(null);
+                setCroppedSrc(null);
                 clearInputs();
               }}
               className="absolute top-2 right-2 bg-ink/70 text-cream rounded-full w-8 h-8 flex items-center justify-center text-lg leading-none"

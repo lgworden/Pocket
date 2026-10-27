@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Modal from "./Modal";
 import NotificationPicker from "./NotificationPicker";
-import PushNotificationSetup from "./PushNotificationSetup";
 import { NOTIFY_KEYS, DEFAULT_DAILY_DIGEST_TIME } from "@/lib/onboardingOptions";
 
 interface User {
@@ -58,8 +57,6 @@ export default function NotificationsModal({
           Pick what lands in your notifications. (select all that apply)
         </p>
         <NotificationPicker value={notify} onChange={setNotify} />
-
-        <PushNotificationSetup />
 
         {notify.includes("daily_digest") && (
           <div>

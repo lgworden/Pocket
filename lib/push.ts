@@ -34,10 +34,15 @@ export async function removeSubscription(endpoint: string): Promise<void> {
   await pool.query(`DELETE FROM push_subscriptions WHERE endpoint = $1`, [endpoint]);
 }
 
+// Feature kill switch: product decision to stop sending home-screen/desktop
+// push to users entirely, independent of whether VAPID env vars are set.
+const PUSH_DISABLED = true;
+
 export async function sendPushToUser(
   userId: string,
   payload: { title: string; body: string; link?: string | null }
 ): Promise<void> {
+  if (PUSH_DISABLED) return;
   if (!ensureConfigured()) return; // push not set up in this environment — no-op
 
   const { rows } = await pool.query(
